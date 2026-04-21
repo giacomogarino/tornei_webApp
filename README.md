@@ -164,4 +164,38 @@ Live scoring: aggiornamento risultati in tempo reale durante la partita
 Sponsors: banner e loghi sponsor visualizzati nella pagina torneo
 
 
+Testo a mano:
 
+requisiti funzionali:
+- i client devono registrarsi o loggarsi
+- tutti possono creare o seguire un torneo (un solo tipo di utente per semplificare)
+- torneo pubblico = seguibile da tutti, torneo privato = seguibile con codice
+
+GESTIONE TORNEI
+- tutti gli utenti possono creare un torneo
+- durante la creazione del torneo inserire dati del torneo (tipologia (chiedere a cluchy), descrizione, num max squadre, privato/pubblico ecc.) e si crea il torneo
+- i tornei possono essere seguiti per vederli più velocemente con il tasto SEGUI aggiunto in una pagina tornei seguiti
+
+GESTIONE SQUADRE E GIOCATORI 
+- nella pagina dei tornei pubblici ogni torneo avrà due tasti:
+    - tasto SEGUI spiegato prima in GESTIONE TORNEO
+    - INSERISCI SQUADRA appare un wizard personalizzato in base alle caratteristiche del torneo che va compilato con titolo torneo, i nomi dei giocatori (inseriti cercado gli utente e mettendoli, solo se registrati si possono unire)
+- dopo avere inserito la squadra l'organizzatore del torneo deve accettare la richiesta
+
+PAGINE:
+in tutte le pagine c'è una navbar con home, profilo, tornei seguiti, tornei in corso, tornei finiti
+- HOME:
+    - tasto per creazione torneo
+    - visualizza tornei pubblici con filtri
+- CREAZIONE TORNEO:
+    - 
+
+
+- 3 PAGINE:
+- pagina iniziale con tutti i tornei pubblici + casella di testo per visualizzare tornei privati
+- pagina dei tornei seguiti
+- pagina tornei conclusi (con stato == CONCLUSO)
+- quando premiamo sul torneo nella pagina seguiti si apre il torneo con sopra la fase del torneo (quarti di finale/finale) e nel centro della pagina verranno visualizzate le coppie di squadre che si affronteranno
+- quando premiamo sul torneo nella pagina dei seguiti ci sarà, oltre alla fase del torneo attuale, una sottopagina RISULTATI con lo storico del torneo con i risultati di ogni partita
+- solo il creatore del torneo potrà aggiornare il torneo, vedrà un pulsante con aggiorna e il creatore dovrà inserire a mano i risultati di ogni partita, inserito tutti i risultati potrà premere fine e in base alla tipologia di torneo si aggiornerà la fase del torneo con le squadre che hanno vinto
+- quando un torneo è arrivato alla finale il creatore aggiorna il torneo con la squadra vincitrice e lo stato (che prima era IN CORSO) e la fase del torneo diventano entrambi CONCLUSO per indicare che il torneo e finito
