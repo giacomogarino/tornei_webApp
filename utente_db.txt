@@ -1,0 +1,2 @@
+utente: admin_torneo
+password: torneo_crazy
