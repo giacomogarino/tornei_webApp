@@ -13,22 +13,22 @@ $ci = trim($_POST['ci'] ?? '');
 
 //controllo campi e validazione mail e psq
 if(empty($nome) || empty($cognome) || empty($email) || empty($psw)){
-    header("location: ../registrati.php?msg=campiVuoti");
+    header("location: ../register.php?msg=campiVuoti");
     exit;
 }
 
 if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-    header("location: ../registrati.php?msg=emailNonValida");
+    header("location: ../register.php?msg=emailNonValida");
     exit;
 }
 
 if(strlen($psw) < 8){
-    header("location: ../registrati.php?msg=passwordDebole");
+    header("location: ../register.php?msg=passwordDebole");
     exit;
 }
 
 if(!empty($ci) && strlen($ci) < 5){
-    header("location: ../registrati.php?msg=ciNonValida");
+    header("location: ../register.php?msg=ciNonValida");
     exit;
 }
 
@@ -41,7 +41,7 @@ $check->execute();
 $check->store_result();
 
 if($check->num_rows > 0){
-    header("location: ../registrati.php?msg=emailEsistente");
+    header("location: ../register.php?msg=emailEsistente");
     exit;
 }
 $check->close();
@@ -59,7 +59,7 @@ $stmt->bind_param("sssss", $nome, $cognome, $password, $email, $ci);
 if($stmt->execute()){
     header("location: ../login.php");
 } else {
-    header("location: ../registrati.php?msg=errMsg");
+    header("location: ../register.php?msg=errMsg");
 }
 
 $stmt->close();

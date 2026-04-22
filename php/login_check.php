@@ -36,7 +36,7 @@ if($row && ($password == $row['password'])){
     exit;
 
 } else {
-    header("location: ../index.php?msg=errLogin");
+    header("location: ../login.php?msg=errLogin");
     exit;
 }
 

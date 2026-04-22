@@ -14,6 +14,13 @@
 <body>
     <header>
         <h1>WebApp Gestione Tornei</h1>
+        <h2>Ciao 
+            <?php if (isset($_SESSION['id_utente'])): ?>
+                <?= $_SESSION['nome_utente']; ?>
+            <?php else: ?>
+                <a href="login.php">Login</a>
+            <?php endif; ?>
+        </h2>
         <div id="navbar">
             <nav>
                 <a href="index.php" class="<?= $current === 'index.php' ? 'active' : '' ?>">Home</a>

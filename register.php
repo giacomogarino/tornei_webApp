@@ -18,7 +18,7 @@ include("./templates/header_login.php")
                 <input type="password" id="password" name="password" placeholder="password" required><br>
 
                 <label for="n_carta_identita">N° carta identita:</label><br>
-                <input type="text" id="n_carta_identita" name="n_carta_identita" placeholder="n_carta_identita" required><br>
+                <input type="text" id="ci" name="ci" placeholder="n_carta_identita" required><br>
 
                 <input type="submit" value="Registrati">
             </form>

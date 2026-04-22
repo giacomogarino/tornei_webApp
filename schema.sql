@@ -31,6 +31,8 @@ CREATE TABLE torneo (
   numero_squadre  INT NOT NULL,
   creato_da       INT NOT NULL,
   stato           ENUM('aperto','in_corso','completato') NOT NULL DEFAULT 'aperto',
+  min_giocatori_per_squadra	INT NOT NULL,	
+	max_giocatori_per_squadra	INT NOT NULL,
 
   PRIMARY KEY (id),
 
