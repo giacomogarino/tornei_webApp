@@ -9,6 +9,5 @@
     <header>
         <div id="header_top">
             <div>Torneo</div>
-            manca la navbarrr
         </div>
     </header>
