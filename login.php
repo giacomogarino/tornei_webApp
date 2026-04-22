@@ -3,7 +3,7 @@ session_start();
 session_unset(); 
 session_destroy();
 
-require_once("./templates/header.php");
+require_once("./templates/header_login.php");
 ?>
 
     <section style="text-align: center;">

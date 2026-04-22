@@ -10,15 +10,7 @@ $email= $_POST['email'];
 $ci = $_POST['ci'];
 $telefono = $_POST['telefono'];
 
-// dati autista
-$foto = $_POST['foto'];
-$patente = $_POST['patente'];
-$scad_pat = $_POST['scad_pat'];
-$targa = $_POST['targa'];
-$marca_modello = $_POST['marca_modello'];
-$n_posti = $_POST['n_posti'];
-
-
+if
 
 if(empty($_POST['n_posti'])){
     $stmt = $conn->prepare("INSERT INTO utente(nome, cognome, password, email, CI, telefono) VALUES (?,?,?,?,?,?)"); //prepararla query
