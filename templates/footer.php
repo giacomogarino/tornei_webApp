@@ -1,5 +1,5 @@
     <footer id="footer">
-        <p>prodotto da Giacomo</p>
+        <p>footer</p>
     </footer>
 </body>
 </html>
