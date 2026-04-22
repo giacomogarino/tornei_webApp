@@ -32,7 +32,7 @@ if($row && ($password == $row['password'])){
     $_SESSION['id_utente'] = $row['id'];
     $_SESSION['nome_utente'] = $row['nome'];
 
-    header("location: ../home.php");
+    header("location: ../index.php");
     exit;
 
 } else {
