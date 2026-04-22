@@ -1,5 +1,5 @@
 <?php
-include("./templates/header.php")
+include("./templates/header_login.php")
 ?>
 
     <section style="text-align: center;">
@@ -25,12 +25,35 @@ include("./templates/header.php")
         </div>
         <div>
             Se sei registrato fai il
-            <a href="index.php">login</a>
+            <a href="login.php">login</a>
         </div>
 
         <?php
-        if(isset($_GET) && $_GET['msg'] == 'errRegister')
-            echo "<div>Non hai inserito tutti i dati o non sono corretti"."</div>";
+        if(isset($_GET['msg'])){
+            $msg = $_GET['msg'];
+
+            if($msg == "campiVuoti"){
+                echo "<div style='color:red;'>Compila tutti i campi obbligatori</div>";
+            }
+            elseif($msg == "emailNonValida"){
+                echo "<div style='color:red;'>Email non valida</div>";
+            }
+            elseif($msg == "passwordDebole"){
+                echo "<div style='color:red;'>La password deve avere almeno 8 caratteri</div>";
+            }
+            elseif($msg == "ciNonValida"){
+                echo "<div style='color:red;'>Carta identità non valida</div>";
+            }
+            elseif($msg == "emailEsistente"){
+                echo "<div style='color:red;'>Email già registrata</div>";
+            }
+            elseif($msg == "errMsg"){
+                echo "<div style='color:red;'>Errore durante la registrazione</div>";
+            }
+            elseif($msg == "okMsg"){
+                echo "<div style='color:green;'>Registrazione completata con successo</div>";
+            }
+        }
         ?>
 
     </section>
