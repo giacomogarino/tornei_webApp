@@ -11,7 +11,7 @@ CREATE TABLE utente (
   id             INT NOT NULL AUTO_INCREMENT,
   nome           VARCHAR(100) NOT NULL,
   cognome        VARCHAR(100) NOT NULL,
-  email          VARCHAR(255) NOT NULL UNIQUE,
+  email          VARCHAR(255) NOT NULL UNIQUE,  
   password_hash  VARCHAR(255) NOT NULL,
   codice_fiscale VARCHAR(20) NOT NULL UNIQUE,
 
