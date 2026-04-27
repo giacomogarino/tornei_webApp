@@ -1,6 +1,8 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
-include("../conf/db_config.php");
+include("conf/db_config.php");
 
 // Recupera dati dalla sessione (persistenza tra step)
 if (!isset($_SESSION['wizard'])) $_SESSION['wizard'] = [];
@@ -74,37 +76,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (($w['visibilita'] ?? 'pubblico') === 'privato')
             $codice_privato = strtoupper(bin2hex(random_bytes(4)));
 
-        $stmt = $pdo->prepare("
+        $stmt = $conn->prepare("
             INSERT INTO torneo
-              (nome, descrizione, formato, tipo_partita, visibilita,
-               numero_squadre, min_squadre,
-               min_giocatori_per_squadra, max_giocatori_per_squadra,
-               data_chiusura_iscrizioni, codice_privato, creato_da, stato)
+            (nome, descrizione, formato, tipo_partita, visibilita,
+            numero_squadre, min_squadre,
+            min_giocatori_per_squadra, max_giocatori_per_squadra,
+            data_chiusura_iscrizioni, codice_privato, creato_da, stato)
             VALUES
-              (:nome, :descrizione, :formato, :tipo_partita, :visibilita,
-               :numero_squadre, :min_squadre,
-               :min_gk, :max_gk,
-               :data_chiusura, :codice_privato, :creato_da, 'aperto')
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aperto')
         ");
-        $stmt->execute([
-            ':nome'           => $w['nome'],
-            ':descrizione'    => $w['descrizione'] ?: null,
-            ':formato'        => $w['formato'],
-            ':tipo_partita'   => $w['tipo_partita'],
-            ':visibilita'     => $w['visibilita'],
-            ':numero_squadre' => $w['numero_squadre'],
-            ':min_squadre'    => $w['min_squadre'],
-            ':min_gk'         => $w['min_giocatori'],
-            ':max_gk'         => $w['max_giocatori'],
-            ':data_chiusura'  => $w['data_chiusura'],
-            ':codice_privato' => $codice_privato,
-            ':creato_da'      => $_SESSION['utente_id'],
-        ]);
 
-        $nuovo_id = $pdo->lastInsertId();
-        unset($_SESSION['wizard']);
+        $descrizione = $w['descrizione'] ?: null;
+        $stmt->bind_param(
+            "sssssiiisssi",
+            $w['nome'],
+            $descrizione,
+            $w['formato'],
+            $w['tipo_partita'],
+            $w['visibilita'],
+            $w['numero_squadre'],
+            $w['min_squadre'],
+            $w['min_giocatori'],
+            $w['max_giocatori'],
+            $w['data_chiusura'],
+            $codice_privato,
+            $_SESSION['id_utente']
+        );
 
-        header("Location: dettaglio_torneo.php?id=$nuovo_id&nuovo=1");
+        $stmt->execute();
+        $nuovo_id = $conn->insert_id;
+
+        header("Location: index.php?id=$nuovo_id&nuovo=1");
         exit;
     }
 
