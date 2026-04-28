@@ -294,7 +294,7 @@ require_once('templates/header_riservato.php');
             Avanti
         </button>
     </div>
-    
+
 <?php elseif($step===2): ?>
     <fieldset>
         <legend>Dettagli torneo</legend>
@@ -342,148 +342,102 @@ require_once('templates/header_riservato.php');
     </div>
 
 <?php elseif($step===3): ?>
-
     <fieldset>
-
         <legend>Squadre</legend>
-
         <label>
             Numero massimo squadre
-
             <input type="number"
                    name="numero_squadre"
                    value="<?= $w['numero_squadre'] ?? 8 ?>">
         </label>
-
-
         <label>
             Numero minimo squadre
-
             <input type="number"
                    name="min_squadre"
                    value="<?= $w['min_squadre'] ?? 4 ?>">
         </label>
-
     </fieldset>
-
-
-
     <fieldset>
-
         <legend>Giocatori per squadra</legend>
-
         <label>
             Min giocatori
-
             <input type="number"
                    name="min_giocatori"
                    value="<?= $w['min_giocatori'] ?? 5 ?>">
         </label>
-
-
         <label>
             Max giocatori
-
             <input type="number"
                    name="max_giocatori"
                    value="<?= $w['max_giocatori'] ?? 10 ?>">
         </label>
-
     </fieldset>
-
-
-
     <div class="bottoni">
-
         <button type="submit"
                 name="azione"
                 value="indietro">
             Indietro
         </button>
-
         <button type="submit"
                 name="azione"
                 value="avanti">
             Avanti
         </button>
-
     </div>
 
-
-
 <?php elseif($step===4): ?>
-
     <fieldset>
-
         <legend>Riepilogo</legend>
-
         <p>
             <b>Nome:</b>
             <?= $w['nome'] ?>
         </p>
-
         <p>
             <b>Formato:</b>
             <?= $fmt_label[$w['formato']] ?>
         </p>
-
         <p>
             <b>Tipo partita:</b>
             <?= $tipo_label[$w['tipo_partita']] ?>
         </p>
-
         <p>
             <b>Visibilità:</b>
             <?= $w['visibilita'] ?>
         </p>
-
         <p>
             <b>Chiusura iscrizioni:</b>
             <?= $w['data_chiusura'] ?>
         </p>
-
         <p>
             <b>Squadre:</b>
             <?= $w['min_squadre'] ?> /
             <?= $w['numero_squadre'] ?>
         </p>
-
         <p>
             <b>Giocatori:</b>
             <?= $w['min_giocatori'] ?> /
             <?= $w['max_giocatori'] ?>
         </p>
-
         <?php if(!empty($w['descrizione'])): ?>
             <p>
                 <b>Descrizione:</b>
                 <?= $w['descrizione'] ?>
             </p>
         <?php endif; ?>
-
     </fieldset>
-
-
-
     <div class="bottoni">
-
         <button type="submit"
                 name="azione"
                 value="indietro">
             Indietro
         </button>
-
         <button type="submit"
                 name="azione"
                 value="crea">
             Crea torneo
         </button>
-
     </div>
-
 <?php endif; ?>
-
 </form>
-
 </body>
 </html>
