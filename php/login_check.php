@@ -28,6 +28,12 @@ $password = cryptPsw($psw);
 
 if($row && ($password == $row['password'])){
 
+    //controllo email verificata
+    if($row['verified'] == 0){
+        header("location: ../login.php?msg=emailNonConfermata");
+        exit;
+    }
+
     $_SESSION['login'] = 'ok';
     $_SESSION['id_utente'] = $row['id'];
     $_SESSION['nome_utente'] = $row['nome'];
