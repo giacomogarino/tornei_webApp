@@ -29,7 +29,7 @@ $current = basename($_SERVER['PHP_SELF']);
             <nav>
                 <a href="index.php" class="<?= $current === 'index.php' ? 'active' : '' ?>">Home</a>
                 <a href="profilo.php" class="<?= $current === 'profilo.php' ? 'active' : '' ?>">Profilo</a>
-                <a href="seguiti.php" class="<?= $current === 'seguiti.php' ? 'active' : '' ?>">Seguiti</a>
+                <a href="tornei_seguiti.php" class="<?= $current === 'tornei_seguiti.php' ? 'active' : '' ?>">Seguiti</a>
                 <a href="privati.php" class="<?= $current === 'privati.php' ? 'active' : '' ?>">Privati</a>
 
                 <?php if (!isset($_SESSION['id_utente'])): ?>

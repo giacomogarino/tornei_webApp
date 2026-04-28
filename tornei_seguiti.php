@@ -1,0 +1,38 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+include("conf/db_config.php");
+session_start();
+
+$utente_id = isset($_SESSION['id_utente']) ? $_SESSION['id_utente'] : null;
+
+if (!$utente_id) {
+    die("Devi essere loggato per vedere i tornei seguiti");
+}
+
+$sql = "SELECT t.id, t.nome, t.formato, t.stato
+        FROM torneo t
+        INNER JOIN torneo_seguito ts 
+            ON t.id = ts.torneo_id
+        WHERE ts.utente_id = ?";
+
+$stmt = $conn->prepare($sql);
+
+
+$stmt->bind_param("i", $utente_id);
+$stmt->execute();
+
+$result = $stmt->get_result();
+?>
+
+<body>
+<h2>I MIEI TORNEI SEGUITI</h2>
+<?php include("components/tabella_tornei.php"); ?>
+</body>
+</html>
+
+<?php
+$stmt->close();
+$conn->close();
+?>

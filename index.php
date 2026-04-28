@@ -42,13 +42,12 @@ require_once 'templates/header.php';
         </select>
 
         <button type="submit">Filtra</button>
-        <a href="index.php">Azzera filtri</a>
+        <button type="submit" href="index.php">Azzera filtri</button>
 
     </form>
 
     <hr>
-
-    <!-- Lista tornei filtrati -->
+    
     <?php require_once 'mostra_tornei.php'; ?>
 
 </body>
