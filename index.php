@@ -49,7 +49,7 @@ require_once 'templates/header.php';
     <hr>
 
     <!-- Lista tornei filtrati -->
-    <?php require_once 'show_tornei.php'; ?>
+    <?php require_once 'mostra_tornei.php'; ?>
 
 </body>
 </html>
