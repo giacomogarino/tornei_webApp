@@ -20,7 +20,7 @@ require_once 'templates/header.php';
         >
 
         <button type="submit">Filtra</button>
-        <a href="index.php">Azzera filtri</a>
+        <a href="privati.php">Azzera filtri</a>
 
     </form>
 

@@ -17,13 +17,13 @@ if(!empty($filtro_ricerca)){
 
     $stmt = $conn->prepare($sql);
 
-    if(!$stmt){
+    if(!$stmt)
         die("Errore prepare: " . $conn->error);
-    }
+    
 
-    $id = intval($filtro_ricerca);
+    $cod = ($filtro_ricerca);
 
-    $stmt->bind_param("i", $id);
+    $stmt->bind_param("s", $cod);
 
     $stmt->execute();
 
@@ -59,6 +59,12 @@ if(!empty($filtro_ricerca)){
             echo '<td>'.$row['nome'].'</td>';
             echo '<td>'.$row['formato'].'</td>';
             echo '<td>'.$row['stato'].'</td>';
+            echo '<td>
+                    <form method="GET" action="dettagli_torneo.php">
+                        <input type="hidden" name="id" value="' . $row['id'] . '">
+                        <input type="submit" value="Dettagli torneo">
+                    </form>
+                </td>';
             echo '</tr>';
         }
 
