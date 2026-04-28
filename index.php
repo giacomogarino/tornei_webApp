@@ -1,19 +1,7 @@
 <?php
-include("../conf/db_config.php");
 require_once 'templates/header.php';
-
-// Recupero filtri dalla GET
-$filtro_ricerca = $_GET['ricerca'] ?? '';
-$filtro_stato   = $_GET['stato']   ?? '';
-$filtro_formato = $_GET['formato'] ?? '';
 ?>
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home tornei</title>
-</head>
+
 <body>
 
     <h1>Tornei pubblici</h1>
@@ -42,7 +30,7 @@ $filtro_formato = $_GET['formato'] ?? '';
             <option value="">Tutti</option>
             <option value="girone_unico"         <?= $filtro_formato === 'girone_unico'         ? 'selected' : '' ?>>Girone unico</option>
             <option value="eliminazione_diretta" <?= $filtro_formato === 'eliminazione_diretta' ? 'selected' : '' ?>>Eliminazione diretta</option>
-            <option value="gironi_playoff"       <?= $filtro_formato === 'gironi_playoff'       ? 'selected' : '' ?>>Gironi + Playoff</option>
+            <option value="gironi_playoff"       <?= $filtro_formato === 'gironi_playoff'       ? 'selected' : '' ?>>gironi + playoff</option>
         </select>
 
         <label for="stato">Stato:</label>

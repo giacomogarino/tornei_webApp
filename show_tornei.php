@@ -1,119 +1,110 @@
 <?php
-// show_tornei.php
-// Dipendenze attese dal file chiamante (index.php):
-//   $conn            -> connessione mysqli (da db_config.php)
-//   $filtro_ricerca  -> stringa di ricerca per nome torneo
-//   $filtro_stato    -> 'aperto' | 'in_corso' | 'completato' | ''
-//   $filtro_formato  -> 'girone_unico' | 'eliminazione_diretta' | 'gironi_playoff' | ''
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Costruzione query dinamica con prepared statement
-$sql    = "SELECT 
-                t.id,
-                t.nome,
-                t.descrizione,
-                t.formato,
-                t.tipo_partita,
-                t.numero_squadre,
-                t.stato,
-                t.min_giocatori_per_squadra,
-                t.max_giocatori_per_squadra,
-                CONCAT(u.nome, ' ', u.cognome) AS creatore,
-                COUNT(DISTINCT s.id) AS squadre_iscritte
-           FROM torneo t
-           INNER JOIN utente u ON u.id = t.creato_da
-           LEFT JOIN squadra s ON s.torneo_id = t.id AND s.stato = 'approvata'
-           WHERE t.visibilita = 'pubblico'";
+include("conf/db_config.php");
 
-$params = [];
-$types  = '';
+# Recupero filtri dalla GET
+$filtro_ricerca = $_GET['ricerca'] ?? '';
+$filtro_stato   = $_GET['stato'] ?? '';
+$filtro_formato = $_GET['formato'] ?? '';
 
-if ($filtro_ricerca !== '') {
-    $sql     .= " AND t.nome LIKE ?";
-    $params[] = '%' . $filtro_ricerca . '%';
-    $types   .= 's';
+# Query base
+$sql = "SELECT id, nome, formato, stato
+        FROM torneo
+        WHERE 1=1";
+
+# Array per prepared statement
+$parametri = [];
+$tipi = "";
+
+# Filtro ricerca nome torneo
+if (!empty($filtro_ricerca)) {
+    $sql .= " AND nome LIKE ?";
+    $parametri[] = "%" . $filtro_ricerca . "%";
+    $tipi .= "s";
 }
 
-if ($filtro_stato !== '') {
-    $sql     .= " AND t.stato = ?";
-    $params[] = $filtro_stato;
-    $types   .= 's';
-}
-
+# Filtro formato
 if (!empty($filtro_formato)) {
-    $sql     .= " AND t.formato = ?";
-    $params[] = $filtro_formato;
-    $types   .= 's';
+    $sql .= " AND formato = ?";
+    $parametri[] = $filtro_formato;
+    $tipi .= "s";
 }
 
-$sql .= " GROUP BY t.id
-          ORDER BY t.id DESC";
+# Filtro stato
+if (!empty($filtro_stato)) {
+    $sql .= " AND stato = ?";
+    $parametri[] = $filtro_stato;
+    $tipi .= "s";
+}
 
+# Ordinamento finale
+$sql .= " ORDER BY id DESC";
+
+# Preparazione query
 $stmt = $conn->prepare($sql);
 
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
+if (!$stmt) {
+    die("Errore nella prepare: " . $conn->error);
 }
 
+# Bind parametri se presenti
+if (!empty($parametri)) {
+    $stmt->bind_param($tipi, ...$parametri);
+}
+
+# Esecuzione
 $stmt->execute();
-$risultato = $stmt->get_result();
-$tornei    = $risultato->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
-
-// Etichette leggibili per i valori ENUM
-$label_formato = [
-    'girone_unico'          => 'Girone unico',
-    'eliminazione_diretta'  => 'Eliminazione diretta',
-    'gironi_playoff'        => 'Gironi + Playoff',
-];
-
-$label_tipo = [
-    'andata'         => 'Solo andata',
-    'andata_ritorno' => 'Andata e ritorno',
-];
-
-$label_stato = [
-    'aperto'     => 'Aperto',
-    'in_corso'   => 'In corso',
-    'completato' => 'Completato',
-];
+$result = $stmt->get_result();
 ?>
 
-<?php if (empty($tornei)): ?>
-    <p>Nessun torneo trovato con i filtri selezionati.</p>
-<?php else: ?>
-    <p>Tornei trovati: <?= count($tornei) ?></p>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Descrizione</th>
-                <th>Formato</th>
-                <th>Tipo partita</th>
-                <th>Stato</th>
-                <th>Squadre iscritte</th>
-                <th>Max squadre</th>
-                <th>Giocatori per squadra</th>
-                <th>Creato da</th>
-                <th>Azioni</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($tornei as $torneo): ?>
-                <tr>
-                    <td><?= htmlspecialchars($torneo['nome']) ?></td>
-                    <td><?= htmlspecialchars($torneo['descrizione'] ?? '-') ?></td>
-                    <td><?= $label_formato[$torneo['formato']] ?? $torneo['formato'] ?></td>
-                    <td><?= $label_tipo[$torneo['tipo_partita']] ?? $torneo['tipo_partita'] ?></td>
-                    <td><?= $label_stato[$torneo['stato']] ?? $torneo['stato'] ?></td>
-                    <td><?= $torneo['squadre_iscritte'] ?> / <?= $torneo['numero_squadre'] ?></td>
-                    <td><?= $torneo['numero_squadre'] ?></td>
-                    <td><?= $torneo['min_giocatori_per_squadra'] ?> - <?= $torneo['max_giocatori_per_squadra'] ?></td>
-                    <td><?= htmlspecialchars($torneo['creatore']) ?></td>
-                    <td>
-                        <a href="dettaglio_torneo.php?id=<?= $torneo['id'] ?>">Dettagli</a>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-<?php endif; ?>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista Tornei</title>
+</head>
+<body>
+
+<h2>LISTA TORNEI</h2>
+
+<table border="1" cellpadding="10" cellspacing="0">
+    <tr>
+        <th>ID</th>
+        <th>Nome torneo</th>
+        <th>Formato</th>
+        <th>Stato</th>
+        <th>Dettagli</th>
+    </tr>
+
+    <?php 
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            echo '<tr>';
+            echo '<td>' . htmlspecialchars($row['id']) . '</td>';
+            echo '<td>' . htmlspecialchars($row['nome']) . '</td>';
+            echo '<td>' . htmlspecialchars($row['formato']) . '</td>';
+            echo '<td>' . htmlspecialchars($row['stato']) . '</td>';
+            echo '<td>
+                    <form method="GET" action="dettagli_torneo.php">
+                        <input type="hidden" name="id" value="' . $row['id'] . '">
+                        <input type="submit" value="Dettagli torneo">
+                    </form>
+                </td>';
+            echo '</tr>';
+        }
+    } else {
+        echo '<tr><td colspan="4">Nessun torneo trovato</td></tr>';
+    }
+    ?>
+
+</table>
+
+</body>
+</html>
+
+<?php
+$stmt->close();
+$conn->close();
+?>
