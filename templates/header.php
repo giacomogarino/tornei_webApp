@@ -1,6 +1,8 @@
 <?php
     // per sapere in che pagina si è
-    session_start();
+    if(session_status() === PHP_SESSION_NONE)
+        session_start();
+    
     $current = basename($_SERVER['PHP_SELF']);
 ?>
 <!DOCTYPE html>

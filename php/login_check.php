@@ -37,6 +37,12 @@ if($row && ($password == $row['password'])){
     $_SESSION['login'] = 'ok';
     $_SESSION['id_utente'] = $row['id'];
     $_SESSION['nome_utente'] = $row['nome'];
+    $_SESSION['cognome_utente'] = $row['cognome'];
+    $_SESSION['email_utente'] = $row['email'];
+    $_SESSION['cod_ci_utente'] = $row['cod_ci'];
+    $_SESSION['verified_utente'] = $row['cognome'];
+    $_SESSION['created_at_utente'] = $row['created_at'];
+
 
     header("location: ../index.php");
     exit;
