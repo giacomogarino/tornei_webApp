@@ -4,30 +4,26 @@ ini_set('display_errors', 1);
 session_start();
 include("conf/db_config.php");
 
-// Recupera dati dalla sessione (persistenza tra step)
+//recupera dati dalla sessione --> persistenza tra step
 if (!isset($_SESSION['wizard'])) $_SESSION['wizard'] = [];
 
 $step   = intval($_GET['step'] ?? 1);
 $errori = [];
 
-// ── Gestione POST ─────────────────────────────────────────────────────────────
+//controlla che il metodo sia post
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Lo step viene letto dal campo hidden del form, non da GET
-    // (così non ci sono disallineamenti)
-    $step   = intval($_POST['step_corrente'] ?? 1);
+    $step = intval($_POST['step_corrente'] ?? 1);
     $azione = $_POST['azione'] ?? 'avanti';
 
-    // ── Pulsante Indietro: nessuna validazione, torna allo step precedente ──
-    if ($azione === 'indietro') {
+    if($azione === 'indietro'){
         $prev = max(1, $step - 1);
         header("Location: crea_torneo.php?step=$prev");
         exit;
     }
 
-    // ── Salva e valida i dati dello step corrente ───────────────────────────
-    if ($step === 1) {
-        $_SESSION['wizard']['formato']      = $_POST['formato']      ?? '';
+    if($step === 1){
+        $_SESSION['wizard']['formato'] = $_POST['formato'] ?? '';
         $_SESSION['wizard']['tipo_partita'] = $_POST['tipo_partita'] ?? '';
 
         if (empty($_SESSION['wizard']['formato']))
