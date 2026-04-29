@@ -441,3 +441,5 @@ require_once('templates/header_riservato.php');
 </form>
 </body>
 </html>
+
+<?php require_once('templates/footer.php') ?>

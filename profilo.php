@@ -52,3 +52,5 @@ $data_registrazione = date('d F Y', strtotime($_SESSION['created_at_utente']));
     </div>
   </div>
 </div>
+
+<?php require_once('templates/footer.php') ?>

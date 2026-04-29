@@ -24,6 +24,8 @@ $stmt->bind_param("i", $utente_id);
 $stmt->execute();
 
 $result = $stmt->get_result();
+
+require_once('templates/header_riservato.php')
 ?>
 
 <body>
@@ -35,4 +37,5 @@ $result = $stmt->get_result();
 <?php
 $stmt->close();
 $conn->close();
+require_once('templates/footer.php')
 ?>
