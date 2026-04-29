@@ -4,10 +4,6 @@ session_start();
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 
-if (!$id) {
-    die("ID torneo mancante");
-}
-
 # Recupero torneo
 $sql = "SELECT * FROM torneo WHERE id = ?";
 $stmt = $conn->prepare($sql);

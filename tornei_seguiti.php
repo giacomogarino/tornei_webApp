@@ -1,9 +1,9 @@
 <?php
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
+require_once 'templates/header_riservato.php';
 include("conf/db_config.php");
-session_start();
 
 $utente_id = isset($_SESSION['id_utente']) ? $_SESSION['id_utente'] : null;
 
