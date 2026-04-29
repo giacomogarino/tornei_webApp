@@ -4,9 +4,6 @@ session_start();
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 
-if (!$id) {
-    die("ID torneo mancante");
-}
 
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita, numero_squadre,
                creato_da, stato, min_giocatori_per_squadra, max_giocatori_per_squadra,
@@ -22,13 +19,13 @@ if (!$torneo) {
     die("Torneo non trovato");
 }
 
-$utente_id = $_SESSION['id_utente'] ?? null;
+$utente_id = isset($_SESSION['id_utente']) ? $_SESSION['id_utente']: null;
 
 /*if (!$utente_id) {
     die("Devi essere loggato");
 }*/
 
-$check = "SELECT id FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
+$check = "SELECT id, utente_id FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
 $stmt = $conn->prepare($check);
 $stmt->bind_param("ii", $id, $utente_id);
 $stmt->execute();
