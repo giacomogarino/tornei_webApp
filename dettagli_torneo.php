@@ -31,7 +31,9 @@ $stmt->bind_param("ii", $id, $utente_id);
 $stmt->execute();
 $res = $stmt->get_result();
 $isFollowing = ($res->num_rows > 0);
+$author = $torneo['creato_da'];
 
+# per seguire o smettere di seguire il torneo
 if (isset($_POST['toggle_follow'])) {
     if ($isFollowing) {
         $delete = "DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
@@ -58,6 +60,7 @@ require_once('templates/header_riservato.php')
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($torneo['nome']) ?> - Dettagli Torneo</title>
 </head>
+
 <body>
 
 <hr>
@@ -67,6 +70,16 @@ require_once('templates/header_riservato.php')
     <hr>
 <?php endif; ?>
 
+<?php if ($author == $_SESSION["id_utente"]): ?>
+    <form action="modifica_torneo.php?id=<?= $torneo['id'] ?>" method="POST">
+    <button type="submit" name="modifica" >
+        modifica impostazioni
+    </button>
+</form>
+<br>
+<?php endif; ?>
+
+<!--tabella dei dati del torneo-->
 <table border="1" cellpadding="8" cellspacing="0" width="100%">
     <tr>
         <th align="left" width="220">Campo</th>
