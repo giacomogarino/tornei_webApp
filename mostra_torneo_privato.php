@@ -39,42 +39,8 @@ if(!empty($filtro_ricerca)){
 </head>
 <body>
 
-<h2>Torneo</h2>
-
-<table border="1" cellpadding="10" cellspacing="0">
-    <tr>
-        <th>ID</th>
-        <th>Nome torneo</th>
-        <th>Formato</th>
-        <th>Stato</th>
-        <th>Dettagli</th>
-    </tr>
-
-    <?php 
-    if($result && $result->num_rows > 0){
-
-        while($row = $result->fetch_assoc()){
-            echo '<tr>';
-            echo '<td>'.$row['id'].'</td>';
-            echo '<td>'.$row['nome'].'</td>';
-            echo '<td>'.$row['formato'].'</td>';
-            echo '<td>'.$row['stato'].'</td>';
-            echo '<td>
-                    <form method="GET" action="dettagli_torneo.php">
-                        <input type="hidden" name="id" value="' . $row['id'] . '">
-                        <input type="submit" value="Dettagli torneo">
-                    </form>
-                </td>';
-            echo '</tr>';
-        }
-
-    }
-    else{
-        echo '<tr><td colspan="5">Nessun torneo trovato</td></tr>';
-    }
-    ?>
-
-</table>
+<h2>Torneo privato</h2>
+<?php include("components/tabella_tornei.php"); ?>
 
 </body>
 </html>

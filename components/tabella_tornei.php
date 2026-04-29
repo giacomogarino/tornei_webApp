@@ -1,6 +1,6 @@
 <?php
 if (!isset($result)) {
-    die("Errore: nessun result passato alla tabella");
+    die("Nessun torneo trovato");
 }
 ?>
 
