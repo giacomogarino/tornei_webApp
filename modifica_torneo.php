@@ -29,65 +29,51 @@ if (isset($_POST['salva'])) {
     $tipo_partita = isset($_POST['tipo_partita']) ? $_POST['tipo_partita'] : '';
     $visibilita = isset($_POST['visibilita']) ? $_POST['visibilita'] : '';
     $numero_squadre = isset($_POST['numero_squadre']) ? $_POST['numero_squadre'] : 0;
-    $stato = isset($_POST['stato']) ? $_POST['stato'] : '';
     $min_giocatori = isset($_POST['min_giocatori']) ? $_POST['min_giocatori'] : 0;
     $max_giocatori = isset($_POST['max_giocatori']) ? $_POST['max_giocatori'] : 0;
     $min_squadre = isset($_POST['min_squadre']) ? $_POST['min_squadre'] : 0;
-    $data_chiusura = isset($_POST['data_chiusura']) ? $_POST['data_chiusura'] : '';
-    $codice_privato = isset($_POST['codice_privato']) ? $_POST['codice_privato'] : '';
+
+
+
 
     $update = "UPDATE torneo
-            SET nome = ?,
-                descrizione = ?,
-                formato = ?,
-                tipo_partita = ?,
-                visibilita = ?,
-                numero_squadre = ?,
-                stato = ?,
-                min_giocatori_per_squadra = ?,
-                max_giocatori_per_squadra = ?,
-                min_squadre = ?,
-                data_chiusura_iscrizioni = ?,
-                codice_privato = ?
-            WHERE id = ?";
+        SET nome = ?,
+            descrizione = ?,
+            formato = ?,
+            tipo_partita = ?,
+            visibilita = ?,
+            numero_squadre = ?,
+            min_giocatori_per_squadra = ?,
+            max_giocatori_per_squadra = ?,
+            min_squadre = ?
+        WHERE id = ?";
 
     $stmt = $conn->prepare($update);
     $stmt->bind_param(
-        "sssssisiiissi",
+        "sssssiiiii",
         $nome,
         $descrizione,
         $formato,
         $tipo_partita,
         $visibilita,
         $numero_squadre,
-        $stato,
         $min_giocatori,
         $max_giocatori,
         $min_squadre,
-        $data_chiusura,
-        $codice_privato,
         $id
     );
 
     $stmt->execute();
 
     header("Location: dettagli_torneo.php?id=" . $id);
-    require_once('templates/header_riservato.php');
+    
     exit;
 }
+require_once('templates/header_riservato.php');
 ?>
 
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <title>Modifica Torneo</title>
-</head>
-<body>
-
-<h2>Modifica Torneo</h2>
-
 <form method="POST">
+
     <p>
         <label>Nome torneo</label><br>
         <input type="text" name="nome" value="<?= htmlspecialchars($torneo['nome']) ?>" required>
@@ -100,27 +86,32 @@ if (isset($_POST['salva'])) {
 
     <p>
         <label>Formato</label><br>
-        <input type="text" name="formato" value="<?= htmlspecialchars($torneo['formato']) ?>">
+        <select name="formato">
+            <option value="eliminazione_diretta" <?= $torneo['formato']=="eliminazione_diretta" ? "selected" : "" ?>>Eliminazione Diretta</option>
+            <option value="girone_playoff" <?= $torneo['formato']=="girone_playoff" ? "selected" : "" ?>>Gironi + Playoff</option>
+            <option value="girone_unico" <?= $torneo['formato']=="girone_unico" ? "selected" : "" ?>>Girone Unico</option>
+        </select>
     </p>
 
     <p>
         <label>Tipo partita</label><br>
-        <input type="text" name="tipo_partita" value="<?= htmlspecialchars($torneo['tipo_partita']) ?>">
+        <select name="tipo_partita">
+            <option value="andata" <?= $torneo['tipo_partita']=="andata" ? "selected" : "" ?>>Solo andata</option>
+            <option value="andata_ritorno" <?= $torneo['tipo_partita']=="andata_ritorno" ? "selected" : "" ?>>Andata e ritorno</option>
+        </select>
     </p>
 
     <p>
         <label>Visibilità</label><br>
-        <input type="text" name="visibilita" value="<?= htmlspecialchars($torneo['visibilita']) ?>">
+        <select name="visibilita">
+            <option value="pubblico" <?= $torneo['visibilita']=="pubblico" ? "selected" : "" ?>>Pubblico</option>
+            <option value="privato" <?= $torneo['visibilita']=="privato" ? "selected" : "" ?>>Privato</option>
+        </select>
     </p>
 
     <p>
         <label>Numero squadre</label><br>
         <input type="number" name="numero_squadre" value="<?= $torneo['numero_squadre'] ?>">
-    </p>
-
-    <p>
-        <label>Stato (aperto / chiuso)</label><br>
-        <input type="text" name="stato" value="<?= htmlspecialchars($torneo['stato']) ?>">
     </p>
 
     <p>
@@ -138,20 +129,8 @@ if (isset($_POST['salva'])) {
         <input type="number" name="min_squadre" value="<?= $torneo['min_squadre'] ?>">
     </p>
 
-    <p>
-        <label>Data chiusura iscrizioni</label><br>
-        <input type="date" name="data_chiusura" value="<?= $torneo['data_chiusura_iscrizioni'] ?>">
-    </p>
-
-    <p>
-        <label>Codice privato</label><br>
-        <input type="text" name="codice_privato" value="<?= htmlspecialchars($torneo['codice_privato']) ?>">
-    </p>
 
     <button type="submit" name="salva">Salva modifiche</button>
 </form>
-
-</body>
-</html>
 
 <?php require_once('templates/footer.php'); ?>

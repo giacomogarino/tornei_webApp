@@ -54,16 +54,8 @@ if (isset($_POST['toggle_follow'])) {
 
 require_once('templates/header_riservato.php')
 ?>
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <title><?= htmlspecialchars($torneo['nome']) ?> - Dettagli Torneo</title>
-</head>
-
 <body>
-
-<hr>
+<h3><?= htmlspecialchars($torneo['nome']) ?> - Dettagli torneo</h3>
 
 <?php if ($torneo['descrizione']): ?>
     <p><?= htmlspecialchars($torneo['descrizione']) ?></p>
