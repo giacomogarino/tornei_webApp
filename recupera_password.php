@@ -10,14 +10,10 @@ require_once("./templates/header.php");
                 <input type="submit" value="Recupera password">
             </form>
         </div>
-        <div>
-            Se non sei registrato
-            <a href="register.php">registrati</a>
-        </div>
 
         <?php
-        if(isset($_GET) && $_GET['msg'] == 'errLogin')
-            echo "<div>Email o password errata"."</div>";
+        if(isset($_GET) && $_GET['msg'] == 'emptyEmail')
+            echo "<div>Inserisci la tua email"."</div>";
         ?>
 
     </section>

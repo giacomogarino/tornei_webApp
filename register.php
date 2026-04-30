@@ -32,27 +32,20 @@ include("./templates/header_login.php")
         if(isset($_GET['msg'])){
             $msg = $_GET['msg'];
 
-            if($msg == "campiVuoti"){
+            if($msg == "campiVuoti")
                 echo "<div style='color:red;'>Compila tutti i campi obbligatori</div>";
-            }
-            elseif($msg == "emailNonValida"){
+            elseif($msg == "emailNonValida")
                 echo "<div style='color:red;'>Email non valida</div>";
-            }
-            elseif($msg == "passwordDebole"){
+            elseif($msg == "passwordDebole")
                 echo "<div style='color:red;'>La password deve avere almeno 8 caratteri</div>";
-            }
-            elseif($msg == "ciNonValida"){
+            elseif($msg == "ciNonValida")
                 echo "<div style='color:red;'>Carta identità non valida</div>";
-            }
-            elseif($msg == "emailEsistente"){
+            elseif($msg == "emailEsistente")
                 echo "<div style='color:red;'>Email già registrata</div>";
-            }
-            elseif($msg == "errMsg"){
+            elseif($msg == "errMsg")
                 echo "<div style='color:red;'>Errore durante la registrazione</div>";
-            }
-            elseif($msg == "okMsg"){
-                echo "<div style='color:green;'>Registrazione completata con successo</div>";
-            }
+            elseif($msg == "confermaInviata")
+                echo "<div style='color:green;'>Registrazione completata con successo, conferma la mail per poter accedere</div>";
         }
         ?>
 

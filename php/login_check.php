@@ -9,7 +9,7 @@ $email = trim($_POST["email"] ?? '');
 $psw = $_POST["password"] ?? '';
 
 if(empty($email) || empty($psw)){
-    header("location: ../index.php?msg=campiVuoti");
+    header("location: ../login.php?msg=campiVuoti");
     exit;
 }
 

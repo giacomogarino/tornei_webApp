@@ -53,6 +53,6 @@ if($row){
 $conn->close();
 
 // risposta sempre uguale
-header("location: ../login.php?msg=seEsisteEmail");
+header("location: ../login.php?msg=ok");
 exit;
 ?>

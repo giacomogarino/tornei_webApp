@@ -86,7 +86,7 @@ if(mail($email, $subject, $body, $headers)){
     $del->execute();
     $del->close();
 
-    header("location: ../register.php?msg=errMail");
+    header("location: ../register.php?msg=errMsg");
 }
 
 $conn->close();

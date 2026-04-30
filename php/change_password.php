@@ -7,7 +7,7 @@ include("../conf/db_config.php");
 $token = $_GET['token'] ?? '';
 
 if(empty($token))
-    die("Token mancante.");
+    header("Location: ../login.php?msg=errCambioPsw");
 
 
 // hash del token ricevuto
@@ -25,11 +25,11 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 if(!$user)
-    die("Token non valido.");
+    header("Location: ../login.php?msg=errCambioPsw");
 
 
 if($user['token_expiry'] < date("Y-m-d H:i:s"))
-    die("Token scaduto.");
+    header("Location: ../login.php?msg=errCambioPsw");
 
 
 $stmt->close();

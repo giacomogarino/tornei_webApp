@@ -26,8 +26,20 @@ require_once("./templates/header.php");
         </div>
 
         <?php
-        if(isset($_GET) && $_GET['msg'] == 'errLogin')
-            echo "<div>Email o password errata"."</div>";
+        if(isset($_GET)){
+            if($_GET['msg'] == 'errLogin')
+                echo "<div>Email o password errata"."</div>";
+            else if($_GET['msg'] == 'campiVuoti')
+                echo "<div>Compila tutti i campi"."</div>";
+            else if($_GET['msg'] == 'emailNonConfermata')
+                echo "<div>Devi confermare la mail per poter accedere"."</div>";
+            if($_GET['msg'] == 'ok')
+                echo "<div>Controlla la email per cambiare la password"."</div>";
+            if($_GET['msg'] == 'passwordAggiornata')
+                echo "<div>Password aggiornata correttamente"."</div>";
+            if($_GET['msg'] == 'errCambioPsw')
+                echo "<div>Errore nel cambio della password"."</div>";
+        }
         ?>
 
     </section>
