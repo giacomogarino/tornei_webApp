@@ -70,7 +70,7 @@ if(!$stmt->execute()){
 $stmt->close();
 
 //link verifica
-$baseUrl = "https://matchoratorneo.netsons.org";
+$baseUrl = "https://matchoratorneo.netsons.org/staging";
 $link    = "$baseUrl/php/verify_email.php?token=$token";
 
 //invia email
