@@ -41,15 +41,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
 
     if(empty($password) || empty($confirm))
-        die("Compila tutti i campi.");
+        header("Location: ../change_password.php?msg=campiMancanti");
+        //die("Compila tutti i campi.");
     
 
     if($password !== $confirm)
-        die("Le password non coincidono.");
+        header("Location: ../change_password.php?msg=passwordDiverse");
+        //die("Le password non coincidono.");
     
 
     if(strlen($password) < 8)
-        die("Password troppo corta (min 8 caratteri).");
+        header("Location: ../change_password.php?msg=passwordCorta");
+        //die("Password troppo corta (min 8 caratteri).");
     
 
     // hash password
@@ -67,7 +70,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         header("Location: ../login.php?msg=passwordAggiornata");
         exit;
     }else
-        die("Errore aggiornamento password.");
+        header("Location: ../login.php?msg=errCambioPsw");
+        //die("Errore aggiornamento password.");
 }
 
 $conn->close();
@@ -92,6 +96,17 @@ $conn->close();
 
     <button type="submit">Aggiorna password</button>
 </form>
+
+    <?php
+        if(isset($_GET['msg'])){
+            if($_GET['msg'] == 'campiMancanti')
+                echo "<div>Compila tutti i campi"."</div>";
+            else if($_GET['msg'] == 'passwordDiverse')
+                echo "<div>Le password non coincidono"."</div>";
+            else if($_GET['msg'] == 'passwordCorta')
+                echo "<div>Inserisci una password da almeno 8 caratteri"."</div>";
+        }
+    ?>
 
 </body>
 </html>

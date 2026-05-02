@@ -15,7 +15,8 @@ if(empty($email) || empty($psw)){
 
 $stmt = $conn->prepare("SELECT * FROM utente WHERE email = ?");
 if(!$stmt){
-    die("Errore prepare: " . $conn->error);
+    header("location: ../login.php?msg=err");
+    //die("Errore prepare: " . $conn->error);
 }
 
 $stmt->bind_param("s", $email);

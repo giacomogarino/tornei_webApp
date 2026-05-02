@@ -11,15 +11,21 @@ if(!$utente_id){
 }
 
 $torneo_id = (int)($_GET['torneo_id'] ?? $_POST['torneo_id'] ?? 0);
-if(!$torneo_id) die("ID torneo mancante");
+if(!$torneo_id)
+    header("Location: dettagli_torneo.php?msg=err");
+    //die("ID torneo mancante");
 
 $stmt = $conn->prepare("SELECT * FROM torneo WHERE id=?");
 $stmt->bind_param("i",$torneo_id);
 $stmt->execute();
 $torneo = $stmt->get_result()->fetch_assoc();
 
-if(!$torneo) die("Torneo non trovato");
-if($torneo['stato'] !== 'aperto') die("Torneo chiuso");
+if(!$torneo) 
+    header("Location: dettagli_torneo.php?msg=err");
+    //die("Torneo non trovato");
+if($torneo['stato'] !== 'aperto') 
+    header("Location: dettagli_torneo.php?msg=errTorneoChiuso");
+    //die("Torneo chiuso");
 
 
 $stmt = $conn->prepare("
@@ -33,7 +39,8 @@ $stmt->execute();
 $cnt = $stmt->get_result()->fetch_assoc()['cnt'];
 
 if($cnt >= $torneo['numero_squadre'])
-    die("Torneo pieno");
+    header("Location: dettagli_torneo.php?msg=errTorneoPieno");
+    //die("Torneo pieno");
 
 
 if(!isset($_SESSION['wizard_squadra']) || ($_SESSION['wizard_squadra']['torneo_id'] ?? 0) != $torneo_id){
