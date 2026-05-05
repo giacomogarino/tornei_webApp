@@ -12,7 +12,7 @@ if (!$utente_id) {
     //die("Devi essere loggato per vedere i tornei seguiti");
 }
 
-$sql = "SELECT t.id, t.nome, t.formato, t.stato
+$sql = "SELECT t.id, t.nome, t.formato, t.stato, t.sport, t.luogo
         FROM torneo t
         INNER JOIN torneo_seguito ts 
             ON t.id = ts.torneo_id

@@ -1,3 +1,10 @@
+<!--
+pagine che utilizzano tabella_tornei.php
+- mostra_tornei.php
+- seguiti.php
+- mostra_torneo_privato.php
+--->
+
 <?php
 if (!isset($result)) {
     die("Nessun torneo trovato");
@@ -6,8 +13,9 @@ if (!isset($result)) {
 
 <table border="1" cellpadding="10" cellspacing="0">
     <tr>
-        <th>ID</th>
         <th>Nome torneo</th>
+        <th>Sport</th>
+        <th>Luogo</th>
         <th>Formato</th>
         <th>Stato</th>
         <th>Dettagli</th>
@@ -17,8 +25,9 @@ if (!isset($result)) {
 
         <?php while ($row = $result->fetch_assoc()): ?>
             <tr>
-                <td><?= htmlspecialchars($row['id']) ?></td>
                 <td><?= htmlspecialchars($row['nome']) ?></td>
+                <td><?= htmlspecialchars($row['sport']) ?></td>
+                <td><?= htmlspecialchars($row['luogo']) ?></td>
                 <td><?= htmlspecialchars($row['formato']) ?></td>
                 <td><?= htmlspecialchars($row['stato']) ?></td>
                 <td>

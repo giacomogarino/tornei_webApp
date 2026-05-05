@@ -451,13 +451,13 @@ require_once('templates/header_riservato.php');
             <?= $w['data_chiusura'] ?>
         </p>
         <p>
-            <b>Squadre:</b>
-            <?= $w['min_squadre'] ?> /
+            <b>Squadre:</b>da
+            <?= $w['min_squadre'] ?> a 
             <?= $w['numero_squadre'] ?>
         </p>
         <p>
-            <b>Giocatori:</b>
-            <?= $w['min_giocatori'] ?> /
+            <b>Giocatori:</b> da
+            <?= $w['min_giocatori'] ?> a 
             <?= $w['max_giocatori'] ?>
         </p>
         <?php if(!empty($w['descrizione'])): ?>

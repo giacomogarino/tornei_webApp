@@ -10,7 +10,7 @@ $result = null;
 
 if(!empty($filtro_ricerca)){
 
-    $sql = "SELECT id, nome, formato, stato
+    $sql = "SELECT id, nome, formato, stato, sport, luogo
             FROM torneo
             WHERE visibilita='privato'
             AND codice_privato = ?";
