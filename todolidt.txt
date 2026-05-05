@@ -1,0 +1,3 @@
+- aggiungere una sezione tornei creati
+- vedere il codice del torneo privato da qualche parte
+- provare a stampare i vari format dei tornei

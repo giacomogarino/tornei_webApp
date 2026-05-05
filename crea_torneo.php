@@ -205,14 +205,6 @@ require_once('templates/header_riservato.php');
 
 <div class="step">
     <strong>Step <?= $step ?>/4</strong>
-    <?php
-    for($i=1; $i<=4; $i++){
-        if($i==$step)
-            echo "[Step $i] ";
-        else
-            echo "Step $i ";
-    }
-    ?>
 </div>
 
 <?php if(!empty($errori)): ?>
@@ -410,7 +402,7 @@ require_once('templates/header_riservato.php');
         </p>
         <p>
             <b>Squadre:</b>da
-            <?= $w['min_squadre'] ?> a 
+            <?= $w['min_squadre'] ?> a
             <?= $w['numero_squadre'] ?>
         </p>
         <p>
