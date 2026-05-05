@@ -143,6 +143,8 @@ require_once('templates/header_riservato.php')
                 echo "<div>Errore torneo chiuso"."</div>";
             else if($_GET['msg'] == 'errTorneoPieno')
                 echo "<div>Errore torneo pieno"."</div>";
+            else if($_GET['msg'] == 'errGiaInSquadra')
+                echo "<div>Errore sei già in una squadra"."</div>";
         }
     ?>
 
