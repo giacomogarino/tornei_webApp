@@ -9,13 +9,14 @@ $email = trim($_POST["email"] ?? '');
 $psw = $_POST["password"] ?? '';
 
 if(empty($email) || empty($psw)){
-    header("location: ../index.php?msg=campiVuoti");
+    header("location: ../login.php?msg=campiVuoti");
     exit;
 }
 
 $stmt = $conn->prepare("SELECT * FROM utente WHERE email = ?");
 if(!$stmt){
-    die("Errore prepare: " . $conn->error);
+    header("location: ../login.php?msg=err");
+    //die("Errore prepare: " . $conn->error);
 }
 
 $stmt->bind_param("s", $email);

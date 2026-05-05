@@ -27,5 +27,14 @@ require_once 'templates/header.php';
     <hr>
     <?php require_once 'mostra_torneo_privato.php'; ?>
 
+    <?php
+        if(isset($_GET['msg'])){
+            if($_GET['msg'] == 'err')
+                echo "<div>Errore riprova più tardi"."</div>";
+        }
+    ?>
+
 </body>
 </html>
+
+<?php require_once('templates/footer.php') ?>

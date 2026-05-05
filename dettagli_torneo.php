@@ -4,9 +4,6 @@ session_start();
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 
-if (!$id) {
-    die("ID torneo mancante");
-}
 
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita, numero_squadre,
                creato_da, stato, min_giocatori_per_squadra, max_giocatori_per_squadra,
@@ -18,23 +15,29 @@ $stmt->execute();
 $result = $stmt->get_result();
 $torneo = $result->fetch_assoc();
 
-if (!$torneo) {
-    die("Torneo non trovato");
-}
+if(!$torneo)
+    header("Location: index.php?msg=errTorneoNonTrovato");
+    //die("Torneo non trovato");
 
-$utente_id = $_SESSION['id_utente'] ?? null;
 
-if (!$utente_id) {
+$utente_id = isset($_SESSION['id_utente']) ? $_SESSION['id_utente']: null;
+
+/*if (!$utente_id) {
     die("Devi essere loggato");
-}
+}*/
 
-$check = "SELECT id FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
+$check = "SELECT id, utente_id FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
 $stmt = $conn->prepare($check);
 $stmt->bind_param("ii", $id, $utente_id);
 $stmt->execute();
 $res = $stmt->get_result();
 $isFollowing = ($res->num_rows > 0);
+$author = $torneo['creato_da'];
 
+<<<<<<< HEAD
+=======
+# per seguire o smettere di seguire il torneo
+>>>>>>> 365078c0513096583a96e5250f511aca035eaabb
 if (isset($_POST['toggle_follow'])) {
     if ($isFollowing) {
         $delete = "DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
@@ -52,7 +55,10 @@ if (isset($_POST['toggle_follow'])) {
     header("Location: dettagli_torneo.php?id=" . $id);
     exit;
 }
+
+require_once('templates/header_riservato.php')
 ?>
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -72,6 +78,26 @@ if (isset($_POST['toggle_follow'])) {
     <hr>
 <?php endif; ?>
 
+=======
+<body>
+<h3><?= htmlspecialchars($torneo['nome']) ?> - Dettagli torneo</h3>
+
+<?php if ($torneo['descrizione']): ?>
+    <p><?= htmlspecialchars($torneo['descrizione']) ?></p>
+    <hr>
+<?php endif; ?>
+
+<?php if ($author == $_SESSION["id_utente"]): ?>
+    <form action="modifica_torneo.php?id=<?= $torneo['id'] ?>" method="POST">
+    <button type="submit" name="modifica" >
+        modifica impostazioni
+    </button>
+</form>
+<br>
+<?php endif; ?>
+
+<!--tabella dei dati del torneo-->
+>>>>>>> 365078c0513096583a96e5250f511aca035eaabb
 <table border="1" cellpadding="8" cellspacing="0" width="100%">
     <tr>
         <th align="left" width="220">Campo</th>
@@ -122,8 +148,16 @@ if (isset($_POST['toggle_follow'])) {
 </table>
 
 <br>
+<<<<<<< HEAD
 
 <a href="aggiungi_squadra.php?torneo_id=<?= $torneo['id'] ?>"><button>Aggiungi squadra</button></a>
+=======
+<?php if ($torneo['stato'] == 'aperto'): ?>
+    <a href="aggiungi_squadra.php?torneo_id=<?= $torneo['id'] ?>">
+        <button>Aggiungi squadra</button>
+    </a>
+<?php endif; ?>
+>>>>>>> 365078c0513096583a96e5250f511aca035eaabb
 
 <form method="POST" style="display:inline;">
     <button type="submit" name="toggle_follow">
@@ -131,5 +165,23 @@ if (isset($_POST['toggle_follow'])) {
     </button>
 </form>
 
+<<<<<<< HEAD
 </body>
 </html>
+=======
+    <?php
+        if(isset($_GET['msg'])){
+            if($_GET['msg'] == 'err')
+                echo "<div>Errore riprova più tardi"."</div>";
+            else if($_GET['msg'] == 'errTorneoChiuso')
+                echo "<div>Errore torneo chiuso"."</div>";
+            else if($_GET['msg'] == 'errTorneoPieno')
+                echo "<div>Errore torneo pieno"."</div>";
+        }
+    ?>
+
+</body>
+</html>
+
+<?php require_once('templates/footer.php') ?>
+>>>>>>> 365078c0513096583a96e5250f511aca035eaabb

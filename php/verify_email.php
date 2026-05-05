@@ -4,7 +4,7 @@ include("../conf/db_config.php");
 $token = trim($_GET['token'] ?? '');
 
 if(empty($token) || strlen($token) !== 64){
-    header("location: ../register.php?msg=tokenNonValido");
+    header("location: ../register.php?msg=errMsg");
     exit;
 }
 
@@ -19,7 +19,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if($result->num_rows === 0){
-    header("location: ../register.php?msg=tokenNonValido");
+    header("location: ../register.php?msg=errMsg");
     exit;
 }
 
@@ -41,7 +41,7 @@ if($diff > 86400){
     $del->bind_param("i", $row['id']);
     $del->execute();
 
-    header("location: ../register.php?msg=tokenScaduto");
+    header("location: ../register.php?msg=errMsg");
     exit;
 }
 
@@ -56,11 +56,11 @@ $upd_user = $conn->prepare(
 
 $upd_user->bind_param("i", $row['id']);
 
-if($upd_user->execute()){
+if($upd_user->execute())
     header("location: ../login.php?msg=registrazioneCompletata");
-}else{
+else
     header("location: ../register.php?msg=errMsg");
-}
+
 
 $upd_user->close();
 $conn->close();

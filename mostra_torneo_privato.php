@@ -18,7 +18,8 @@ if(!empty($filtro_ricerca)){
     $stmt = $conn->prepare($sql);
 
     if(!$stmt)
-        die("Errore prepare: " . $conn->error);
+        header("location: ../privati.php?msg=err");
+        //die("Errore prepare: " . $conn->error);
     
 
     $cod = ($filtro_ricerca);
