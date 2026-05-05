@@ -15,9 +15,10 @@ $stmt->execute();
 $result = $stmt->get_result();
 $torneo = $result->fetch_assoc();
 
-if (!$torneo) {
-    die("Torneo non trovato");
-}
+if(!$torneo)
+    header("Location: index.php?msg=errTorneoNonTrovato");
+    //die("Torneo non trovato");
+
 
 $utente_id = isset($_SESSION['id_utente']) ? $_SESSION['id_utente']: null;
 
@@ -133,6 +134,17 @@ require_once('templates/header_riservato.php')
         <?= $isFollowing ? 'Smetti di seguire' : ' Segui torneo' ?>
     </button>
 </form>
+
+    <?php
+        if(isset($_GET['msg'])){
+            if($_GET['msg'] == 'err')
+                echo "<div>Errore riprova più tardi"."</div>";
+            else if($_GET['msg'] == 'errTorneoChiuso')
+                echo "<div>Errore torneo chiuso"."</div>";
+            else if($_GET['msg'] == 'errTorneoPieno')
+                echo "<div>Errore torneo pieno"."</div>";
+        }
+    ?>
 
 </body>
 </html>

@@ -3,9 +3,10 @@ include("conf/db_config.php");
 
 $id = isset($_GET['id']) ? $_GET['id']: null;
 
-if (!$id) {
-    die("ID torneo mancante");
-}
+if(!$id)
+    header("Location: dettagli_torneo.php?msg=err");
+    //die("ID torneo mancante");
+
 
 // Recupero torneo
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita,

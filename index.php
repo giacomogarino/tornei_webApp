@@ -50,6 +50,14 @@ require_once 'templates/header.php';
     
     <?php require_once 'mostra_tornei.php'; ?>
 
+    <?php
+        if(isset($_GET['msg'])){
+            if($_GET['msg'] == 'errTorneoNonTrovato')
+                echo "<div>Errore torneo non trovato riprova più tardi"."</div>";
+            else if($_GET['msg'] == 'err')
+                echo "<div>Errore riprova più tardi"."</div>";
+        }
+    ?>
 </body>
 </html>
 

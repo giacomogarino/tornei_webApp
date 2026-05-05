@@ -38,7 +38,8 @@ $sql .= " ORDER BY id DESC";
 $stmt = $conn->prepare($sql);
 
 if (!$stmt) {
-    die("Errore nella prepare: " . $conn->error);
+    header("location: ../index.php?msg=err");
+    //die("Errore nella prepare: " . $conn->error);
 }
 
 if (!empty($parametri)) {
