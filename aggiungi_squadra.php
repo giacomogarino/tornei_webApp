@@ -120,45 +120,87 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         exit;
     }
 
-    /* CREA SQUADRA */
     if($azione === 'crea' && $step==3){
         $conn->begin_transaction();
         try{
             $stmt = $conn->prepare("
-                INSERT INTO squadra
-                (torneo_id,nome,capitano_id,stato)
+                INSERT INTO squadra (torneo_id,nome,capitano_id,stato)
                 VALUES(?,?,?,'in_attesa')
             ");
-
-            $stmt->bind_param("isi",
-                $torneo_id,
-                $w['nome_squadra'],
-                $utente_id
-            );
-
+            $stmt->bind_param("isi", $torneo_id, $w['nome_squadra'], $utente_id);
             $stmt->execute();
             $squadra_id = $conn->insert_id;
 
             $stmt2 = $conn->prepare("
-                INSERT INTO giocatore_squadra
-                (squadra_id,utente_id)
-                VALUES(?,?)
+                INSERT INTO giocatore_squadra (squadra_id,utente_id) VALUES(?,?)
             ");
-
             foreach($w['giocatori'] as $uid){
-                $stmt2->bind_param("ii",$squadra_id,$uid);
+                $stmt2->bind_param("ii", $squadra_id, $uid);
                 $stmt2->execute();
             }
 
             $conn->commit();
             unset($_SESSION['wizard_squadra']);
 
+            // --- RECUPERA DATI ORGANIZZATORE ---
+            $stmt_org = $conn->prepare("SELECT nome, cognome, email FROM utente WHERE id=?");
+            $stmt_org->bind_param("i", $torneo['creato_da']);
+            $stmt_org->execute();
+            $organizzatore = $stmt_org->get_result()->fetch_assoc();
+
+            // --- RECUPERA NOMI GIOCATORI ---
+            $ids_str = implode(",", array_map("intval", $w['giocatori']));
+            $res_g = $conn->query("SELECT nome, cognome FROM utente WHERE id IN ($ids_str)");
+            $lista_giocatori = "";
+            while($g = $res_g->fetch_assoc())
+                $lista_giocatori .= "- {$g['nome']} {$g['cognome']}\n";
+
+            // --- GENERA TOKEN APPROVAZIONE ---
+            $token_approva  = bin2hex(random_bytes(32));
+            $token_rifiuta  = bin2hex(random_bytes(32));
+
+            // Salva i token nel DB
+            $stmt_tok = $conn->prepare("
+                UPDATE squadra SET token_approva=?, token_rifiuta=? WHERE id=?
+            ");
+            $stmt_tok->bind_param("ssi", $token_approva, $token_rifiuta, $squadra_id);
+            $stmt_tok->execute();
+
+            // --- COSTRUISCI MAIL ---
+            $base_url = "https://" . $_SERVER['HTTP_HOST'];
+            $link_approva = "$base_url/staging/php/approva_squadra.php?token=$token_approva&azione=approva";
+            $link_rifiuta = "$base_url//staging/php/approva_squadra.php?token=$token_rifiuta&azione=rifiuta";
+
+            $to      = $organizzatore['email'];
+            $subject = "Nuova richiesta squadra — {$torneo['nome']}";
+            $message =
+            "Ciao {$organizzatore['nome']},
+
+            Una nuova squadra ha richiesto di partecipare al torneo \"{$torneo['nome']}\".
+
+            Nome squadra : {$w['nome_squadra']}
+            Giocatori    :
+            $lista_giocatori
+            Per APPROVARE la squadra clicca qui:
+            $link_approva
+
+            Per RIFIUTARE la squadra clicca qui:
+            $link_rifiuta
+
+            ---
+            Questo messaggio è stato generato automaticamente.";
+
+            $headers = "From: noreply@" . $_SERVER['HTTP_HOST'] . "\r\n" .
+                    "Content-Type: text/plain; charset=UTF-8\r\n";
+
+            mail($to, $subject, $message, $headers);
+
             header("Location: dettagli_torneo.php?id=$torneo_id&squadra_inviata=1");
             exit;
 
         }catch(Exception $e){
             $conn->rollback();
-            $errori[] = "Errore salvataggio";
+            $errori[] = "Errore salvataggio: " . $e->getMessage();
         }
     }
 }
