@@ -39,13 +39,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['wizard']['descrizione'] = trim($_POST['descrizione'] ?? '');
         $_SESSION['wizard']['visibilita'] = $_POST['visibilita'] ?? 'pubblico';
         $_SESSION['wizard']['data_chiusura'] = $_POST['data_chiusura'] ?? '';
+        $_SESSION['wizard']['sport'] = $_POST['sport'] ?? '';
+        $_SESSION['wizard']['luogo'] = trim($_POST['luogo'] ?? '');
 
         if(empty($_SESSION['wizard']['nome']))
             $errori[] = "Il nome del torneo è obbligatorio.";
         if(empty($_SESSION['wizard']['data_chiusura']))
             $errori[] = "La data di chiusura iscrizioni è obbligatoria.";
-        elseif(strtotime($_SESSION['wizard']['data_chiusura']) <= time())   //controlla la data di fine iscrizioni
+        elseif(strtotime($_SESSION['wizard']['data_chiusura']) <= time())
             $errori[] = "La data di chiusura deve essere nel futuro.";
+        if(empty($_SESSION['wizard']['sport']))
+            $errori[] = "Seleziona uno sport.";
+        if(empty($_SESSION['wizard']['luogo']))
+            $errori[] = "Il luogo del torneo è obbligatorio.";
     }
 
     elseif($step === 3){
@@ -71,21 +77,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $codice_privato = null;
         if(($w['visibilita'] ?? 'pubblico') === 'privato')
-            $codice_privato = strtoupper(bin2hex(random_bytes(4))); //crea il codice privato per il torneo
+            $codice_privato = strtoupper(bin2hex(random_bytes(4)));
 
         $stmt = $conn->prepare("
             INSERT INTO torneo
             (nome, descrizione, formato, tipo_partita, visibilita,
             numero_squadre, min_squadre,
             min_giocatori_per_squadra, max_giocatori_per_squadra,
-            data_chiusura_iscrizioni, codice_privato, creato_da, stato)
+            data_chiusura_iscrizioni, codice_privato, creato_da, stato,
+            sport, luogo)
             VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aperto')
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aperto', ?, ?)
         ");
 
         $descrizione = $w['descrizione'] ?: null;
         $stmt->bind_param(
-            "sssssiiisssi",
+            "sssssiiississs",
             $w['nome'],
             $descrizione,
             $w['formato'],
@@ -97,7 +104,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $w['max_giocatori'],
             $w['data_chiusura'],
             $codice_privato,
-            $_SESSION['id_utente']
+            $_SESSION['id_utente'],
+            $w['sport'],
+            $w['luogo']
         );
 
         $stmt->execute();
@@ -122,6 +131,10 @@ $fmt_label = [
 $tipo_label = [
     'andata'         => 'Solo Andata',
     'andata_ritorno' => 'Andata e Ritorno',
+];
+$sport_label = [
+    'calcio'       => 'Calcio',
+    'beachvolley'  => 'Beach Volley',
 ];
 
 $w = $_SESSION['wizard'];
@@ -309,6 +322,27 @@ require_once('templates/header_riservato.php');
             <textarea name="descrizione"><?= htmlspecialchars($w['descrizione'] ?? '') ?></textarea>
         </label>
         <label>
+            Sport
+            <select name="sport">
+                <option value="">-- Seleziona sport --</option>
+                <option value="calcio"
+                    <?= (($w['sport'] ?? '')=='calcio') ? 'selected' : '' ?>>
+                    Calcio
+                </option>
+                <option value="beachvolley"
+                    <?= (($w['sport'] ?? '')=='beachvolley') ? 'selected' : '' ?>>
+                    Beach Volley
+                </option>
+            </select>
+        </label>
+        <label>
+            Luogo
+            <input type="text"
+                   name="luogo"
+                   placeholder="Es. Milano, Campo Sportivo Centro"
+                   value="<?= htmlspecialchars($w['luogo'] ?? '') ?>">
+        </label>
+        <label>
             Visibilità
             <select name="visibilita">
                 <option value="pubblico"
@@ -390,7 +424,15 @@ require_once('templates/header_riservato.php');
         <legend>Riepilogo</legend>
         <p>
             <b>Nome:</b>
-            <?= $w['nome'] ?>
+            <?= htmlspecialchars($w['nome']) ?>
+        </p>
+        <p>
+            <b>Sport:</b>
+            <?= $sport_label[$w['sport']] ?? $w['sport'] ?>
+        </p>
+        <p>
+            <b>Luogo:</b>
+            <?= htmlspecialchars($w['luogo']) ?>
         </p>
         <p>
             <b>Formato:</b>
@@ -421,7 +463,7 @@ require_once('templates/header_riservato.php');
         <?php if(!empty($w['descrizione'])): ?>
             <p>
                 <b>Descrizione:</b>
-                <?= $w['descrizione'] ?>
+                <?= htmlspecialchars($w['descrizione']) ?>
             </p>
         <?php endif; ?>
     </fieldset>

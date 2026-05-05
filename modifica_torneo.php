@@ -12,7 +12,7 @@ if(!$id)
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita,
             numero_squadre, stato, min_giocatori_per_squadra,
             max_giocatori_per_squadra, min_squadre,
-            data_chiusura_iscrizioni, codice_privato
+            data_chiusura_iscrizioni, codice_privato, sport, luogo
         FROM torneo
         WHERE id = ?";
 $stmt = $conn->prepare($sql);
@@ -33,6 +33,8 @@ if (isset($_POST['salva'])) {
     $min_giocatori = isset($_POST['min_giocatori']) ? $_POST['min_giocatori'] : 0;
     $max_giocatori = isset($_POST['max_giocatori']) ? $_POST['max_giocatori'] : 0;
     $min_squadre = isset($_POST['min_squadre']) ? $_POST['min_squadre'] : 0;
+    $sport = isset($_POST['sport']) ? $_POST['sport'] : '';
+    $luogo = isset($_POST['luogo']) ? $_POST['luogo'] : '';
 
 
 
@@ -46,12 +48,14 @@ if (isset($_POST['salva'])) {
             numero_squadre = ?,
             min_giocatori_per_squadra = ?,
             max_giocatori_per_squadra = ?,
-            min_squadre = ?
+            min_squadre = ?,
+            sport = ?,
+            luogo = ?
         WHERE id = ?";
 
     $stmt = $conn->prepare($update);
     $stmt->bind_param(
-        "sssssiiiii",
+        "sssssiiiissi",
         $nome,
         $descrizione,
         $formato,
@@ -61,6 +65,8 @@ if (isset($_POST['salva'])) {
         $min_giocatori,
         $max_giocatori,
         $min_squadre,
+        $sport,
+        $luogo,
         $id
     );
 
@@ -78,6 +84,19 @@ require_once('templates/header_riservato.php');
     <p>
         <label>Nome torneo</label><br>
         <input type="text" name="nome" value="<?= htmlspecialchars($torneo['nome']) ?>" required>
+    </p>
+
+    <p>
+        <label>Sport</label><br>
+        <select name="sport">
+            <option value="calcio" <?= $torneo['sport']=="calcio" ? "selected" : "" ?>>Calcio</option>
+            <option value="beachvolley" <?= $torneo['sport']=="beachvolley" ? "selected" : "" ?>>Beachvolley</option>
+        </select>
+    </p>
+
+    <p>
+        <label>Luogo</label><br>
+        <input type="text" name="luogo" value="<?= htmlspecialchars($torneo['luogo']) ?>" required>
     </p>
 
     <p>
