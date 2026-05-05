@@ -34,7 +34,10 @@ $res = $stmt->get_result();
 $isFollowing = ($res->num_rows > 0);
 $author = $torneo['creato_da'];
 
+<<<<<<< HEAD
+=======
 # per seguire o smettere di seguire il torneo
+>>>>>>> 365078c0513096583a96e5250f511aca035eaabb
 if (isset($_POST['toggle_follow'])) {
     if ($isFollowing) {
         $delete = "DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
@@ -55,6 +58,27 @@ if (isset($_POST['toggle_follow'])) {
 
 require_once('templates/header_riservato.php')
 ?>
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title><?= htmlspecialchars($torneo['nome']) ?> - Dettagli Torneo</title>
+</head>
+<body>
+
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <h1><?= htmlspecialchars($torneo['nome']) ?></h1>
+    <a href="index.php"><button> Home</button></a>
+</div>
+<hr>
+
+<?php if ($torneo['descrizione']): ?>
+    <p><?= htmlspecialchars($torneo['descrizione']) ?></p>
+    <hr>
+<?php endif; ?>
+
+=======
 <body>
 <h3><?= htmlspecialchars($torneo['nome']) ?> - Dettagli torneo</h3>
 
@@ -73,6 +97,7 @@ require_once('templates/header_riservato.php')
 <?php endif; ?>
 
 <!--tabella dei dati del torneo-->
+>>>>>>> 365078c0513096583a96e5250f511aca035eaabb
 <table border="1" cellpadding="8" cellspacing="0" width="100%">
     <tr>
         <th align="left" width="220">Campo</th>
@@ -123,11 +148,16 @@ require_once('templates/header_riservato.php')
 </table>
 
 <br>
+<<<<<<< HEAD
+
+<a href="aggiungi_squadra.php?torneo_id=<?= $torneo['id'] ?>"><button>Aggiungi squadra</button></a>
+=======
 <?php if ($torneo['stato'] == 'aperto'): ?>
     <a href="aggiungi_squadra.php?torneo_id=<?= $torneo['id'] ?>">
         <button>Aggiungi squadra</button>
     </a>
 <?php endif; ?>
+>>>>>>> 365078c0513096583a96e5250f511aca035eaabb
 
 <form method="POST" style="display:inline;">
     <button type="submit" name="toggle_follow">
@@ -135,6 +165,10 @@ require_once('templates/header_riservato.php')
     </button>
 </form>
 
+<<<<<<< HEAD
+</body>
+</html>
+=======
     <?php
         if(isset($_GET['msg'])){
             if($_GET['msg'] == 'err')
@@ -152,3 +186,4 @@ require_once('templates/header_riservato.php')
 </html>
 
 <?php require_once('templates/footer.php') ?>
+>>>>>>> 365078c0513096583a96e5250f511aca035eaabb

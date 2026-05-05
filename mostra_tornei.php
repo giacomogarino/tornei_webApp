@@ -8,7 +8,7 @@ $filtro_ricerca = isset($_GET['ricerca']) ? $_GET['ricerca'] : '';
 $filtro_stato   = isset($_GET['stato']) ? $_GET['stato'] : '';
 $filtro_formato = isset($_GET['formato']) ? $_GET['formato'] : '';
 
-$sql = "SELECT id, nome, formato, stato
+$sql = "SELECT id, nome, formato, stato, sport, luogo
         FROM torneo
         WHERE visibilita = 'pubblico'";
 
