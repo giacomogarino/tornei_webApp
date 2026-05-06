@@ -1,0 +1,2 @@
+- provare a stampare i vari format dei tornei-> aggiungere colonna in mostra tabella
+- visualizzare le squadre iscritte in dettagli torneo
