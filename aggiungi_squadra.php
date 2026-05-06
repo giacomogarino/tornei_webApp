@@ -93,6 +93,21 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $w['nome_squadra'] = trim($_POST['nome_squadra'] ?? '');
         if($w['nome_squadra'] === ''){
             $errori[] = "Inserisci il nome della squadra.";
+        } else {
+            // Controlla nome duplicato nello stesso torneo
+            $stmt_dup = $conn->prepare("
+                SELECT COUNT(*) cnt
+                FROM squadra
+                WHERE torneo_id = ?
+                AND LOWER(TRIM(nome)) = LOWER(TRIM(?))
+                AND stato IN ('in_attesa', 'approvata')
+            ");
+            $stmt_dup->bind_param("is", $torneo_id, $w['nome_squadra']);
+            $stmt_dup->execute();
+            $dup = $stmt_dup->get_result()->fetch_assoc()['cnt'];
+            if($dup > 0){
+                $errori[] = "Esiste già una squadra con questo nome in questo torneo. Scegline un altro.";
+            }
         }
     }
 
@@ -150,6 +165,20 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     /* CREA SQUADRA */
     if($azione === 'crea' && $step == 3){
+        $stmt_dup2 = $conn->prepare("
+            SELECT COUNT(*) cnt
+            FROM squadra
+            WHERE torneo_id = ?
+            AND LOWER(TRIM(nome)) = LOWER(TRIM(?))
+            AND stato IN ('in_attesa', 'approvata')
+        ");
+        $stmt_dup2->bind_param("is", $torneo_id, $w['nome_squadra']);
+        $stmt_dup2->execute();
+        if($stmt_dup2->get_result()->fetch_assoc()['cnt'] > 0){
+            $errori[] = "Il nome squadra è stato preso da un'altra squadra nel frattempo. Torna indietro e scegline un altro.";
+        } else {
+            // ... tutto il blocco begin_transaction() esistente
+        }
 
         // Ri-valida tutti i giocatori prima dell'INSERT
         $conflitti = [];
