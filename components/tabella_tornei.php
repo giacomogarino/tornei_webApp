@@ -19,6 +19,7 @@ if (!isset($result)) {
         <th>Formato</th>
         <th>Stato</th>
         <th>Dettagli</th>
+        <th>Struttura</th>
     </tr>
 
     <?php if ($result->num_rows > 0): ?>
@@ -34,6 +35,12 @@ if (!isset($result)) {
                     <form method="GET" action="dettagli_torneo.php">
                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
                         <input type="submit" value="Dettagli torneo">
+                    </form>
+                </td>
+                <td>
+                    <form method="GET" action="struttura_torneo.php">
+                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                        <input type="submit" value="strttura torneo">
                     </form>
                 </td>
             </tr>
