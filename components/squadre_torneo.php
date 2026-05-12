@@ -28,10 +28,14 @@ function mostra_squadre_approvate(array $squadre, ?int $utente_id = null): void
                 </td>
                 <td>
 <<<<<<< HEAD
+<<<<<<< HEAD
                     <a href="../dettagli_squadra.php?id=<?= $squadra['id'] ?>">Vedi squadra</a>
 =======
                     <a href="dettagli_squadra.php?id=<?= $squadra['id'] ?>">Vedi squadra</a>
 >>>>>>> 1c9788b6eec4dae6094cfee28cd7ce8c1a7c8bbf
+=======
+                    <a href="../dettagli_squadra.php?id=<?= $squadra['id'] ?>">Vedi squadra</a>
+>>>>>>> f270636bd8260e575cd9743cfd84f9b5926a19b6
                 </td>
             </tr>
             <?php endforeach; ?>
