@@ -7,9 +7,8 @@ $view = $_GET['view'] ?? 'classifica';
 
 if (!$torneo_id) die("ID torneo mancante");
 
-/* =========================
-   PRENDO TORNEO
-========================= */
+
+# PRENDO TORNEO
 $stmt = $conn->prepare("SELECT * FROM torneo WHERE id = ?");
 $stmt->bind_param("i", $torneo_id);
 $stmt->execute();
@@ -17,15 +16,12 @@ $torneo = $stmt->get_result()->fetch_assoc();
 
 if (!$torneo) die("Torneo non trovato");
 
-/* =========================
-   CHECK ORGANIZZATORE
-========================= */
+# CHECK ORGANIZZATORE
 $isOrganizzatore = isset($_SESSION['utente_id']) &&
                    $_SESSION['utente_id'] == $torneo['creato_da'];
 
-/* =========================
-   FUNZIONI
-========================= */
+
+# FUNZIONI
 function prossimoTurno($turno) {
     return match($turno) {
         'ottavi' => 'quarti',
@@ -159,6 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore) {
     header("Location: struttura_torneo.php?id=$torneo_id&view=partite");
     exit;
 }
+require_once('templates/header.php');
 ?>
 
 <!DOCTYPE html>
@@ -257,3 +254,7 @@ $result = $stmt->get_result();
 
 </body>
 </html>
+
+<?php
+require_once('templates/footer.php');
+?>
