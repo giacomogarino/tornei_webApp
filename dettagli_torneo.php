@@ -1,5 +1,6 @@
 <?php
 include("conf/db_config.php");
+require_once('components/squadre_torneo.php');
 session_start();
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
@@ -52,6 +53,17 @@ if (isset($_POST['toggle_follow'])) {
     header("Location: dettagli_torneo.php?id=" . $id);
     exit;
 }
+
+// Dopo la query del torneo, prima dell'HTML
+$sql_squadre = "SELECT id, nome, capitano_id
+                FROM squadra
+                WHERE torneo_id = ? AND stato = 'approvata'
+                ORDER BY nome ASC";
+$stmt = $conn->prepare($sql_squadre);
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$squadre = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
 
 require_once('templates/header_riservato.php')
 ?>
@@ -133,7 +145,14 @@ require_once('templates/header_riservato.php')
     <button type="submit" name="toggle_follow">
         <?= $isFollowing ? 'Smetti di seguire' : ' Segui torneo' ?>
     </button>
+
+    <input type="hidden" name="id" value="<?= $torneo['id'] ?>">
+    <input type="submit" value="strttura torneo">
 </form>
+
+<!-- Nel corpo HTML, dove vuoi mostrarle -->
+<h4>Squadre iscritte</h4>
+<?php mostra_squadre_approvate($squadre, $utente_id); ?>
 
     <?php
         if(isset($_GET['msg'])){

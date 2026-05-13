@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/navbar.css">
+    <link rel="stylesheet" href="/staging/css/navbar.css">
     <title>Torneo crazy</title>
 </head>
 <body>
@@ -29,6 +29,7 @@
                 <a href="profilo.php" class="<?= $current === 'profilo.php' ? 'active' : '' ?>">Profilo</a>
                 <a href="tornei_seguiti.php" class="<?= $current === 'tornei_seguiti.php' ? 'active' : '' ?>">Seguiti</a>
                 <a href="privati.php" class="<?= $current === 'privati.php' ? 'active' : '' ?>">Privati</a>
+                <a href="tornei_creati.php" class="<?= $current === 'tornei_creati.php' ? 'active' : '' ?>">Tornei creati</a>
 
                 <?php if (!isset($_SESSION['id_utente'])): ?>
                     <a href="login.php">Login</a>
