@@ -28,8 +28,8 @@ function cryptpsw($psw){
 function aggiorna_tornei_scaduti($conn){
     $lock_file = sys_get_temp_dir() . '/torneo_cron.lock';
     
-    if(file_exists($lock_file) && (time() - filemtime($lock_file)) < 600)
-        return; // eseguito meno di 10 minuti fa, salta
+    if(file_exists($lock_file) && (time() - filemtime($lock_file)) < 60)
+        return; // eseguito meno di 1 minuti fa, salta
     
     touch($lock_file);
     
