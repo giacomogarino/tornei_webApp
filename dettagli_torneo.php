@@ -145,6 +145,9 @@ require_once('templates/header_riservato.php')
     <button type="submit" name="toggle_follow">
         <?= $isFollowing ? 'Smetti di seguire' : ' Segui torneo' ?>
     </button>
+
+    <input type="hidden" name="id" value="<?= $torneo['id'] ?>">
+    <input type="submit" value="strttura torneo">
 </form>
 
 <!-- Nel corpo HTML, dove vuoi mostrarle -->
