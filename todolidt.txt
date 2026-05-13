@@ -1,5 +1,6 @@
 - provare a stampare i vari format dei tornei-> aggiungere colonna in mostra tabella
-- visualizzare le squadre iscritte in dettagli torneo
 
 - controllo n_squadre in crea torneo per eliminazione diretta
 - finire i vari casi sulle partite
+
+mercoledì
