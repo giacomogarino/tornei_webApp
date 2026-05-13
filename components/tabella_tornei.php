@@ -40,7 +40,7 @@ if (!isset($result)) {
                 <td>
                     <form method="GET" action="struttura_torneo.php">
                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                        <input type="submit" value="strttura torneo">
+                        <input type="submit" value="struttura torneo">
                     </form>
                 </td>
             </tr>
