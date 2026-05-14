@@ -3,4 +3,4 @@
 - controllo n_squadre in crea torneo per eliminazione diretta
 - finire i vari casi sulle partite
 
-mercoledì
+- fare pagina pasti se sei amministratore fai inserire gli orari altrimenti li visualizzi solo

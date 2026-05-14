@@ -1,6 +1,5 @@
 <?php
 include("conf/db_config.php");
-session_start();
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 

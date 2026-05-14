@@ -152,6 +152,20 @@ require_once('templates/header_riservato.php')
     <input type="submit" value="struttura torneo">
 </form>
 
+<?php if ($torneo['stato'] === 'in_corso'): ?>
+
+    <form method="GET" action="gestione_pranzi.php" style="display:inline;">
+        <input type="hidden" name="id" value="<?= $torneo['id'] ?>">
+        <input type="submit" value="gestione pranzi">
+    </form>
+<?php endif; ?>
+
+<?php if ($torneo['stato'] === 'aperto' && $torneo['visibilita'] === 'privato'): ?>
+    <form method="GET" action="aggiunta_squadre_manualmente.php" style="display:inline;">
+        <input type="hidden" name="id" value="<?= $torneo['id'] ?>">
+        <input type="submit" value="inserisci squadre">
+    </form>
+<?php endif; ?>  
 <!-- Nel corpo HTML, dove vuoi mostrarle -->
 <h4>Squadre iscritte</h4>
 <?php mostra_squadre_approvate($squadre, $utente_id); ?>

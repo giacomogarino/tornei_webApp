@@ -167,6 +167,19 @@ CREATE TABLE `utente` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
+-- tabella pranzi
+--
+
+CREATE TABLE pranzi (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    torneo_id INT NOT NULL,
+    squadra_id INT NOT NULL,
+    orario DATETIME NOT NULL,
+    FOREIGN KEY (torneo_id) REFERENCES torneo(id) ON DELETE CASCADE,
+    FOREIGN KEY (squadra_id) REFERENCES squadra(id) ON DELETE CASCADE
+);
+
+--
 -- Dump dei dati per la tabella `utente`
 --
 
@@ -288,6 +301,18 @@ ALTER TABLE `torneo_seguito`
 --
 ALTER TABLE `utente`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+
+--
+-- chiave unica tabella pranzi
+--
+ALTER TABLE pranzi
+ADD UNIQUE KEY unique_pranzo (torneo_id, squadra_id);
+
+--
+-- colonna perosne pranzo in tabella squadre
+--
+ALTER TABLE squadra
+ADD COLUMN persone_pranzo INT DEFAULT 0;
 
 --
 -- Limiti per le tabelle scaricate
