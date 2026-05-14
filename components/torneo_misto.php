@@ -133,18 +133,20 @@ function calcolaGironi($squadre) {
  * Restituisce [squadre_per_girone_che_avanzano, totale_playoff]
  */
 function squadreAvanzanoPerGirone($numGironi) {
-    // Vogliamo trovare k tale che k * numGironi sia potenza di 2
-    for ($k = 1; $k <= 8; $k++) {
+    // Vogliamo trovare il k più piccolo tale che:
+    //   k * numGironi sia una potenza di 2 E >= 4 (minimo quarti).
+    // Preferenza: 8 (ottavi) > 4 (quarti) > 2 (semifinale solo se impossibile fare di meglio).
+    for ($k = 1; $k <= 16; $k++) {
         $tot = $k * $numGironi;
-        if ($tot >= 2 && ($tot & ($tot - 1)) === 0) {
+        if ($tot >= 4 && ($tot & ($tot - 1)) === 0) {
             return [$k, $tot];
         }
     }
-    // Fallback: 1 per girone, arrotondiamo il totale alla potenza di 2 successiva
-    $tot = $numGironi;
-    $pot = 1;
-    while ($pot < $tot) $pot *= 2;
-    return [1, $pot];
+    // Fallback: arrotondiamo alla potenza di 2 >= 4 più vicina
+    $pot = 4;
+    while ($pot < $numGironi) $pot *= 2;
+    $k = (int)ceil($pot / $numGironi);
+    return [$k, $k * $numGironi];
 }
 
 function generaGironi($conn, $torneo_id) {
@@ -696,32 +698,55 @@ $ordineTurni = ['ottavi', 'quarti', 'semifinale', 'finale'];
     <h3><?= ucfirst($turno) ?></h3>
     <table border="1">
     <tr>
-        <th>Casa</th><th>Ospite</th><th>Risultato</th>
-        <?php if ($isOrganizzatore): ?><th>Inserisci</th><?php endif; ?>
+        <th>Casa</th><th>Ospite</th><th>Orario</th><th>Risultato</th>
+        <?php if ($isOrganizzatore): ?><th>Gestione</th><?php endif; ?>
     </tr>
     <?php foreach ($partitePerTurno[$turno] as $row): ?>
     <tr>
         <td><?= htmlspecialchars($row['casa']) ?></td>
         <td><?= htmlspecialchars($row['ospite']) ?></td>
+        <td><?= $row['orario'] ?? 'non impostato' ?></td>
         <td><?= $row['punti_casa'] ?? '-' ?> - <?= $row['punti_ospite'] ?? '-' ?></td>
 
-        <?php if ($isOrganizzatore && $row['stato'] !== 'terminata'): ?>
+        <?php if ($isOrganizzatore): ?>
         <td>
+            <?php if ($row['stato'] !== 'terminata'): ?>
+
+            <!-- FORM ORARIO -->
+            <form method="POST" style="margin-bottom:10px;">
+                <input type="hidden" name="partita_id_orario" value="<?= $row['id'] ?>">
+                <input type="datetime-local" name="orario" required>
+                <button>Salva orario</button>
+            </form>
+
+            <!-- FORM RISULTATO -->
             <form method="POST">
                 <input type="hidden" name="partita_id" value="<?= $row['id'] ?>">
                 <input type="number" name="casa" required style="width:50px;">
                 <input type="number" name="ospite" required style="width:50px;">
                 <button>OK</button>
             </form>
+
+            <?php else: ?>
+                ✔
+            <?php endif; ?>
         </td>
-        <?php elseif ($isOrganizzatore): ?>
-            <td>✔</td>
         <?php endif; ?>
     </tr>
     <?php endforeach; ?>
     </table>
 <?php endforeach; ?>
 
+<?php endif; ?>
+
+<?php if (isset($_GET['msg'])): ?>
+    <?php if ($_GET['msg'] === 'errRisultato'): ?>
+        <div>Errore: non possono pareggiare</div>
+    <?php elseif ($_GET['msg'] === 'errPunti'): ?>
+        <div>Errore: valori negativi non validi</div>
+    <?php elseif ($_GET['msg'] === 'errOrario'): ?>
+        <div>Errore: inserisci un orario valido</div>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php endif; ?>
