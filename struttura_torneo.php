@@ -8,7 +8,10 @@ include_once("conf/db_config.php");
 $torneo_id = $_GET['id'] ?? null;
 $view = $_GET['view'] ?? 'classifica';
 
-if (!$torneo_id) die("ID torneo mancante");
+if(!$torneo_id){
+    header("Location: dettagli_torneo.php?msg=err");
+    exit;
+}
 
 # PRENDO TORNEO
 $stmt = $conn->prepare("SELECT * FROM torneo WHERE id = ?");
@@ -16,7 +19,10 @@ $stmt->bind_param("i", $torneo_id);
 $stmt->execute();
 $torneo = $stmt->get_result()->fetch_assoc();
 
-if (!$torneo) die("Torneo non trovato");
+if(!$torneo){
+    header("Location: dettagli_torneo.php?msg=err");
+    exit;
+}
 
 $formato = $torneo['formato'];
 
@@ -35,6 +41,7 @@ switch($formato) {
         break;
 
     default:
-        echo "Formato torneo non valido";
+        header("Location: dettagli_torneo.php?msg=err");
+        exit;
 }
 ?>

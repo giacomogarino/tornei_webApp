@@ -1,10 +1,6 @@
 <?php
-// Incluso da struttura_torneo.php
-// Variabili disponibili: $conn, $torneo, $torneo_id, $isOrganizzatore, $view
-
 $tipo_partita = $torneo['tipo_partita']; // 'andata' | 'andata_ritorno'
 
-# CHECK ORGANIZZATORE
 $isOrganizzatore = isset($_SESSION['id_utente']) &&
                     $_SESSION['id_utente'] == $torneo['creato_da'];
 
@@ -12,7 +8,7 @@ $isOrganizzatore = isset($_SESSION['id_utente']) &&
    FUNZIONI
 ===================================================== */
 
-function girone_generaPartite($conn, $torneo_id, $tipo_partita) {
+function girone_genera_partite($conn, $torneo_id, $tipo_partita){
 
     $stmt = $conn->prepare("
         SELECT id FROM squadra
@@ -25,49 +21,48 @@ function girone_generaPartite($conn, $torneo_id, $tipo_partita) {
     $n = count($squadre);
     if ($n < 2) return;
 
-    // Se dispari aggiunge un "bye" (null)
-    if ($n % 2 !== 0) {
+    // Se dispari aggiunge un null --> turno di riposo
+    if($n % 2 !== 0){
         $squadre[] = null;
         $n++;
     }
 
-    $meta    = $n / 2;
+    $meta = $n / 2;
     $giornate = [];
 
-    // Round-robin: fissa la prima squadra, ruota le altre
+    // fissa prima squadra e ruotano le altre
     $lista = $squadre;
     $fisso = array_shift($lista);
 
-    for ($g = 0; $g < $n - 1; $g++) {
-        $giro    = array_merge([$fisso], $lista);
+    for($g = 0; $g < $n - 1; $g++){
+        $giro = array_merge([$fisso], $lista);
         $partite = [];
 
-        for ($i = 0; $i < $meta; $i++) {
-            $casa   = $giro[$i];
+        for($i = 0; $i < $meta; $i++){
+            $casa = $giro[$i];
             $ospite = $giro[$n - 1 - $i];
 
-            if ($casa === null || $ospite === null) continue;
+            if($casa === null || $ospite === null) continue;
 
             // Alterna chi gioca in casa ogni giornata
-            if ($g % 2 === 0) {
+            if($g % 2 === 0)
                 $partite[] = [$casa, $ospite, 'andata'];
-            } else {
+            else
                 $partite[] = [$ospite, $casa, 'andata'];
-            }
+            
         }
-
         $giornate[$g + 1] = $partite;
 
         // Rotazione
         array_unshift($lista, array_pop($lista));
     }
 
-    // Se andata e ritorno: duplica le giornate invertendo casa/ospite
-    if ($tipo_partita === 'andata_ritorno') {
+    // Se andata e ritorno duplica le giornate invertendo casa/ospite
+    if($tipo_partita === 'andata_ritorno'){
         $tot = count($giornate);
-        foreach ($giornate as $g => $partite) {
+        foreach($giornate as $g => $partite){
             $ritorno = [];
-            foreach ($partite as [$casa, $ospite, $_]) {
+            foreach($partite as [$casa, $ospite, $_]){
                 $ritorno[] = [$ospite, $casa, 'ritorno'];
             }
             $giornate[$g + $tot] = $ritorno;
@@ -80,7 +75,7 @@ function girone_generaPartite($conn, $torneo_id, $tipo_partita) {
         VALUES (?, ?, ?, 1, ?)
     ");
 
-    foreach ($giornate as $partite) {
+    foreach($giornate as $partite){
         foreach ($partite as [$casa, $ospite, $tipo]) {
             $stmt->bind_param("iiis", $torneo_id, $casa, $ospite, $tipo);
             $stmt->execute();
@@ -88,7 +83,7 @@ function girone_generaPartite($conn, $torneo_id, $tipo_partita) {
     }
 }
 
-function girone_classifica($conn, $torneo_id) {
+function girone_classifica($conn, $torneo_id){
 
     $stmt = $conn->prepare("
         SELECT id, nome FROM squadra
@@ -99,12 +94,12 @@ function girone_classifica($conn, $torneo_id) {
     $squadreRaw = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     $classifica = [];
-    foreach ($squadreRaw as $sq) {
+    foreach($squadreRaw as $sq){
         $classifica[$sq['id']] = [
-            'id'   => $sq['id'],
+            'id' => $sq['id'],
             'nome' => $sq['nome'],
-            'G'    => 0, 'V' => 0, 'P' => 0, 'S' => 0,
-            'GF'   => 0, 'GS' => 0, 'DR' => 0, 'Pts' => 0
+            'G' => 0, 'V' => 0, 'P' => 0, 'S' => 0,
+            'PF' => 0, 'PS' => 0, 'DP' => 0, 'Pts' => 0
         ];
     }
 
@@ -116,38 +111,45 @@ function girone_classifica($conn, $torneo_id) {
     $stmt->execute();
     $partite = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    foreach ($partite as $p) {
-        $c  = $p['squadra_casa_id'];
-        $o  = $p['squadra_ospite_id'];
-        $gc = (int)$p['punti_casa'];
-        $go = (int)$p['punti_ospite'];
+    foreach($partite as $p){
+        $c = $p['squadra_casa_id'];
+        $o = $p['squadra_ospite_id'];
+        $pc = (int)$p['punti_casa'];
+        $po = (int)$p['punti_ospite'];
 
-        if (!isset($classifica[$c]) || !isset($classifica[$o])) continue;
+        if(!isset($classifica[$c]) || !isset($classifica[$o])) continue;
 
-        $classifica[$c]['G']++;       $classifica[$o]['G']++;
-        $classifica[$c]['GF'] += $gc; $classifica[$c]['GS'] += $go;
-        $classifica[$o]['GF'] += $go; $classifica[$o]['GS'] += $gc;
+        $classifica[$c]['G']++;       
+        $classifica[$o]['G']++;
+        $classifica[$c]['PF'] += $pc; 
+        $classifica[$c]['PS'] += $po;
+        $classifica[$o]['PF'] += $po; 
+        $classifica[$o]['PS'] += $pc;
 
-        if ($gc > $go) {
-            $classifica[$c]['V']++; $classifica[$c]['Pts'] += 3;
+        if($pc > $po){
+            $classifica[$c]['V']++; 
+            $classifica[$c]['Pts'] += 3;
             $classifica[$o]['S']++;
-        } elseif ($gc < $go) {
-            $classifica[$o]['V']++; $classifica[$o]['Pts'] += 3;
+        }elseif($pc < $po){
+            $classifica[$o]['V']++; 
+            $classifica[$o]['Pts'] += 3;
             $classifica[$c]['S']++;
-        } else {
-            $classifica[$c]['P']++; $classifica[$c]['Pts']++;
-            $classifica[$o]['P']++; $classifica[$o]['Pts']++;
+        }else{
+            $classifica[$c]['P']++; 
+            $classifica[$c]['Pts']++;
+            $classifica[$o]['P']++;
+            $classifica[$o]['Pts']++;
         }
     }
 
-    foreach ($classifica as &$sq) {
-        $sq['DR'] = $sq['GF'] - $sq['GS'];
-    }
+    foreach($classifica as &$sq)
+        $sq['DP'] = $sq['PF'] - $sq['PS'];
+    
 
     usort($classifica, fn($a, $b) =>
         $b['Pts'] <=> $a['Pts']
-        ?: $b['DR']  <=> $a['DR']
-        ?: $b['GF']  <=> $a['GF']
+        ?: $b['DP']  <=> $a['DP']
+        ?: $b['PF']  <=> $a['PF']
         ?: strcmp($a['nome'], $b['nome'])
     );
 
@@ -158,7 +160,7 @@ function girone_classifica($conn, $torneo_id) {
    GENERAZIONE AUTOMATICA
 ===================================================== */
 
-if ($torneo['stato'] === 'in_corso') {
+if($torneo['stato'] === 'in_corso'){
 
     $stmt = $conn->prepare("
         SELECT COUNT(*) as tot FROM partita
@@ -168,24 +170,22 @@ if ($torneo['stato'] === 'in_corso') {
     $stmt->execute();
     $tot = $stmt->get_result()->fetch_assoc()['tot'];
 
-    if ($tot == 0) {
-        girone_generaPartite($conn, $torneo_id, $tipo_partita);
-    }
+    if($tot == 0)
+        girone_genera_partite($conn, $torneo_id, $tipo_partita);
 }
 
 /* =====================================================
    GESTIONE POST
 ===================================================== */
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore) {
+if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
 
-    // SALVATAGGIO ORARIO
-    if (isset($_POST['partita_id_orario'])) {
+    if(isset($_POST['partita_id_orario'])){
 
         $partita_id = (int)$_POST['partita_id_orario'];
-        $orario     = $_POST['orario'];
+        $orario = $_POST['orario'];
 
-        if (empty($orario)) {
+        if(empty($orario)){
             header("Location: struttura_torneo.php?id=$torneo_id&view=partite&msg=errOrario");
             exit;
         }
@@ -199,13 +199,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore) {
     }
 
     // INSERIMENTO RISULTATO
-    if (isset($_POST['partita_id'])) {
+    if(isset($_POST['partita_id'])){
 
         $partita_id = (int)$_POST['partita_id'];
-        $casa       = (int)$_POST['casa'];
-        $ospite     = (int)$_POST['ospite'];
+        $casa = (int)$_POST['casa'];
+        $ospite = (int)$_POST['ospite'];
 
-        if ($casa < 0 || $ospite < 0) {
+        if($casa < 0 || $ospite < 0){
             header("Location: struttura_torneo.php?id=$torneo_id&view=partite&msg=errPunti");
             exit;
         }
@@ -218,7 +218,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore) {
         $stmt->bind_param("iii", $casa, $ospite, $partita_id);
         $stmt->execute();
 
-        // Se tutte le partite del girone sono finite → torneo completato
         $stmt = $conn->prepare("
             SELECT COUNT(*) as mancanti FROM partita
             WHERE torneo_id = ? AND girone IS NOT NULL AND stato != 'terminata'
@@ -227,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore) {
         $stmt->execute();
         $mancanti = $stmt->get_result()->fetch_assoc()['mancanti'];
 
-        if ($mancanti == 0) {
+        if($mancanti == 0){
             $stmt = $conn->prepare("UPDATE torneo SET stato = 'completato' WHERE id = ?");
             $stmt->bind_param("i", $torneo_id);
             $stmt->execute();
@@ -242,8 +241,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore) {
    DATI PER LA VIEW
 ===================================================== */
 
-$classifica  = girone_classifica($conn, $torneo_id);
-$nSquadre    = count($classifica);
+$classifica = girone_classifica($conn, $torneo_id);
+$nSquadre = count($classifica);
 $perGiornata = max(1, (int)floor($nSquadre / 2));
 
 $stmt = $conn->prepare("
@@ -260,7 +259,7 @@ $tuttePartite = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Raggruppa per giornata in base all'ordine di inserimento
 $giornate = [];
-foreach ($tuttePartite as $i => $p) {
+foreach($tuttePartite as $i => $p){
     $g = (int)floor($i / $perGiornata) + 1;
     $giornate[$g][] = $p;
 }
@@ -290,7 +289,7 @@ require_once('templates/header.php');
     <table border="1" cellpadding="8">
     <tr>
         <th>#</th><th>Squadra</th><th>G</th><th>V</th><th>P</th><th>S</th>
-        <th>GF</th><th>GS</th><th>DR</th><th>Pts</th>
+        <th>PF</th><th>PS</th><th>DP</th><th>Pts</th>
     </tr>
     <?php foreach ($classifica as $pos => $sq): ?>
     <tr>
@@ -300,9 +299,9 @@ require_once('templates/header.php');
         <td><?= $sq['V'] ?></td>
         <td><?= $sq['P'] ?></td>
         <td><?= $sq['S'] ?></td>
-        <td><?= $sq['GF'] ?></td>
-        <td><?= $sq['GS'] ?></td>
-        <td><?= $sq['DR'] ?></td>
+        <td><?= $sq['PF'] ?></td>
+        <td><?= $sq['PS'] ?></td>
+        <td><?= $sq['DP'] ?></td>
         <td><strong><?= $sq['Pts'] ?></strong></td>
     </tr>
     <?php endforeach; ?>
