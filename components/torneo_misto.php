@@ -159,16 +159,26 @@ function generaGironi($conn, $torneo_id) {
     $gironi = calcolaGironi($squadre);
 
     foreach ($gironi as $numGirone => $squadreGirone) {
-        $g = $numGirone + 1; // gironi 1-based
+        $g = $numGirone + 1;
         $sq = $squadreGirone;
         $tot = count($sq);
-        // Round-robin: ogni coppia gioca una volta
+
+        // Genera tutte le coppie
+        $partite = [];
         for ($i = 0; $i < $tot; $i++) {
             for ($j = $i + 1; $j < $tot; $j++) {
-                $stmt = $conn->prepare("INSERT INTO partita (torneo_id, squadra_casa_id, squadra_ospite_id, girone) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("iiii", $torneo_id, $sq[$i], $sq[$j], $g);
-                $stmt->execute();
+                $partite[] = [$sq[$i], $sq[$j]];
             }
+        }
+
+        // Mischia le partite così nessuna squadra gioca N volte di fila
+        shuffle($partite);
+
+        // Inserisci in ordine casuale
+        foreach ($partite as [$casa, $ospite]) {
+            $stmt = $conn->prepare("INSERT INTO partita (torneo_id, squadra_casa_id, squadra_ospite_id, girone) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("iiii", $torneo_id, $casa, $ospite, $g);
+            $stmt->execute();
         }
     }
 }
