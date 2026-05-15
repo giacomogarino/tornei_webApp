@@ -129,7 +129,7 @@ function squadreAvanzanoPerGirone($numGironi) {
     $k = (int)ceil($pot / $numGironi);
     return [$k, $k * $numGironi];
 }
-
+/*
 function generaGironi($conn, $torneo_id) {
     $res = $conn->query("SELECT id FROM squadra WHERE torneo_id = $torneo_id AND stato='approvata'");
     $squadre = [];
@@ -155,6 +155,45 @@ function generaGironi($conn, $torneo_id) {
         shuffle($partite);
 
         // Inserisci in ordine casuale
+        foreach($partite as [$casa, $ospite]){
+            $stmt = $conn->prepare("INSERT INTO partita (torneo_id, squadra_casa_id, squadra_ospite_id, girone) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("iiii", $torneo_id, $casa, $ospite, $g);
+            $stmt->execute();
+        }
+    }
+}
+*/
+function generaGironi($conn, $torneo_id) {
+    $res = $conn->query("SELECT id FROM squadra WHERE torneo_id = $torneo_id AND stato='approvata'");
+    $squadre = [];
+    while ($r = $res->fetch_assoc()) $squadre[] = $r['id'];
+
+    if(count($squadre) < 2) return;
+
+    // Recupera tipo_partita del torneo
+    $stmt = $conn->prepare("SELECT tipo_partita FROM torneo WHERE id = ?");
+    $stmt->bind_param("i", $torneo_id);
+    $stmt->execute();
+    $tipo = $stmt->get_result()->fetch_assoc()['tipo_partita'];
+
+    $gironi = calcolaGironi($squadre);
+
+    foreach($gironi as $numGirone => $squadreGirone){
+        $g = $numGirone + 1;
+        $sq = $squadreGirone;
+        $tot = count($sq);
+
+        $partite = [];
+        for($i = 0; $i < $tot; $i++){
+            for($j = $i + 1; $j < $tot; $j++){
+                $partite[] = [$sq[$i], $sq[$j]]; // andata
+                if($tipo === 'andata_ritorno')
+                    $partite[] = [$sq[$j], $sq[$i]]; // ritorno (casa/ospite invertiti)
+            }
+        }
+
+        shuffle($partite);
+
         foreach($partite as [$casa, $ospite]){
             $stmt = $conn->prepare("INSERT INTO partita (torneo_id, squadra_casa_id, squadra_ospite_id, girone) VALUES (?, ?, ?, ?)");
             $stmt->bind_param("iiii", $torneo_id, $casa, $ospite, $g);
