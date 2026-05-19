@@ -4,3 +4,4 @@
 - finire i vari casi sulle partite
 
 - fare pagina pasti se sei amministratore fai inserire gli orari altrimenti li visualizzi solo
+- ricordarsi che tra calcio e pallavolo cambiano le varie classifiche (GF,GS)
