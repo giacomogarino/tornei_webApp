@@ -21,6 +21,10 @@ include("./templates/header.php")
 
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" placeholder="password" required>
+
+                <label for="password">Conferma password:</label>
+                <input type="password" id="password2" name="password2" placeholder="password" required>
+
                 <label for="n_carta_identita">N° carta identita:</label>
                 <input type="text" id="ci" name="ci" placeholder="n_carta_identita" required>
 
@@ -50,6 +54,8 @@ include("./templates/header.php")
                 echo "<div style='color:red;'>Errore durante la registrazione</div>";
             elseif($msg == "confermaInviata")
                 echo "<div style='color:green;'>Registrazione completata con successo, conferma la mail per poter accedere</div>";
+            elseif($msg == "passwordDiverse")
+                echo "<div style='color:red;'>Le password non corrispondono</div>";
         }
         ?>
 
