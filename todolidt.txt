@@ -5,3 +5,43 @@
 
 - fare pagina pasti se sei amministratore fai inserire gli orari altrimenti li visualizzi solo
 - ricordarsi che tra calcio e pallavolo cambiano le varie classifiche (GF,GS)
+
+
+prompt da incollare nei prompt per i css:
+🧾 PROMPT RIUTILIZZABILE (CSS PREMIUM)
+
+Genera il CSS completo per una pagina web moderna, elegante e premium.
+Il design deve essere coerente con una UI di alto livello (stile fintech / luxury minimal / corporate premium).
+
+Usa questa palette come base obbligatoria:
+
+Background principale: #F8FAFC
+Surface / card: #FFFFFF
+Testo principale: #0F172A
+Testo secondario: #64748B
+Colore primario (azioni, link, bottoni): #0F172A
+Accent elegante (highlight, dettagli premium): #C8A15A
+
+Requisiti di stile:
+
+Design minimal e pulito, molto spazio bianco
+Tipografia moderna (stile Inter o system font)
+Bordi morbidi (border-radius 12–16px)
+Ombre leggere e sofisticate (no effetti pesanti)
+Hover fluidi e discreti (transition 200–300ms)
+Bottoni eleganti (primary e secondary coerenti)
+Layout responsive mobile-first
+Uso coerente di variabili CSS (:root)
+Nessun uso di colori extra fuori palette se non neutri
+
+Struttura richiesta:
+
+Header moderno e sottile
+Sezioni ben separate con spacing generoso
+Card layout elegante se necessario
+Footer pulito e minimal
+
+Il risultato deve sembrare un prodotto SaaS premium o un sito corporate di alta fascia.
+
+Se necessario, includi anche uno stile dark mode coerente con la stessa identità visiva.
+mantieni coerenza con le pagine precedenti senza cambiare design system.

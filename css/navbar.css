@@ -1,16 +1,122 @@
+:root {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --text: #0F172A;
+    --text-muted: #64748B;
+    --primary: #0F172A;
+    --accent: #C8A15A;
+    --border: rgba(15, 23, 42, 0.08);
+    --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+/* RESET BASE */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* HEADER */
+header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* TITOLI */
+header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+}
+
+header h2 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+header h2 a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+header h2 a:hover {
+    color: var(--accent);
+}
+
+/* NAVBAR CONTAINER */
+#navbar {
+    margin-top: 14px;
+}
+
+/* NAV LINKS */
 nav {
-  display: flex;
-  gap: 1rem;
-  background: #222;
-  padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
+/* LINK */
 nav a {
-  color: white;
-  text-decoration: none;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+
+    padding: 8px 14px;
+    border-radius: 12px;
+
+    transition: all 0.25s ease;
+    border: 1px solid transparent;
 }
 
+/* HOVER */
+nav a:hover {
+    color: var(--primary);
+    background: rgba(15, 23, 42, 0.04);
+    border-color: var(--border);
+}
+
+/* ACTIVE PAGE */
 nav a.active {
-  font-weight: bold;
-  border-bottom: 2px solid white;
+    color: var(--primary);
+    background: rgba(200, 161, 90, 0.12);
+    border: 1px solid rgba(200, 161, 90, 0.35);
+}
+
+/* LOGIN/LOGOUT SPECIAL STYLE */
+nav a[href*="login"],
+nav a[href*="logout"] {
+    margin-left: auto;
+    font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    header {
+        padding: 14px 18px;
+    }
+
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    nav a {
+        width: 100%;
+    }
 }

@@ -1,0 +1,162 @@
+:root {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --text: #0F172A;
+    --text-muted: #64748B;
+    --primary: #0F172A;
+    --accent: #C8A15A;
+    --border: rgba(15, 23, 42, 0.10);
+    --shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+}
+
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* LAYOUT CENTRATO */
+section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 70px 20px;
+    gap: 18px;
+}
+
+/* CARD REGISTRAZIONE */
+#menusx {
+    width: 100%;
+    max-width: 420px;
+
+    background: var(--surface);
+    padding: 32px;
+
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+}
+
+/* FORM */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* LABEL */
+label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* INPUT GENERICO */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 11px 12px;
+
+    border-radius: 12px;
+    border: 1px solid var(--border);
+
+    background: #fff;
+    color: var(--text);
+
+    font-size: 14px;
+
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* FOCUS PREMIUM */
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(200, 161, 90, 0.18);
+}
+
+/* BUTTON */
+input[type="submit"] {
+    margin-top: 8px;
+
+    padding: 11px 14px;
+    border: none;
+    border-radius: 12px;
+
+    background: var(--primary);
+    color: #fff;
+
+    font-weight: 600;
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+/* HOVER BUTTON */
+input[type="submit"]:hover {
+    transform: translateY(-1px);
+    background: #111827;
+}
+
+input[type="submit"]:active {
+    transform: translateY(0px);
+}
+
+/* LINK LOGIN */
+section div {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+section a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+section a:hover {
+    color: var(--accent);
+}
+
+/* MESSAGGI (IMPORTANTISSIMO: niente inline red brutti) */
+section div[style] {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+
+    font-size: 13px;
+    text-align: center;
+}
+
+/* ERRORI */
+section div[style*="color:red"] {
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    color: var(--text);
+}
+
+/* SUCCESS */
+section div[style*="color:green"] {
+    background: rgba(200, 161, 90, 0.10);
+    border: 1px solid rgba(200, 161, 90, 0.30);
+    color: var(--text);
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+    #menusx {
+        padding: 24px;
+    }
+}
