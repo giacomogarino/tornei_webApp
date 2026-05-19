@@ -136,9 +136,20 @@ require_once('templates/header_riservato.php')
 
 <br>
 <?php if ($torneo['stato'] == 'aperto'): ?>
-    <a href="aggiungi_squadra.php?torneo_id=<?= $torneo['id'] ?>">
-        <button>Aggiungi squadra</button>
-    </a>
+    <?php if ($torneo['visibilita'] === 'pubblico' || ($torneo['visibilita'] === 'privato' && $author != $_SESSION["id_utente"])): ?>
+        <a href="aggiungi_squadra.php?torneo_id=<?= $torneo['id'] ?>">
+            <button>Aggiungi squadra</button>
+        </a>
+    <?php endif; ?>
+<?php endif; ?>
+
+<?php if ($author == $_SESSION["id_utente"]): ?>
+    <?php if ($torneo['stato'] === 'aperto' && $torneo['visibilita'] === 'privato'): ?>
+        <form method="GET" action="aggiunta_squadre_manualmente.php" style="display:inline;">
+            <input type="hidden" name="id" value="<?= $torneo['id'] ?>">
+            <input type="submit" value="Aggiungi squadre">
+        </form>
+    <?php endif; ?>  
 <?php endif; ?>
 
 <form method="POST" style="display:inline;">
@@ -159,13 +170,6 @@ require_once('templates/header_riservato.php')
         <input type="submit" value="gestione pranzi">
     </form>
 <?php endif; ?>
-
-<?php if ($torneo['stato'] === 'aperto' && $torneo['visibilita'] === 'privato'): ?>
-    <form method="GET" action="aggiunta_squadre_manualmente.php" style="display:inline;">
-        <input type="hidden" name="id" value="<?= $torneo['id'] ?>">
-        <input type="submit" value="inserisci squadre">
-    </form>
-<?php endif; ?>  
 <!-- Nel corpo HTML, dove vuoi mostrarle -->
 <h4>Squadre iscritte</h4>
 <?php mostra_squadre_approvate($squadre, $utente_id); ?>
