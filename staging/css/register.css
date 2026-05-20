@@ -1,0 +1,22 @@
+/* ============================================================
+   REGISTER — usa lo stesso shell di login.css ma con form pi larga
+   ============================================================ */
+.m-auth-card--wide { max-width: 460px; }
+
+.m-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--m-3);
+}
+
+.m-checkbox-line {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 13px;
+  color: var(--m-text-soft);
+  margin-top: var(--m-2);
+}
+.m-checkbox-line .m-checkbox { margin-top: 2px; }
+
+@media (max-width: 480px) {
+  .m-form-grid-2 { grid-template-columns: 1fr; }
+}

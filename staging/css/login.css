@@ -1,0 +1,98 @@
+/* ============================================================
+   AUTH SHELL Matchora — split brand + form (login/register/recovery)
+   ============================================================ */
+.m-auth-shell {
+  min-height: calc(100vh - var(--m-navbar-h));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+}
+.m-auth-shell__brand {
+  background:
+    radial-gradient(60% 100% at 90% 0%, rgba(243, 156, 18, 0.18) 0%, transparent 60%),
+    linear-gradient(135deg, var(--m-primary-700) 0%, var(--m-primary-900) 70%, #15113f 100%);
+  color: #fff;
+  padding: var(--m-12);
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.m-auth-shell__brand::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 32px);
+}
+.m-auth-shell__brand > * { position: relative; }
+.m-auth-shell__brand h2 { color: #fff; font-size: clamp(28px, 3vw, 40px); max-width: 14ch; line-height: 1.1; }
+.m-auth-shell__brand p { color: rgba(255,255,255,0.7); max-width: 36ch; }
+.m-auth-shell__brand-logo {
+  width: 44px;
+  margin-bottom: var(--m-4);
+  filter: brightness(0) invert(1);
+}
+.m-auth-shell__brand-copyright {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+}
+.m-auth-shell__bullets {
+  margin-top: var(--m-8);
+  display: flex; flex-direction: column; gap: var(--m-3);
+  max-width: 32ch;
+}
+.m-auth-shell__bullet {
+  display: flex; gap: 12px; align-items: flex-start;
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+}
+.m-auth-shell__bullet-icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.m-auth-shell__bullet-icon svg { width: 14px; height: 14px; }
+
+.m-auth-shell__form-wrap {
+  display: grid; place-items: center;
+  padding: var(--m-10) var(--m-6);
+}
+.m-auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+.m-auth-card h1 { font-size: 28px; margin-bottom: 4px; }
+.m-auth-card__sub { color: var(--m-text-mute); margin-bottom: var(--m-6); }
+.m-auth-card__footer {
+  margin-top: var(--m-6);
+  padding-top: var(--m-4);
+  border-top: 1px dashed var(--m-border);
+  text-align: center;
+  font-size: 14px;
+  color: var(--m-text-soft);
+}
+.m-auth-card__footer a { font-weight: 600; }
+
+/* Recupera password: card centrata semplice */
+.m-auth-center {
+  display: grid; place-items: center;
+  min-height: calc(100vh - var(--m-navbar-h));
+  padding: var(--m-8) var(--m-4);
+}
+.m-auth-center .m-card {
+  max-width: 440px;
+  width: 100%;
+  padding: var(--m-8);
+}
+.m-auth-center__icon {
+  display: grid; place-items: center;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--m-primary-50);
+  color: var(--m-primary-600);
+  margin-bottom: var(--m-4);
+}
+
+@media (max-width: 880px) {
+  .m-auth-shell { grid-template-columns: 1fr; min-height: auto; }
+  .m-auth-shell__brand { display: none; }
+}

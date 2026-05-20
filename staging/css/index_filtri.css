@@ -1,0 +1,24 @@
+/* ============================================================
+   FILTRI HOME — barra filtri Matchora (search + select + actions)
+   ============================================================ */
+.m-filters {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-r-md);
+  padding: var(--m-3);
+  box-shadow: var(--m-sh-1);
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr auto auto;
+  gap: var(--m-2);
+  align-items: center;
+}
+.m-filters .m-input,
+.m-filters .m-select { border-color: var(--m-border); }
+
+@media (max-width: 960px) {
+  .m-filters { grid-template-columns: 1fr 1fr; }
+  .m-filters .m-input-icon { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+  .m-filters { grid-template-columns: 1fr; }
+}
