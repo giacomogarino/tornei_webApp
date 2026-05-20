@@ -4,7 +4,7 @@ require_once("./templates/header.php");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/recupera_password.css">
+    <link rel="stylesheet" href="css/register.css">
     <title>Torneo crazy</title>
 </head>
 
@@ -19,9 +19,8 @@ require_once("./templates/header.php");
 
         <?php
         if(isset($_GET) && $_GET['msg'] == 'emptyEmail')
-            echo "<div>Inserisci la tua email"."</div>";
+            echo "<div style='color:red;'>Inserisci la tua email"."</div>";
         ?>
-
     </section>
 
 <?php

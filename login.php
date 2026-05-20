@@ -8,7 +8,7 @@ require_once("./templates/header.php");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/register.css">
     <title>Torneo crazy</title>
 </head>
 
@@ -34,21 +34,21 @@ require_once("./templates/header.php");
     <?php
     if(isset($_GET['msg'])){
         if($_GET['msg'] == 'errLogin')
-            echo "<div>Email o password errata"."</div>";
+            echo "<div style='color:red;'>Email o password errata"."</div>";
         else if($_GET['msg'] == 'campiVuoti')
-            echo "<div>Compila tutti i campi"."</div>";
+            echo "<div style='color:red;'>Compila tutti i campi"."</div>";
         else if($_GET['msg'] == 'emailNonConfermata')
-            echo "<div>Devi confermare la mail per poter accedere"."</div>";
+            echo "<div style='color:red;'>Devi confermare la mail per poter accedere"."</div>";
         else if($_GET['msg'] == 'ok')
-            echo "<div>Controlla la email per cambiare la password"."</div>";
+            echo "<div style='color:red;'>Controlla la email per cambiare la password"."</div>";
         else if($_GET['msg'] == 'passwordAggiornata')
-            echo "<div>Password aggiornata correttamente"."</div>";
+            echo "<div style='color:red;'>Password aggiornata correttamente"."</div>";
         else if($_GET['msg'] == 'errCambioPsw')
-            echo "<div>Errore nel cambio della password"."</div>";
+            echo "<div style='color:red;'>Errore nel cambio della password"."</div>";
         else if($_GET['msg'] == 'err')
-            echo "<div>Errore nel login riprova più tardi"."</div>";
+            echo "<div style='color:red;'>Errore nel login riprova più tardi"."</div>";
         else if($_GET['msg'] == 'NecessariaAutentificazione')
-            echo "<div>Devi prima autentificarti"."</div>";
+            echo "<div style='color:red;'>Devi prima autentificarti"."</div>";
     }
     ?>
 

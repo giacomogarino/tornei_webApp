@@ -5,118 +5,226 @@
     --text-muted: #64748B;
     --primary: #0F172A;
     --accent: #C8A15A;
+
     --border: rgba(15, 23, 42, 0.08);
-    --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+
+    --shadow:
+        0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
-/* RESET BASE */
+/* RESET */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* BODY */
 body {
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-family:
+        system-ui,
+        -apple-system,
+        Segoe UI,
+        Roboto,
+        Arial,
+        sans-serif;
+
     background: var(--bg);
     color: var(--text);
 }
 
-/* HEADER */
-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 18px 32px;
-    box-shadow: var(--shadow);
+/* =========================
+   HEADER
+========================= */
+
+.main-header {
     position: sticky;
     top: 0;
     z-index: 1000;
+
+    background: var(--surface);
+
+    border-bottom: 1px solid var(--border);
+
+    box-shadow: var(--shadow);
+
+    padding: 26px 42px 22px;
 }
 
-/* TITOLI */
-header h1 {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+/* TOP */
+.header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+}
+
+/* BRAND */
+.header-brand {
+    display: flex;
+    flex-direction: column;
+}
+
+/* TITLE */
+.site-title {
+    font-size: 30px;
+    font-weight: 800;
+
+    letter-spacing: -1px;
+
     color: var(--text);
 }
 
-header h2 {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-muted);
-    margin-top: 4px;
+/* USER AREA */
+.header-user {
+    display: flex;
+    align-items: center;
 }
 
-header h2 a {
+/* WELCOME */
+.welcome-text {
+    font-size: 16px;
+    font-weight: 500;
+
+    color: var(--text-muted);
+}
+
+/* USERNAME */
+.username {
     color: var(--primary);
+    font-weight: 700;
+}
+
+/* LOGIN LINK */
+.login-link {
+    color: var(--primary);
+
     text-decoration: none;
     font-weight: 600;
+
+    transition: 0.2s ease;
 }
 
-header h2 a:hover {
+.login-link:hover {
     color: var(--accent);
 }
 
-/* NAVBAR CONTAINER */
-#navbar {
-    margin-top: 14px;
+/* =========================
+   NAVBAR
+========================= */
+
+.navbar-container {
+    margin-top: 22px;
 }
 
-/* NAV LINKS */
-nav {
+/* NAV */
+.navbar {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+
+    gap: 14px;
 }
 
-/* LINK */
-nav a {
+/* LINKS */
+.nav-link {
     text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
+
     color: var(--text-muted);
 
-    padding: 8px 14px;
-    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
 
-    transition: all 0.25s ease;
+    padding: 11px 18px;
+
+    border-radius: 14px;
+
     border: 1px solid transparent;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.15s ease;
 }
 
 /* HOVER */
-nav a:hover {
-    color: var(--primary);
+.nav-link:hover {
     background: rgba(15, 23, 42, 0.04);
+
     border-color: var(--border);
-}
 
-/* ACTIVE PAGE */
-nav a.active {
     color: var(--primary);
-    background: rgba(200, 161, 90, 0.12);
-    border: 1px solid rgba(200, 161, 90, 0.35);
+
+    transform: translateY(-1px);
 }
 
-/* LOGIN/LOGOUT SPECIAL STYLE */
-nav a[href*="login"],
-nav a[href*="logout"] {
-    margin-left: auto;
+/* ACTIVE */
+.nav-link.active {
+    background: rgba(200, 161, 90, 0.12);
+
+    border-color: rgba(200, 161, 90, 0.28);
+
+    color: var(--primary);
+
     font-weight: 600;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    header {
-        padding: 14px 18px;
+/* AUTH */
+.nav-auth {
+    margin-left: auto;
+}
+
+/* LOGOUT */
+.logout-link {
+    border: 1px solid var(--border);
+}
+
+/* LOGOUT HOVER */
+.logout-link:hover {
+    border-color: rgba(200, 161, 90, 0.35);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+
+    .main-header {
+        padding: 22px 20px;
     }
 
-    nav {
+    .header-top {
         flex-direction: column;
         align-items: flex-start;
+
+        gap: 10px;
     }
 
-    nav a {
+    .navbar {
         width: 100%;
+    }
+
+    .nav-auth {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .navbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nav-link {
+        width: 100%;
+        text-align: center;
+    }
+
+    .site-title {
+        font-size: 24px;
     }
 }
