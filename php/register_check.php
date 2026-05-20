@@ -9,6 +9,7 @@ $nome = trim($_POST['nome'] ?? '');
 $cognome = trim($_POST['cognome'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $psw = $_POST['password'] ?? '';
+$psw2 = $_POST['password2'] ?? '';
 $ci = trim($_POST['ci'] ?? '');
 
 //Validazioni 
@@ -22,6 +23,10 @@ if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
 }
 if(strlen($psw) < 8){
     header("location: ../register.php?msg=passwordDebole"); 
+    exit;
+}
+if($psw != $psw2){
+    header("location: ../register.php?msg=passwordDiverse"); 
     exit;
 }
 if(!empty($ci) && strlen($ci) < 5){
