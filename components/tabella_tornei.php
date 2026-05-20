@@ -1,54 +1,109 @@
 <!--
 pagine che utilizzano tabella_tornei.php
-- mostra_tornei.php
+- index.php
 - seguiti.php
 - mostra_torneo_privato.php
---->
+-->
 
 <?php
 if (!isset($result)) {
     die("Nessun torneo trovato");
 }
 ?>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/tabella_tornei.css">
+    <title>Torneo crazy</title>
+</head>
 
-<table border="1" cellpadding="10" cellspacing="0">
-    <tr>
-        <th>Nome torneo</th>
-        <th>Sport</th>
-        <th>Luogo</th>
-        <th>Formato</th>
-        <th>Stato</th>
-        <th>Dettagli</th>
-        <th>Struttura</th>
-    </tr>
+<div class="tornei-container">
 
     <?php if ($result->num_rows > 0): ?>
 
         <?php while ($row = $result->fetch_assoc()): ?>
-            <tr>
-                <td><?= htmlspecialchars($row['nome']) ?></td>
-                <td><?= htmlspecialchars($row['sport']) ?></td>
-                <td><?= htmlspecialchars($row['luogo']) ?></td>
-                <td><?= htmlspecialchars($row['formato']) ?></td>
-                <td><?= htmlspecialchars($row['stato']) ?></td>
-                <td>
+
+            <div class="torneo-card">
+
+                <div class="torneo-header">
+                    <h3>
+                        <?= htmlspecialchars($row['nome']) ?>
+                    </h3>
+
+                    <span class="torneo-stato">
+                        <?= htmlspecialchars($row['stato']) ?>
+                    </span>
+                </div>
+
+                <div class="torneo-info">
+
+                    <div class="info-item">
+                        <span class="label">Sport</span>
+                        <span class="value">
+                            <?= htmlspecialchars($row['sport']) ?>
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Luogo</span>
+                        <span class="value">
+                            <?= htmlspecialchars($row['luogo']) ?>
+                        </span>
+                    </div>
+ 
+                    <div class="info-item">
+                        <span class="label">Formato</span>
+                        <span class="value">
+                            <?= htmlspecialchars($row['formato']) ?>
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="torneo-actions">
+
                     <form method="GET" action="dettagli_torneo.php">
-                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                        <input type="submit" value="Dettagli torneo">
+
+                        <input
+                            type="hidden"
+                            name="id"
+                            value="<?= $row['id'] ?>"
+                        >
+
+                        <input
+                            type="submit"
+                            value="Dettagli"
+                        >
+
                     </form>
-                </td>
-                <td>
+
                     <form method="GET" action="struttura_torneo.php">
-                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                        <input type="submit" value="struttura torneo">
+
+                        <input
+                            type="hidden"
+                            name="id"
+                            value="<?= $row['id'] ?>"
+                        >
+
+                        <input
+                            type="submit"
+                            value="Struttura"
+                        >
+
                     </form>
-                </td>
-            </tr>
+
+                </div>
+
+            </div>
+
         <?php endwhile; ?>
 
     <?php else: ?>
-        <tr>
-            <td colspan="5">Nessun torneo trovato</td>
-        </tr>
+
+        <div class="empty-state">
+            Nessun torneo trovato
+        </div>
+
     <?php endif; ?>
-</table>
+
+</div>
