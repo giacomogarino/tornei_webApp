@@ -25,9 +25,9 @@ $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
 
-$password = cryptPsw($psw);
-
-if($row && ($password == $row['password'])){
+//$password = cryptPsw($psw);
+//if($row && ($password == $row['password'])){
+if($row && (password_verify($psw, $row['password']))){
 
     //controllo email verificata
     if($row['verified'] == 0){

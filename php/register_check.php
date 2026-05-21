@@ -39,8 +39,8 @@ if(empty($privacy)){
     header("Location: ../register.php?msg=privacyNonAccettata");
     exit;
 }
-
-$password = cryptPsw($psw);
+$password = password_hash($psw, PASSWORD_BCRYPT);
+//$password = cryptPsw($psw);
 
 //Controllo email
 $check = $conn->prepare("SELECT id, verified FROM utente WHERE email=?");

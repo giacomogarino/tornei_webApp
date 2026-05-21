@@ -38,7 +38,7 @@ if($row){
     $body = "Ciao {$row['nome']},\n\nRecupera la tua password cliccando qui:\n\n$link\n\nIl link scade tra 24 ore.";
     $headers = "From: noreply@matchoratorneo.netsons.org\r\nContent-Type: text/plain; charset=UTF-8";
 
-    if(!mail($email, $subject, $body, $headers)){
+    if(!mail('matchora.torneo@gmail.com', $subject, $body, $headers)){
         $del = $conn->prepare(
             "UPDATE utente
              SET token = NULL, token_expiry = NULL

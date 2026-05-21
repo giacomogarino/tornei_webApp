@@ -56,7 +56,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     
 
     // hash password
-    $psw = cryptPsw($password);
+    $psw = password_hash($password, PASSWORD_BCRYPT);
+    //$psw = cryptPsw($password);
 
     // aggiorno password e invalido token
     $update = $conn->prepare(
