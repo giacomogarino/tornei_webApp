@@ -11,6 +11,7 @@ $email = trim($_POST['email'] ?? '');
 $psw = $_POST['password'] ?? '';
 $psw2 = $_POST['password2'] ?? '';
 $ci = trim($_POST['ci'] ?? '');
+$privacy  = $_POST['privacy_ok']    ?? '';
 
 //Validazioni 
 if(empty($nome) || empty($cognome) || empty($email) || empty($psw)){
@@ -31,6 +32,11 @@ if($psw != $psw2){
 }
 if(!empty($ci) && strlen($ci) < 5){
     header("location: ../register.php?msg=ciNonValida"); 
+    exit;
+}
+
+if(empty($privacy)){
+    header("Location: ../register.php?msg=privacyNonAccettata");
     exit;
 }
 

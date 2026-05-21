@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nome_file   = $w['nome_file'] ?? null;
         $percorso    = $w['percorso'] ?? null;
         $stmt->bind_param(
-            "sssssiiississsss",
+            "sssssiiiississss",
             $w['nome'],
             $descrizione,
             $w['formato'],
@@ -354,6 +354,7 @@ function step_class($step_n, $cur){
                                 <option value="">-- Seleziona sport --</option>
                                 <option value="calcio" <?= (($w['sport'] ?? '')=='calcio') ? 'selected' : '' ?>>Calcio</option>
                                 <option value="beachvolley" <?= (($w['sport'] ?? '')=='beachvolley') ? 'selected' : '' ?>>Beach Volley</option>
+                                <option value="beachvolley" <?= (($w['sport'] ?? '')=='padel') ? 'selected' : '' ?>>Padel</option>
                             </select>
                         </div>
                         <div class="m-field">

@@ -58,6 +58,24 @@ function isPotenzaDiDue($n){
 }
 
 /* =====================================================
+   CONTROLLA SE IL TURNO SUCCESSIVO È GIÀ STATO GENERATO
+   Restituisce true se esiste già almeno una partita per $next
+===================================================== */
+
+function turnoSuccessivoEsiste($conn, $torneo_id, $turno){
+    $next = prossimoTurno($turno);
+    if(!$next) return false; // finale: non c'è un successivo
+
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as tot FROM partita
+        WHERE torneo_id = ? AND turno = ?
+    ");
+    $stmt->bind_param("is", $torneo_id, $next);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_assoc()['tot'] > 0;
+}
+
+/* =====================================================
    INSERISCE UNA COPPIA DI PARTITE (andata + eventuale ritorno)
 ===================================================== */
 
@@ -81,7 +99,6 @@ function inserisciCoppia($conn, $torneo_id, $casa, $ospite, $turno, $tipo_partit
 
 /* =====================================================
    GENERA IL TURNO INIZIALE
-   Richiede obbligatoriamente una potenza di 2 di squadre
 ===================================================== */
 
 function generaIniziale($conn, $torneo_id, $tipo_partita){
@@ -118,7 +135,6 @@ function generaIniziale($conn, $torneo_id, $tipo_partita){
 
 function turnoTerminato($conn, $torneo_id, $turno, $tipo_partita){
     if($tipo_partita === 'andata_ritorno'){
-        // Aspetta che sia andata che ritorno di ogni coppia siano terminate
         $stmt = $conn->prepare("
             SELECT COUNT(*) as mancanti
             FROM partita a
@@ -151,9 +167,6 @@ function turnoTerminato($conn, $torneo_id, $turno, $tipo_partita){
 
 /* =====================================================
    CALCOLA I VINCITORI DI UN TURNO TERMINATO
-   andata secca    → vince chi ha più punti nella singola partita
-   andata_ritorno  → vince chi ha più punti aggregati;
-                     parità aggregata: avanza la casa dell'andata
 ===================================================== */
 
 function calcolaVincitori($conn, $torneo_id, $turno, $tipo_partita){
@@ -243,7 +256,7 @@ if($torneo['stato'] === 'in_corso'){
 
 if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
 
-    // --- SALVATAGGIO ORARIO ---
+    // SALVATAGGIO ORARIO
     if(isset($_POST['partita_id_orario'])){
         $partita_id = (int)$_POST['partita_id_orario'];
         $orario     = $_POST['orario'];
@@ -261,7 +274,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
         exit;
     }
 
-    // --- INSERIMENTO RISULTATO ---
+    // INSERIMENTO / AGGIORNAMENTO RISULTATO
     if(isset($_POST['partita_id'])){
         $partita_id = (int)$_POST['partita_id'];
         $casa       = (int)$_POST['casa'];
@@ -290,8 +303,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
         $stmt->execute();
         $turno = $stmt->get_result()->fetch_assoc()['turno'];
 
-        // Se il turno è completamente terminato, avanza o chiudi il torneo
-        if(turnoTerminato($conn, $torneo_id, $turno, $tipo_partita)){
+        // Se il turno successivo esiste già, non rigenerare (si sta correggendo un risultato)
+        $nextEsiste = turnoSuccessivoEsiste($conn, $torneo_id, $turno);
+
+        if(!$nextEsiste && turnoTerminato($conn, $torneo_id, $turno, $tipo_partita)){
             if($turno === 'finale'){
                 $stmt = $conn->prepare("UPDATE torneo SET stato = 'completato' WHERE id = ?");
                 $stmt->bind_param("i", $torneo_id);
@@ -326,11 +341,11 @@ $partitePerTurno = [];
 while($row = $result->fetch_assoc())
     $partitePerTurno[$row['turno']][] = $row;
 
-$ordineTurni = ['ottavi', 'quarti', 'semifinale', 'finale'];
+$ordineTurni  = ['ottavi', 'quarti', 'semifinale', 'finale'];
+$turno_label  = ['ottavi' => 'Ottavi', 'quarti' => 'Quarti', 'semifinale' => 'Semifinale', 'finale' => 'Finale'];
 
 $extra_css = ['css/tabella_tornei.css', 'css/torneo_struttura.css'];
 require_once('templates/header.php');
-$turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinale', 'finale'=>'Finale'];
 ?>
 
 <header class="t-hero">
@@ -343,10 +358,10 @@ $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinal
             <span>Tabellone</span>
         </div>
         <div style="display: flex; gap: 8px; margin-bottom: var(--m-3); flex-wrap: wrap;">
-            <span class="t-chip">Eliminazione diretta  <?= $tipo_partita === 'andata_ritorno' ? 'A/R' : 'Andata secca' ?></span>
-            <?php if($torneo['stato'] === 'completato'): ?><span class="t-chip" style="background: rgba(31,157,85,0.2); color: #b3f0c8;"> Completato</span><?php endif; ?>
+            <span class="t-chip">Eliminazione diretta &nbsp;<?= $tipo_partita === 'andata_ritorno' ? 'A/R' : 'Andata secca' ?></span>
+            <?php if($torneo['stato'] === 'completato'): ?><span class="t-chip" style="background: rgba(31,157,85,0.2); color: #b3f0c8;">&#10003; Completato</span><?php endif; ?>
         </div>
-        <h1><?= htmlspecialchars($torneo['nome']) ?>  Tabellone</h1>
+        <h1><?= htmlspecialchars($torneo['nome']) ?> &mdash; Tabellone</h1>
     </div>
 </header>
 
@@ -360,7 +375,11 @@ $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinal
         </div>
 
         <?php if(isset($_GET['msg'])): ?>
-            <?php $err_msgs = ['errRisultato'=>'In andata secca non  ammesso il pareggio.', 'errPunti'=>'I valori negativi non sono validi.', 'errOrario'=>'Inserisci un orario valido.']; ?>
+            <?php $err_msgs = [
+                'errRisultato' => 'In andata secca non è ammesso il pareggio.',
+                'errPunti'     => 'I valori negativi non sono validi.',
+                'errOrario'    => 'Inserisci un orario valido.'
+            ]; ?>
             <?php if (isset($err_msgs[$_GET['msg']])): ?>
                 <div class="m-alert m-alert--danger m-mb-5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
@@ -389,24 +408,27 @@ $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinal
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 4 7 4 7 20 3 20"/><polyline points="11 4 15 4 15 14 11 14"/><polyline points="19 4 21 4 21 10 19 10"/></svg>
                 </div>
                 <h3>Tabellone non ancora generato</h3>
-                <p class="m-muted">Verr generato all'avvio del torneo.</p>
+                <p class="m-muted">Verrà generato all'avvio del torneo.</p>
             </div>
         <?php else: ?>
 
         <div class="m-bracket-frame">
             <div class="m-bracket-frame__header">
-                <h3 style="margin:0;">Tabellone  <?= $tipo_partita === 'andata_ritorno' ? 'Andata e ritorno' : 'Andata secca' ?></h3>
+                <h3 style="margin:0;">Tabellone &mdash; <?= $tipo_partita === 'andata_ritorno' ? 'Andata e ritorno' : 'Andata secca' ?></h3>
             </div>
             <div class="m-bracket-scroll">
                 <div class="m-bracket">
                     <?php foreach($ordineTurni as $turno):
                         if(!isset($partitePerTurno[$turno])) continue;
                         $is_final = ($turno === 'finale');
+                        // Verifica se il turno successivo esiste (per bloccare le modifiche)
+                        $nextEsisteTurno = turnoSuccessivoEsiste($conn, $torneo_id, $turno);
                     ?>
                         <div class="m-bracket__round">
                             <div class="m-bracket__round-title"><?= htmlspecialchars($turno_label[$turno] ?? $turno) ?></div>
 
                             <?php if($tipo_partita === 'andata_ritorno'):
+                                // Raggruppa andata + ritorno per coppia
                                 $coppie = [];
                                 foreach($partitePerTurno[$turno] as $p){
                                     $k = min($p['squadra_casa_id'], $p['squadra_ospite_id']) . '-' . max($p['squadra_casa_id'], $p['squadra_ospite_id']);
@@ -427,9 +449,11 @@ $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinal
                                     }
                                     $cls1 = $cls2 = '';
                                     if($coppiaTerminata){
-                                        if($tot1 >= $tot2) { $cls1 = 'm-match__row--winner'; $cls2 = 'm-match__row--loser'; }
-                                        else { $cls2 = 'm-match__row--winner'; $cls1 = 'm-match__row--loser'; }
+                                        if($tot1 >= $tot2){ $cls1 = 'm-match__row--winner'; $cls2 = 'm-match__row--loser'; }
+                                        else              { $cls2 = 'm-match__row--winner'; $cls1 = 'm-match__row--loser'; }
                                     }
+                                    // Può modificare solo se il turno successivo non è già generato
+                                    $puoModificare = $isOrganizzatore && !$nextEsisteTurno;
                             ?>
                                 <div class="m-match<?= $is_final ? ' m-match--final' : '' ?>" style="min-width: 280px;">
                                     <div class="m-match__head">
@@ -448,18 +472,31 @@ $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinal
                                     </div>
                                     <div style="padding: 6px 10px; background: var(--m-surface-2); border-top: 1px solid var(--m-border); font-size: 11px; color: var(--m-text-mute);">
                                         Andata: <b><?= $andataTerminata ? $a['punti_casa'].'-'.$a['punti_ospite'] : '-' ?></b>
-                                         Ritorno: <b><?= $ritornoTerminato ? $r['punti_casa'].'-'.$r['punti_ospite'] : '-' ?></b>
+                                        &nbsp; Ritorno: <b><?= $ritornoTerminato ? $r['punti_casa'].'-'.$r['punti_ospite'] : '-' ?></b>
                                     </div>
-                                    <?php if($isOrganizzatore && ($a || $r) && !$coppiaTerminata): ?>
+                                    <?php if($puoModificare): ?>
                                         <div style="padding: 10px; border-top: 1px solid var(--m-border); display: flex; flex-direction: column; gap: 8px;">
                                             <?php if($a && !$andataTerminata): ?>
                                                 <form method="POST" style="display: flex; gap: 4px; align-items: center;">
                                                     <input type="hidden" name="partita_id" value="<?= (int)$a['id'] ?>">
                                                     <span style="font-size: 11px; color: var(--m-text-mute); margin-right: 4px;">AND</span>
                                                     <input class="m-input m-num" type="number" name="casa" min="0" required style="width: 50px; padding: 4px; text-align: center;">
-                                                    <span style="color: var(--m-text-mute);">-</span>
+                                                    <span style="color: var(--m-text-mute);">&ndash;</span>
                                                     <input class="m-input m-num" type="number" name="ospite" min="0" required style="width: 50px; padding: 4px; text-align: center;">
                                                     <button class="m-btn m-btn--primary m-btn--sm">OK</button>
+                                                </form>
+                                            <?php elseif($a && $andataTerminata): ?>
+                                                <form method="POST" style="display: flex; gap: 4px; align-items: center;">
+                                                    <input type="hidden" name="partita_id" value="<?= (int)$a['id'] ?>">
+                                                    <span style="font-size: 11px; color: var(--m-text-mute); margin-right: 4px;">AND</span>
+                                                    <input class="m-input m-num" type="number" name="casa" min="0" required
+                                                           value="<?= (int)$a['punti_casa'] ?>"
+                                                           style="width: 50px; padding: 4px; text-align: center;">
+                                                    <span style="color: var(--m-text-mute);">&ndash;</span>
+                                                    <input class="m-input m-num" type="number" name="ospite" min="0" required
+                                                           value="<?= (int)$a['punti_ospite'] ?>"
+                                                           style="width: 50px; padding: 4px; text-align: center;">
+                                                    <button class="m-btn m-btn--secondary m-btn--sm" title="Modifica andata">&#9998;</button>
                                                 </form>
                                             <?php endif; ?>
                                             <?php if($r && !$ritornoTerminato): ?>
@@ -467,11 +504,28 @@ $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinal
                                                     <input type="hidden" name="partita_id" value="<?= (int)$r['id'] ?>">
                                                     <span style="font-size: 11px; color: var(--m-text-mute); margin-right: 4px;">RIT</span>
                                                     <input class="m-input m-num" type="number" name="casa" min="0" required style="width: 50px; padding: 4px; text-align: center;">
-                                                    <span style="color: var(--m-text-mute);">-</span>
+                                                    <span style="color: var(--m-text-mute);">&ndash;</span>
                                                     <input class="m-input m-num" type="number" name="ospite" min="0" required style="width: 50px; padding: 4px; text-align: center;">
                                                     <button class="m-btn m-btn--primary m-btn--sm">OK</button>
                                                 </form>
+                                            <?php elseif($r && $ritornoTerminato): ?>
+                                                <form method="POST" style="display: flex; gap: 4px; align-items: center;">
+                                                    <input type="hidden" name="partita_id" value="<?= (int)$r['id'] ?>">
+                                                    <span style="font-size: 11px; color: var(--m-text-mute); margin-right: 4px;">RIT</span>
+                                                    <input class="m-input m-num" type="number" name="casa" min="0" required
+                                                           value="<?= (int)$r['punti_casa'] ?>"
+                                                           style="width: 50px; padding: 4px; text-align: center;">
+                                                    <span style="color: var(--m-text-mute);">&ndash;</span>
+                                                    <input class="m-input m-num" type="number" name="ospite" min="0" required
+                                                           value="<?= (int)$r['punti_ospite'] ?>"
+                                                           style="width: 50px; padding: 4px; text-align: center;">
+                                                    <button class="m-btn m-btn--secondary m-btn--sm" title="Modifica ritorno">&#9998;</button>
+                                                </form>
                                             <?php endif; ?>
+                                        </div>
+                                    <?php elseif($isOrganizzatore && $nextEsisteTurno): ?>
+                                        <div style="padding: 8px 10px; border-top: 1px solid var(--m-border); font-size: 11px; color: var(--m-text-mute); font-style: italic;">
+                                            Turno successivo già generato
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -482,14 +536,15 @@ $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinal
                                     $finita = $row['stato'] === 'terminata';
                                     $cls1 = $cls2 = '';
                                     if($finita){
-                                        if($row['punti_casa'] > $row['punti_ospite']) { $cls1='m-match__row--winner'; $cls2='m-match__row--loser'; }
-                                        else { $cls2='m-match__row--winner'; $cls1='m-match__row--loser'; }
+                                        if($row['punti_casa'] > $row['punti_ospite']){ $cls1 = 'm-match__row--winner'; $cls2 = 'm-match__row--loser'; }
+                                        else                                          { $cls2 = 'm-match__row--winner'; $cls1 = 'm-match__row--loser'; }
                                     }
+                                    $puoModificare = $isOrganizzatore && !$nextEsisteTurno;
                                 ?>
                                     <div class="m-match<?= $is_final ? ' m-match--final' : '' ?>" style="min-width: 240px;">
                                         <div class="m-match__head">
                                             <span class="m-match__head-id"><?= htmlspecialchars(strtoupper(substr($turno,0,3))) ?>-<?= (int)$row['id'] ?></span>
-                                            <span><?= !empty($row['orario']) ? htmlspecialchars($row['orario']) : ($finita ? 'Terminata' : 'Da giocare') ?></span>
+                                            <span><?= !empty($row['orario']) ? htmlspecialchars(date('d/m H:i', strtotime($row['orario']))) : ($finita ? 'Terminata' : 'Da giocare') ?></span>
                                         </div>
                                         <div class="m-match__row <?= $cls1 ?>">
                                             <span class="m-match__seed"></span>
@@ -501,20 +556,33 @@ $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinal
                                             <span class="m-match__team"><?= htmlspecialchars($row['ospite']) ?></span>
                                             <span class="m-match__score"><?= $finita ? (int)$row['punti_ospite'] : '' ?></span>
                                         </div>
-                                        <?php if($isOrganizzatore && !$finita): ?>
+                                        <?php if($puoModificare): ?>
                                             <div style="padding: 8px 10px; border-top: 1px solid var(--m-border); display: flex; flex-direction: column; gap: 6px;">
-                                                <form method="POST" style="display: flex; gap: 4px; align-items: center;">
-                                                    <input type="hidden" name="partita_id_orario" value="<?= (int)$row['id'] ?>">
-                                                    <input class="m-input" type="datetime-local" name="orario" required style="padding: 4px; font-size: 11px;">
-                                                    <button class="m-btn m-btn--secondary m-btn--sm">Orario</button>
-                                                </form>
+                                                <?php if(!$finita): ?>
+                                                    <form method="POST" style="display: flex; gap: 4px; align-items: center;">
+                                                        <input type="hidden" name="partita_id_orario" value="<?= (int)$row['id'] ?>">
+                                                        <input class="m-input" type="datetime-local" name="orario" required style="padding: 4px; font-size: 11px;">
+                                                        <button class="m-btn m-btn--secondary m-btn--sm">Orario</button>
+                                                    </form>
+                                                <?php endif; ?>
                                                 <form method="POST" style="display: flex; gap: 4px; align-items: center;">
                                                     <input type="hidden" name="partita_id" value="<?= (int)$row['id'] ?>">
-                                                    <input class="m-input m-num" type="number" name="casa" min="0" required style="width: 50px; padding: 4px; text-align: center;">
-                                                    <span style="color: var(--m-text-mute);">-</span>
-                                                    <input class="m-input m-num" type="number" name="ospite" min="0" required style="width: 50px; padding: 4px; text-align: center;">
-                                                    <button class="m-btn m-btn--primary m-btn--sm">OK</button>
+                                                    <input class="m-input m-num" type="number" name="casa" min="0" required
+                                                           value="<?= $finita ? (int)$row['punti_casa'] : '' ?>"
+                                                           style="width: 50px; padding: 4px; text-align: center;">
+                                                    <span style="color: var(--m-text-mute);">&ndash;</span>
+                                                    <input class="m-input m-num" type="number" name="ospite" min="0" required
+                                                           value="<?= $finita ? (int)$row['punti_ospite'] : '' ?>"
+                                                           style="width: 50px; padding: 4px; text-align: center;">
+                                                    <button class="m-btn <?= $finita ? 'm-btn--secondary' : 'm-btn--primary' ?> m-btn--sm"
+                                                            title="<?= $finita ? 'Modifica risultato' : 'Inserisci risultato' ?>">
+                                                        <?= $finita ? '&#9998;' : 'OK' ?>
+                                                    </button>
                                                 </form>
+                                            </div>
+                                        <?php elseif($isOrganizzatore && $nextEsisteTurno): ?>
+                                            <div style="padding: 8px 10px; border-top: 1px solid var(--m-border); font-size: 11px; color: var(--m-text-mute); font-style: italic;">
+                                                Turno successivo già generato
                                             </div>
                                         <?php endif; ?>
                                     </div>

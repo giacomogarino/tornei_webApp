@@ -6,7 +6,7 @@ require_once('components/squadre_torneo.php');
 session_start();
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
-
+ 
 
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita, numero_squadre,
                creato_da, stato, min_giocatori_per_squadra, max_giocatori_per_squadra,
@@ -298,11 +298,13 @@ $tipo_label = [
                 </div>
 
                 <?php if (!empty($torneo['percorso'])): ?>
-                    <div class="m-card m-mt-4" style="padding: 0; overflow: hidden;">
-                        <img src="<?= htmlspecialchars($torneo['percorso']) ?>"
-                             alt="Locandina <?= htmlspecialchars($torneo['nome']) ?>"
-                             style="width: 100%; display: block; border-radius: inherit;">
-                    </div>
+                    <a href="<?= htmlspecialchars($torneo['percorso']) ?>" target="_blank">
+                        <div class="m-card m-mt-4" style="padding: 0; overflow: hidden; cursor: pointer;">
+                            <img src="<?= htmlspecialchars($torneo['percorso']) ?>"
+                                alt="Locandina <?= htmlspecialchars($torneo['nome']) ?>"
+                                style="width: 100%; display: block; border-radius: inherit;">
+                        </div>
+                    </a>
                 <?php endif; ?>
 
                 <?php if ($organizzatore): ?>
