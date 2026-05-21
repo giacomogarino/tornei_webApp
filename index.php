@@ -1,5 +1,4 @@
 <?php
-
 require_once 'templates/header.php';
 include("conf/db_config.php");
 
@@ -27,9 +26,19 @@ if (!empty($filtro_ricerca)) {
 }
 
 /* FILTRO STATO */
+/*if (!empty($filtro_stato)) {
+    $sql .= " AND stato = ?";
+    $parametri[] = $filtro_stato;
+    $tipi .= "s";
+}*/
+/* FILTRO STATO */
 if (!empty($filtro_stato)) {
     $sql .= " AND stato = ?";
     $parametri[] = $filtro_stato;
+    $tipi .= "s";
+} else {
+    $sql .= " AND stato != ?";
+    $parametri[] = "completato";
     $tipi .= "s";
 }
 
