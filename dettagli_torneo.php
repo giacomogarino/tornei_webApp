@@ -8,7 +8,8 @@ $id = isset($_GET['id']) ? $_GET['id'] : null;
 
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita, numero_squadre,
                creato_da, stato, min_giocatori_per_squadra, max_giocatori_per_squadra,
-               min_squadre, data_chiusura_iscrizioni, codice_privato, sport, luogo
+               min_squadre, data_chiusura_iscrizioni, codice_privato, sport, luogo,
+               nome_file, percorso
         FROM torneo WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
@@ -260,6 +261,14 @@ $tipo_label = [
                         </a>
                     <?php endif; ?>
                 </div>
+
+                <?php if (!empty($torneo['percorso'])): ?>
+                    <div class="m-card m-mt-4" style="padding: 0; overflow: hidden;">
+                        <img src="<?= htmlspecialchars($torneo['percorso']) ?>"
+                             alt="Locandina <?= htmlspecialchars($torneo['nome']) ?>"
+                             style="width: 100%; display: block; border-radius: inherit;">
+                    </div>
+                <?php endif; ?>
 
                 <?php if ($organizzatore): ?>
                     <div class="m-card m-mt-4">
