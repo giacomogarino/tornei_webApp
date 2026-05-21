@@ -10,7 +10,7 @@ require_once("./templates/header.php");
 <div class="m-auth-shell">
     <aside class="m-auth-shell__brand">
         <div>
-            <img src="assets/matchora_icon.png" alt="" class="m-auth-shell__brand-logo">
+            <img src="assets/matchora_icon.png" alt="" width="200">
             <h2>Bentornato sul campo.</h2>
             <p>Accedi per gestire i tuoi tornei, le squadre, i pranzi e seguire le partite live.</p>
         </div>

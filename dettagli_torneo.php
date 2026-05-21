@@ -207,7 +207,7 @@ $tipo_label = [
                     </div>
                 <?php endif; ?>
 
-                <?php if (!$isOrganizzatore && $torneo['stato'] === 'in_corso'): ?>
+                <?php if (!$isOrganizzatore && ($torneo['stato'] === 'in_corso' || $torneo['stato'] === 'aperto')): ?>
                     <div class="m-alert m-alert--info m-mb-5">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         <div>Se sei capitano di una squadra prenota il pranzo aprendo i dettagli della tua squadra, per vedere l'orario apri gestione pranzi.</div>
@@ -239,7 +239,7 @@ $tipo_label = [
                         <dt class="m-muted">Stato</dt><dd style="margin: 0;"><span class="m-badge m-badge--dot <?= $stato_class ?>"><?= htmlspecialchars($stato_label[$torneo['stato']] ?? $torneo['stato']) ?></span></dd>
                         <dt class="m-muted">Numero squadre</dt><dd style="margin: 0; font-weight: 500;"><?= (int)$torneo['numero_squadre'] ?> (min <?= (int)$torneo['min_squadre'] ?>)</dd>
                         <dt class="m-muted">Giocatori per squadra</dt><dd style="margin: 0; font-weight: 500;">min <b><?= (int)$torneo['min_giocatori_per_squadra'] ?></b>  max <b><?= (int)$torneo['max_giocatori_per_squadra'] ?></b></dd>
-                        <dt class="m-muted">Chiusura iscrizioni</dt><dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($torneo['data_chiusura_iscrizioni']) ?></dd>
+                       <dt class="m-muted">Chiusura iscrizioni</dt><dd style="margin: 0; font-weight: 500;"><?= date('d/m/Y H:i', strtotime($torneo['data_chiusura_iscrizioni'])) ?></dd>
                         <?php if ($torneo['visibilita'] === 'privato' && $torneo['codice_privato']): ?>
                             <dt class="m-muted">Codice privato</dt><dd style="margin: 0;"><span class="m-mono" style="font-weight: 600; letter-spacing: 0.1em;"><?= htmlspecialchars($torneo['codice_privato']) ?></span></dd>
                         <?php endif; ?>
@@ -273,12 +273,6 @@ $tipo_label = [
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
                             Modifica impostazioni
                         </a>
-                        <form method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare il torneo «<?= htmlspecialchars(addslashes($torneo['nome'])) ?>»?\nQuesta azione è irreversibile e rimuoverà tutte le squadre, partite e classifiche associate.');" style="display: contents;">
-                            <button type="submit" name="elimina_torneo" class="m-btn m-btn--block m-mb-3" style="background: var(--m-danger, #dc2626); color: #fff; border-color: transparent;">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                                Elimina torneo
-                            </button>
-                        </form>
                         <?php if ($torneo['stato'] === 'aperto' && $torneo['visibilita'] === 'privato'): ?>
                             <a href="aggiunta_squadre_manualmente.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block m-mb-3">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -286,12 +280,21 @@ $tipo_label = [
                             </a>
                         <?php endif; ?>
                     <?php endif; ?>
-                    <?php if ($torneo['stato'] === 'in_corso'): ?>
+                    <?php if ($torneo['stato'] === 'in_corso' || $torneo['stato'] === 'aperto'): ?>
                         <a href="gestione_pranzi.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18"/><path d="M5 11V8a7 7 0 1 1 14 0v3"/><path d="M5 11l-1 8h16l-1-8"/></svg>
                             Gestisci pranzi
                         </a>
                     <?php endif; ?>
+                    <?php if ($isOrganizzatore): ?>
+                        <form method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare il torneo «<?= htmlspecialchars(addslashes($torneo['nome'])) ?>»?\nQuesta azione è irreversibile e rimuoverà tutte le squadre, partite e classifiche associate.');" style="display: contents;">
+                            <br><br>
+                            <button type="submit" name="elimina_torneo" class="m-btn m-btn--block m-mb-3" style="background: var(--m-danger, #dc2626); color: #fff; border-color: transparent;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                Elimina torneo
+                            </button>
+                        </form>
+                    <?php endif; ?> 
                 </div>
 
                 <?php if (!empty($torneo['percorso'])): ?>
