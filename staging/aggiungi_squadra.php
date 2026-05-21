@@ -441,7 +441,7 @@ function step_class($n, $cur){
                             <input type="hidden" name="step" value="2">
                             <div class="m-input-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
-                                <input class="m-input" type="search" name="cerca" placeholder="Cerca per nome, cognome o email" value="<?= htmlspecialchars($cerca) ?>">
+                                <input class="m-input" type="search" name="cerca" placeholder="Cerca per email" value="<?= htmlspecialchars($cerca) ?>">
                             </div>
                         </form>
 
@@ -460,7 +460,7 @@ function step_class($n, $cur){
                                             <div class="m-muted" style="font-size: 12px;"><?= htmlspecialchars($r['email']) ?></div>
                                         </div>
                                         <?php if($is_occ): ?>
-                                            <span class="m-badge m-badge--warn">Gi in una squadra</span>
+                                            <span class="m-badge m-badge--warn">Già in una squadra</span>
                                         <?php else: ?>
                                             <form method="POST" style="display: inline;">
                                                 <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
@@ -561,7 +561,7 @@ function step_class($n, $cur){
 
                 <div class="m-alert m-alert--info m-mt-5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <div>La richiesta verr inviata all'organizzatore via email. Riceverai una notifica appena verr approvata o rifiutata.</div>
+                    <div>La richiesta verrà inviata all'organizzatore via email. Riceverai una notifica appena verrà approvata o rifiutata.</div>
                 </div>
 
                 <form method="POST" class="m-row-between" style="margin-top: var(--m-6); padding-top: var(--m-4); border-top: 1px solid var(--m-border);">

@@ -328,6 +328,7 @@ while($row = $result->fetch_assoc())
 
 $ordineTurni = ['ottavi', 'quarti', 'semifinale', 'finale'];
 
+$extra_css = ['css/tabella_tornei.css', 'css/torneo_struttura.css'];
 require_once('templates/header.php');
 $turno_label = ['ottavi'=>'Ottavi', 'quarti'=>'Quarti', 'semifinale'=>'Semifinale', 'finale'=>'Finale'];
 ?>

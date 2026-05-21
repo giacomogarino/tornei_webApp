@@ -22,6 +22,9 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/navbar.css">
     <link rel="stylesheet" href="css/footer.css">
+    <?php if (!empty($extra_css)): foreach ($extra_css as $css_file): ?>
+    <link rel="stylesheet" href="<?= htmlspecialchars($css_file) ?>">
+    <?php endforeach; endif; ?>
 </head>
 <body>
 

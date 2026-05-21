@@ -267,6 +267,7 @@ foreach($tuttePartite as $i => $p){
 /* =====================================================
    VIEW
 ===================================================== */
+$extra_css = ['css/tabella_tornei.css', 'css/torneo_struttura.css'];
 require_once('templates/header.php');
 ?>
 
