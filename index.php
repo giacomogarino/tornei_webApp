@@ -26,12 +26,6 @@ if (!empty($filtro_ricerca)) {
 }
 
 /* FILTRO STATO */
-/*if (!empty($filtro_stato)) {
-    $sql .= " AND stato = ?";
-    $parametri[] = $filtro_stato;
-    $tipi .= "s";
-}*/
-/* FILTRO STATO */
 if (!empty($filtro_stato)) {
     $sql .= " AND stato = ?";
     $parametri[] = $filtro_stato;
