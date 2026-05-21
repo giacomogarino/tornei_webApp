@@ -58,9 +58,9 @@ include("./templates/header.php")
                 </div>
 
                 <div class="m-field">
-                    <label class="m-label" for="ci">N carta d'identit</label>
+                    <label class="m-label" for="ci">N carta d'identità</label>
                     <input class="m-input m-mono" type="text" id="ci" name="ci" placeholder="CA01234AB" required>
-                    <span class="m-muted" style="font-size: 12px;">Lo usiamo per verificare la tua identit.</span>
+                    <span class="m-muted" style="font-size: 12px;">Lo usiamo per verificare la tua identità.</span>
                 </div>
 
                 <div class="m-form-grid-2">
