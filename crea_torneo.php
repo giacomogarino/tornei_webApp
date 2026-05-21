@@ -42,6 +42,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['wizard']['sport'] = $_POST['sport'] ?? '';
         $_SESSION['wizard']['luogo'] = trim($_POST['luogo'] ?? '');
 
+        // Gestione upload locandina
+        if(isset($_FILES['locandina']) && $_FILES['locandina']['error'] === UPLOAD_ERR_OK){
+            $file = $_FILES['locandina'];
+            $tipi_ammessi = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            $max_size = 5 * 1024 * 1024; // 5 MB
+
+            if(!in_array($file['type'], $tipi_ammessi)){
+                $errori[] = "Formato locandina non valido. Usa JPG, PNG, WebP o GIF.";
+            } elseif($file['size'] > $max_size){
+                $errori[] = "La locandina supera i 5 MB consentiti.";
+            } else {
+                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $nome_file = 'locandina_' . uniqid() . '.' . $ext;
+                $cartella  = 'uploads/locandine/';
+                if(!is_dir($cartella)) mkdir($cartella, 0755, true);
+                $percorso  = $cartella . $nome_file;
+
+                if(move_uploaded_file($file['tmp_name'], $percorso)){
+                    // Rimuovi eventuale locandina precedente dalla sessione
+                    if(!empty($_SESSION['wizard']['percorso']) && file_exists($_SESSION['wizard']['percorso'])){
+                        @unlink($_SESSION['wizard']['percorso']);
+                    }
+                    $_SESSION['wizard']['nome_file'] = $nome_file;
+                    $_SESSION['wizard']['percorso']  = $percorso;
+                } else {
+                    $errori[] = "Errore durante il salvataggio della locandina.";
+                }
+            }
+        }
+
         if(empty($_SESSION['wizard']['nome']))
             $errori[] = "Il nome del torneo  obbligatorio.";
         if(empty($_SESSION['wizard']['data_chiusura']))
@@ -85,14 +115,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             numero_squadre, min_squadre,
             min_giocatori_per_squadra, max_giocatori_per_squadra,
             data_chiusura_iscrizioni, codice_privato, creato_da, stato,
-            sport, luogo)
+            sport, luogo, nome_file, percorso)
             VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aperto', ?, ?)
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aperto', ?, ?, ?, ?)
         ");
 
         $descrizione = $w['descrizione'] ?: null;
+        $nome_file   = $w['nome_file'] ?? null;
+        $percorso    = $w['percorso'] ?? null;
         $stmt->bind_param(
-            "sssssiiississs",
+            "sssssiiississsss",
             $w['nome'],
             $descrizione,
             $w['formato'],
@@ -106,7 +138,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $codice_privato,
             $_SESSION['id_utente'],
             $w['sport'],
-            $w['luogo']
+            $w['luogo'],
+            $nome_file,
+            $percorso
         );
 
         $stmt->execute();
@@ -210,7 +244,7 @@ function step_class($step_n, $cur){
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="crea_torneo.php" class="m-card" style="padding: var(--m-6);">
+        <form method="POST" action="crea_torneo.php" class="m-card" style="padding: var(--m-6);" enctype="multipart/form-data">
             <input type="hidden" name="step_corrente" value="<?= $step ?>">
 
             <?php if($step===1): ?>
@@ -300,6 +334,17 @@ function step_class($step_n, $cur){
                     <div class="m-field">
                         <label class="m-label" for="descrizione">Descrizione <span class="m-muted" style="font-weight: 400;">(facoltativa)</span></label>
                         <textarea class="m-textarea" id="descrizione" name="descrizione" placeholder="Descrivi brevemente il torneo, le regole speciali, ecc."><?= htmlspecialchars($w['descrizione'] ?? '') ?></textarea>
+                    </div>
+
+                    <div class="m-field">
+                        <label class="m-label" for="locandina">Locandina <span class="m-muted" style="font-weight: 400;">(facoltativa &mdash; JPG, PNG, WebP, max 5 MB)</span></label>
+                        <input class="m-input" type="file" id="locandina" name="locandina" accept="image/jpeg,image/png,image/webp,image/gif">
+                        <?php if(!empty($w['percorso'])): ?>
+                            <div style="margin-top: var(--m-2); display: flex; align-items: center; gap: var(--m-3);">
+                                <img src="<?= htmlspecialchars($w['percorso']) ?>" alt="Anteprima locandina" style="max-height: 80px; border-radius: 6px; border: 1px solid var(--m-border);">
+                                <span class="m-muted" style="font-size: 12px;">Locandina caricata. Carica un nuovo file per sostituirla.</span>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: var(--m-3);">
@@ -419,6 +464,12 @@ function step_class($step_n, $cur){
                     <dt class="m-muted">Giocatori per squadra</dt><dd style="margin:0; font-weight:500;">da <b><?= (int)$w['min_giocatori'] ?></b> a <b><?= (int)$w['max_giocatori'] ?></b></dd>
                     <?php if(!empty($w['descrizione'])): ?>
                         <dt class="m-muted">Descrizione</dt><dd style="margin:0;"><?= nl2br(htmlspecialchars($w['descrizione'])) ?></dd>
+                    <?php endif; ?>
+                    <?php if(!empty($w['percorso'])): ?>
+                        <dt class="m-muted">Locandina</dt>
+                        <dd style="margin:0;">
+                            <img src="<?= htmlspecialchars($w['percorso']) ?>" alt="Locandina torneo" style="max-height: 120px; border-radius: 6px; border: 1px solid var(--m-border);">
+                        </dd>
                     <?php endif; ?>
                 </dl>
 
