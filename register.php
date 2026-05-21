@@ -74,6 +74,15 @@ include("./templates/header.php")
                     </div>
                 </div>
 
+                <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--m-text-soft);">
+                    <input class="m-checkbox" type="checkbox" id="privacy_ok" name="privacy_ok"
+                        value="1" required style="margin-top: 1px; flex-shrink: 0;">
+                    <label for="privacy_ok">
+                         Ho letto e accetto l'<a href="privacy.php">Informativa sulla Privacy</a>.
+                        I miei dati saranno trattati esclusivamente per rispondere alla mia richiesta ai sensi dell'art. 6 §1 lett. b) GDPR.
+                    </label>
+                 </div>
+
                 <button type="submit" class="m-btn m-btn--primary m-btn--lg m-btn--block m-mt-3">Crea il mio account</button>
             </form>
 
@@ -87,6 +96,7 @@ include("./templates/header.php")
                     'emailEsistente'  => 'Email gi registrata.',
                     'errMsg'          => 'Errore durante la registrazione.',
                     'passwordDiverse' => 'Le password non corrispondono.',
+                    'privacyNonAccettata' => 'Accetta la privacy per continuare.'
                 ];
                 $ok = [
                     'confermaInviata' => 'Registrazione completata. Conferma la mail per poter accedere.',
