@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 include("conf/db_config.php");
 require_once('components/squadre_torneo.php');
 session_start();
@@ -30,6 +32,7 @@ $stmt->execute();
 $res = $stmt->get_result();
 $isFollowing = ($res->num_rows > 0);
 $author = $torneo['creato_da'];
+$isOrganizzatore = ($author == ($_SESSION['id_utente'] ?? null));
 
 # per seguire o smettere di seguire il torneo
 if (isset($_POST['toggle_follow'])) {
@@ -47,6 +50,22 @@ if (isset($_POST['toggle_follow'])) {
         $isFollowing = true;
     }
     header("Location: dettagli_torneo.php?id=" . $id);
+    exit;
+}
+
+// Eliminazione torneo (solo organizzatore)
+if (isset($_POST['elimina_torneo']) && $isOrganizzatore) {
+    // Le FK con ON DELETE CASCADE gestiscono automaticamente:
+    // partita, classifica, squadra (e giocatore_squadra, pranzi via squadra), torneo_seguito
+    $del = $conn->prepare("DELETE FROM torneo WHERE id = ? AND creato_da = ?");
+    $del->bind_param("ii", $id, $utente_id);
+    $del->execute();
+    if ($del->affected_rows > 0) {
+        header("Location: index.php?msg=torneoEliminato");
+    } else {
+        header("Location: dettagli_torneo.php?id=" . $id . "&msg=errEliminazione");
+    }
+    $del->close();
     exit;
 }
 
@@ -71,7 +90,6 @@ $stmt->close();
 
 require_once('templates/header_riservato.php');
 
-$isOrganizzatore = ($author == ($_SESSION['id_utente'] ?? null));
 $stato_label = [
     'aperto' => 'Aperto',
     'in_corso' => 'In corso',
@@ -160,6 +178,7 @@ $tipo_label = [
                 'errTorneoChiuso' => ['warn', "Torneo chiuso."],
                 'errTorneoPieno' => ['warn', "Torneo pieno."],
                 'errGiaInSquadra' => ['warn', "Sei gi in una squadra di questo torneo."],
+                'errEliminazione' => ['danger', "Errore durante l'eliminazione del torneo. Riprova."],
             ];
             $msg_key = $_GET['msg'];
             ?>
@@ -185,6 +204,13 @@ $tipo_label = [
                     <div class="m-alert m-alert--info m-mb-5">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         <div>Sei l'organizzatore di questo torneo. Puoi <a href="modifica_torneo.php?id=<?= (int)$torneo['id'] ?>">modificare le impostazioni</a> e gestire le iscrizioni.</div>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!$isOrganizzatore && $torneo['stato'] === 'in_corso'): ?>
+                    <div class="m-alert m-alert--info m-mb-5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <div>Se sei capitano di una squadra prenota il pranzo aprendo i dettagli della tua squadra, per vedere l'orario apri gestione pranzi.</div>
                     </div>
                 <?php endif; ?>
 
@@ -247,6 +273,12 @@ $tipo_label = [
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
                             Modifica impostazioni
                         </a>
+                        <form method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare il torneo «<?= htmlspecialchars(addslashes($torneo['nome'])) ?>»?\nQuesta azione è irreversibile e rimuoverà tutte le squadre, partite e classifiche associate.');" style="display: contents;">
+                            <button type="submit" name="elimina_torneo" class="m-btn m-btn--block m-mb-3" style="background: var(--m-danger, #dc2626); color: #fff; border-color: transparent;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                Elimina torneo
+                            </button>
+                        </form>
                         <?php if ($torneo['stato'] === 'aperto' && $torneo['visibilita'] === 'privato'): ?>
                             <a href="aggiunta_squadre_manualmente.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block m-mb-3">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
