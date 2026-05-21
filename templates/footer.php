@@ -1,25 +1,50 @@
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/footer.css">
-    <title>Torneo crazy</title>
-</head>
+<footer class="m-footer">
+    <div class="m-container">
+        <div class="m-footer__grid">
+            <div class="m-footer__brand-block">
+                <a href="index.php" class="m-navbar__brand">
+                    <span class="m-navbar__brand-mark"><img src="assets/matchora_icon.png" alt=""></span>
+                    <span class="m-navbar__brand-name">MATCHORA<span class="m-navbar__brand-sub">Tornei</span></span>
+                </a>
+                <p>Piattaforma per organizzare e seguire tornei sportivi in modo semplice e professionale.</p>
+            </div>
 
-<footer id="footer">
-    <div class="footer-container">
-        <div class="footer-left">
-            <h3>WebApp Gestione Tornei</h3>
-            <p>Organizza, segui e gestisci i tuoi tornei in modo semplice e professionale.</p>
+            <div>
+                <h5>Naviga</h5>
+                <ul>
+                    <li><a href="index.php">Home</a></li>
+                    <li><a href="privati.php">Tornei privati</a></li>
+                    <li><a href="crea_torneo.php">Crea torneo</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h5>Account</h5>
+                <ul>
+                    <li><a href="profilo.php">Profilo</a></li>
+                    <li><a href="tornei_creati.php">Tornei creati</a></li>
+                    <li><a href="tornei_seguiti.php">Seguiti</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h5>Aiuto</h5>
+                <ul>
+                    <li><a href="#">Contatti</a></li>
+                    <li><a href="#">Termini</a></li>
+                    <li><a href="#">Privacy</a></li>
+                </ul>
+            </div>
         </div>
 
-        <div class="footer-right">
-            <a href="index.php">Home</a>
-            <a href="tornei_seguiti.php">Seguiti</a>
-            <a href="profilo.php">Profilo</a>
+        <div class="m-footer__bottom">
+            <span> <?= date('Y') ?> Matchora  Tornei</span>
+            <span>Made with Matchora</span>
         </div>
-    </div>
-
-    <div class="footer-bottom">
-        <p>© <?= date("Y") ?> WebApp Tornei. Tutti i diritti riservati.</p>
+        <div style="text-align:center; font-size:10px; opacity:0.5; margin-top:6px;">
+            ringraziamenti a borello e claude code
+        </div>
     </div>
 </footer>
+</body>
+</html>

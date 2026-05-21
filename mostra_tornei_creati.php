@@ -21,7 +21,7 @@ if(!empty($filtro_ricerca)){
     if(!$stmt)
         header("location: ../privati.php?msg=err");
         //die("Errore prepare: " . $conn->error);
-    
+
 
     $cod = ($filtro_ricerca);
 

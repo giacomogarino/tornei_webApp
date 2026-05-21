@@ -1,0 +1,141 @@
+/* CONTAINER */
+.tornei-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+}
+
+/* CARD */
+.torneo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    box-sizing: border-box; /* ← FIX: padding non aumenta la larghezza */
+    overflow: hidden;        /* ← FIX: nulla esce dalla card */
+}
+
+/* HOVER */
+.torneo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.10);
+}
+
+/* HEADER */
+.torneo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    min-width: 0; /* ← FIX: permette al flex di restringersi */
+}
+
+.torneo-header h3 {
+    font-size: 20px;
+    color: var(--text);
+    font-weight: 700;
+    min-width: 0;           /* ← FIX */
+    word-break: break-word; /* ← FIX: testo lungo va a capo */
+}
+
+/* STATO */
+.torneo-stato {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(200, 161, 90, 0.12);
+    border: 1px solid rgba(200, 161, 90, 0.25);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap; /* ← badge rimane su una riga */
+    flex-shrink: 0;      /* ← non si comprime */
+}
+
+/* INFO */
+.torneo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-width: 0; /* ← FIX */
+}
+
+.label {
+    color: var(--text-muted);
+    font-size: 13px;
+    flex-shrink: 0; /* ← label non si comprime */
+}
+
+.value {
+    color: var(--text);
+    font-weight: 600;
+    text-align: right;
+    min-width: 0;           /* ← FIX */
+    word-break: break-word; /* ← FIX: valori lunghi vanno a capo */
+}
+
+/* ACTIONS */
+.torneo-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* FORM */
+.torneo-actions form {
+    flex: 1;
+    min-width: 0; /* ← FIX: il form non supera il contenitore */
+}
+
+/* BUTTON */
+.torneo-actions input[type="submit"] {
+    width: 100%;
+    padding: 11px 14px;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary);
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+    box-sizing: border-box; /* ← FIX: width: 100% non causa overflow */
+}
+
+/* HOVER BUTTON */
+.torneo-actions input[type="submit"]:hover {
+    background: #111827;
+    transform: translateY(-1px);
+}
+
+/* EMPTY STATE */
+.empty-state {
+    padding: 40px;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-muted);
+    box-shadow: var(--shadow);
+    box-sizing: border-box; /* ← FIX */
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+    .torneo-actions {
+        flex-direction: column;
+    }
+}

@@ -2,9 +2,10 @@
 if(session_status() === PHP_SESSION_NONE)
     session_start();
 
-if(!isset($_SESSION['login']))
-    header("location: ./login.php?msg=NecessariaAutentificazione");
+if(!isset($_SESSION['login'])) {
+    header("location: login.php?msg=NecessariaAutentificazione");
+    exit;
+}
 
-$current = basename($_SERVER['PHP_SELF']);
-require_once('header.php')
+require_once __DIR__ . '/header.php';
 ?>

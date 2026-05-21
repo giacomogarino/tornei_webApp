@@ -267,124 +267,154 @@ foreach($tuttePartite as $i => $p){
 /* =====================================================
    VIEW
 ===================================================== */
+$extra_css = ['css/tabella_tornei.css', 'css/torneo_struttura.css'];
 require_once('templates/header.php');
 ?>
 
-<h2><?= htmlspecialchars($torneo['nome']) ?></h2>
-<p>
-    <?= htmlspecialchars($torneo['sport']) ?> —
-    <?= $tipo_partita === 'andata_ritorno' ? 'Andata e ritorno' : 'Solo andata' ?> —
-    <?= htmlspecialchars($torneo['luogo']) ?>
-</p>
+<header class="t-hero">
+    <div class="m-container">
+        <div class="t-breadcrumb">
+            <a href="index.php">Home</a>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <a href="dettagli_torneo.php?id=<?= (int)$torneo_id ?>"><?= htmlspecialchars($torneo['nome']) ?></a>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <span>Classifica</span>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: var(--m-3); flex-wrap: wrap;">
+            <span class="t-chip">Girone unico  <?= $tipo_partita === 'andata_ritorno' ? 'A/R' : 'Andata' ?></span>
+            <?php if (!empty($torneo['luogo'])): ?><span class="t-chip"><?= htmlspecialchars($torneo['luogo']) ?></span><?php endif; ?>
+        </div>
+        <h1><?= htmlspecialchars($torneo['nome']) ?></h1>
+    </div>
+</header>
 
-<a href="?id=<?= $torneo_id ?>&view=classifica">Classifica</a> |
-<a href="?id=<?= $torneo_id ?>&view=partite">Partite</a>
+<main class="m-page">
+    <div class="m-container">
 
-<hr>
+        <div class="m-tabs">
+            <a href="dettagli_torneo.php?id=<?= (int)$torneo_id ?>" class="m-tab">Info torneo</a>
+            <a href="struttura_torneo.php?id=<?= (int)$torneo_id ?>" class="m-tab m-tab--active">Struttura torneo</a>
+            <?php if ($torneo['stato'] === 'in_corso'): ?><a href="gestione_pranzi.php?id=<?= (int)$torneo_id ?>" class="m-tab">Gestione pranzi</a><?php endif; ?>
+        </div>
 
-<?php if ($view === 'classifica'): ?>
-
-    <h3>Classifica</h3>
-
-    <table border="1" cellpadding="8">
-    <tr>
-        <th>#</th><th>Squadra</th><th>G</th><th>V</th><th>P</th><th>S</th>
-        <th>PF</th><th>PS</th><th>DP</th><th>Pts</th>
-    </tr>
-    <?php foreach ($classifica as $pos => $sq): ?>
-    <tr>
-        <td><?= $pos + 1 ?></td>
-        <td><?= htmlspecialchars($sq['nome']) ?></td>
-        <td><?= $sq['G'] ?></td>
-        <td><?= $sq['V'] ?></td>
-        <td><?= $sq['P'] ?></td>
-        <td><?= $sq['S'] ?></td>
-        <td><?= $sq['PF'] ?></td>
-        <td><?= $sq['PS'] ?></td>
-        <td><?= $sq['DP'] ?></td>
-        <td><strong><?= $sq['Pts'] ?></strong></td>
-    </tr>
-    <?php endforeach; ?>
-    </table>
-
-<?php else: ?>
-
-    <h3>Partite</h3>
-
-    <?php if (empty($tuttePartite)): ?>
-        <p>Nessuna partita ancora generata.</p>
-    <?php else: ?>
-
-        <?php foreach ($giornate as $numGiornata => $righe): ?>
-
-        <h4>Giornata <?= $numGiornata ?></h4>
-
-        <table border="1" cellpadding="8">
-        <tr>
-            <th>Casa</th>
-            <th>Ospite</th>
-            <?php if ($tipo_partita === 'andata_ritorno'): ?><th>Tipo</th><?php endif; ?>
-            <th>Orario</th>
-            <th>Risultato</th>
-            <?php if ($isOrganizzatore): ?><th>Gestione</th><?php endif; ?>
-        </tr>
-
-        <?php foreach ($righe as $row): ?>
-        <tr>
-            <td><?= htmlspecialchars($row['casa']) ?></td>
-            <td><?= htmlspecialchars($row['ospite']) ?></td>
-            <?php if ($tipo_partita === 'andata_ritorno'): ?>
-                <td><?= ucfirst($row['tipo']) ?></td>
+        <?php if (isset($_GET['msg'])): ?>
+            <?php $errs = ['errPunti'=>'Valori negativi non validi.', 'errOrario'=>'Inserisci un orario valido.']; ?>
+            <?php if (isset($errs[$_GET['msg']])): ?>
+                <div class="m-alert m-alert--danger m-mb-5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+                    <div><?= htmlspecialchars($errs[$_GET['msg']]) ?></div>
+                </div>
             <?php endif; ?>
-            <td>
-                <?= $row['orario']
-                    ? date('d/m/Y H:i', strtotime($row['orario']))
-                    : 'non impostato' ?>
-            </td>
-            <td>
-                <?= $row['stato'] === 'terminata'
-                    ? $row['punti_casa'] . ' - ' . $row['punti_ospite']
-                    : '- - -' ?>
-            </td>
+        <?php endif; ?>
 
-            <?php if ($isOrganizzatore): ?>
-            <td>
-                <?php if ($row['stato'] !== 'terminata'): ?>
+        <div class="m-row m-mb-5">
+            <a href="?id=<?= (int)$torneo_id ?>&view=classifica" class="m-btn <?= $view === 'classifica' ? 'm-btn--primary' : 'm-btn--ghost' ?> m-btn--sm">Classifica</a>
+            <a href="?id=<?= (int)$torneo_id ?>&view=partite" class="m-btn <?= $view === 'partite' ? 'm-btn--primary' : 'm-btn--ghost' ?> m-btn--sm">Partite</a>
+        </div>
 
-                <form method="POST" style="margin-bottom:8px;">
-                    <input type="hidden" name="partita_id_orario" value="<?= $row['id'] ?>">
-                    <input type="datetime-local" name="orario">
-                    <button>Salva orario</button>
-                </form>
-
-                <form method="POST">
-                    <input type="hidden" name="partita_id" value="<?= $row['id'] ?>">
-                    <input type="number" name="casa" min="0" required style="width:50px;">
-                    <input type="number" name="ospite" min="0" required style="width:50px;">
-                    <button>OK</button>
-                </form>
-
-                <?php else: ?>
-                    ✔
-                <?php endif; ?>
-            </td>
+        <?php if ($view === 'classifica'): ?>
+            <div class="m-table-wrap">
+                <table class="m-table">
+                    <thead>
+                        <tr>
+                            <th>#</th><th>Squadra</th><th class="m-num">G</th><th class="m-num">V</th><th class="m-num">P</th><th class="m-num">S</th>
+                            <th class="m-num">PF</th><th class="m-num">PS</th><th class="m-num">DP</th><th class="m-num">Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($classifica as $pos => $sq): $rank_class = ''; if ($pos === 0) $rank_class = 'm-rank--1'; elseif ($pos === 1) $rank_class = 'm-rank--2'; elseif ($pos === 2) $rank_class = 'm-rank--3'; ?>
+                            <tr>
+                                <td><span class="m-rank <?= $rank_class ?>"><?= $pos + 1 ?></span></td>
+                                <td><div class="m-team"><span class="m-avatar m-avatar--sq"><?= strtoupper(mb_substr($sq['nome'], 0, 2)) ?></span><?= htmlspecialchars($sq['nome']) ?></div></td>
+                                <td class="m-num"><?= (int)$sq['G'] ?></td>
+                                <td class="m-num"><?= (int)$sq['V'] ?></td>
+                                <td class="m-num"><?= (int)$sq['P'] ?></td>
+                                <td class="m-num"><?= (int)$sq['S'] ?></td>
+                                <td class="m-num"><?= (int)$sq['PF'] ?></td>
+                                <td class="m-num"><?= (int)$sq['PS'] ?></td>
+                                <td class="m-num"><?= (int)$sq['DP'] ?></td>
+                                <td class="m-num"><b><?= (int)$sq['Pts'] ?></b></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <?php if (empty($tuttePartite)): ?>
+                <div class="m-empty">
+                    <div class="m-empty__icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg></div>
+                    <h3>Nessuna partita generata</h3>
+                    <p class="m-muted">Le partite saranno generate all'avvio del torneo.</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($giornate as $numGiornata => $righe): ?>
+                    <h3 class="m-mb-3">Giornata <?= (int)$numGiornata ?></h3>
+                    <div class="m-table-wrap m-mb-5">
+                        <table class="m-table">
+                            <thead>
+                                <tr>
+                                    <th>Casa</th>
+                                    <th>Ospite</th>
+                                    <?php if ($tipo_partita === 'andata_ritorno'): ?><th>Tipo</th><?php endif; ?>
+                                    <th>Orario</th>
+                                    <th>Risultato</th>
+                                    <?php if ($isOrganizzatore): ?><th>Gestione</th><?php endif; ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($righe as $row): $finita = $row['stato'] === 'terminata'; ?>
+                                    <tr>
+                                        <td><b><?= htmlspecialchars($row['casa']) ?></b></td>
+                                        <td><b><?= htmlspecialchars($row['ospite']) ?></b></td>
+                                        <?php if ($tipo_partita === 'andata_ritorno'): ?>
+                                            <td><span class="m-badge m-badge--neutral"><?= htmlspecialchars(ucfirst($row['tipo'])) ?></span></td>
+                                        <?php endif; ?>
+                                        <td>
+                                            <?php if (!empty($row['orario'])): ?>
+                                                <span class="m-mono"><?= htmlspecialchars(date('d/m H:i', strtotime($row['orario']))) ?></span>
+                                            <?php else: ?>
+                                                <span class="m-muted" style="font-style: italic;">non impostato</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($finita): ?>
+                                                <b class="m-num"><?= (int)$row['punti_casa'] ?>  <?= (int)$row['punti_ospite'] ?></b>
+                                            <?php else: ?>
+                                                <span class="m-muted">  </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <?php if ($isOrganizzatore): ?>
+                                            <td>
+                                                <?php if (!$finita): ?>
+                                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                                        <form method="POST" style="display: flex; gap: 4px;">
+                                                            <input type="hidden" name="partita_id_orario" value="<?= (int)$row['id'] ?>">
+                                                            <input class="m-input" type="datetime-local" name="orario" style="padding: 4px 8px; font-size: 12px;">
+                                                            <button class="m-btn m-btn--secondary m-btn--sm">Orario</button>
+                                                        </form>
+                                                        <form method="POST" style="display: flex; gap: 4px; align-items: center;">
+                                                            <input type="hidden" name="partita_id" value="<?= (int)$row['id'] ?>">
+                                                            <input class="m-input m-num" type="number" name="casa" min="0" required style="width: 50px; padding: 4px; text-align: center;">
+                                                            <span class="m-muted">-</span>
+                                                            <input class="m-input m-num" type="number" name="ospite" min="0" required style="width: 50px; padding: 4px; text-align: center;">
+                                                            <button class="m-btn m-btn--primary m-btn--sm">OK</button>
+                                                        </form>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <span style="color: var(--m-success-700);"></span>
+                                                <?php endif; ?>
+                                            </td>
+                                        <?php endif; ?>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endforeach; ?>
             <?php endif; ?>
-        </tr>
-        <?php endforeach; ?>
-        </table>
+        <?php endif; ?>
 
-        <?php endforeach; ?>
-
-    <?php endif; ?>
-
-<?php endif; ?>
-
-<?php if (isset($_GET['msg'])): ?>
-    <?php if ($_GET['msg'] === 'errPunti'): ?>
-        <p style="color:red;">Errore: valori negativi non validi.</p>
-    <?php elseif ($_GET['msg'] === 'errOrario'): ?>
-        <p style="color:red;">Errore: inserisci un orario valido.</p>
-    <?php endif; ?>
-<?php endif; ?>
+    </div>
+</main>
 
 <?php require_once('templates/footer.php'); ?>

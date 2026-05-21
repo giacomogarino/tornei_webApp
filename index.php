@@ -59,107 +59,79 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 ?>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/index_filtri.css">
-    <title>Torneo crazy</title>
-</head>
-<h1>Tornei pubblici</h1>
+<link rel="stylesheet" href="css/index_filtri.css">
+<link rel="stylesheet" href="css/tabella_tornei.css">
 
-<a class="btn-create" href="crea_torneo.php" >
-    Crea nuovo torneo
-</a>
+<main class="m-page">
+    <div class="m-container">
 
+        <div class="m-page-head">
+            <div>
+                <h1>Tornei pubblici</h1>
+                <div class="m-page-head__sub">Esplora tutti i tornei aperti alle iscrizioni o gi in corso</div>
+            </div>
+            <a class="m-btn m-btn--primary m-btn--lg" href="crea_torneo.php">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Crea nuovo torneo
+            </a>
+        </div>
 
-<form method="GET" action="index.php">
+        <form class="m-filters" method="GET" action="index.php">
+            <div class="m-input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
+                <input
+                    class="m-input"
+                    type="search"
+                    id="ricerca"
+                    name="ricerca"
+                    value="<?= htmlspecialchars($filtro_ricerca) ?>"
+                    placeholder="Cerca per nome torneo"
+                >
+            </div>
 
-    <label for="ricerca">Cerca per nome:</label>
+            <select class="m-select" id="formato" name="formato" aria-label="Formato">
+                <option value="">Tutti i formati</option>
+                <option value="girone_unico" <?= $filtro_formato === 'girone_unico' ? 'selected' : '' ?>>Girone unico</option>
+                <option value="eliminazione_diretta" <?= $filtro_formato === 'eliminazione_diretta' ? 'selected' : '' ?>>Eliminazione diretta</option>
+                <option value="gironi_playoff" <?= $filtro_formato === 'gironi_playoff' ? 'selected' : '' ?>>Gironi + playoff</option>
+            </select>
 
-    <input
-        type="text"
-        id="ricerca"
-        name="ricerca"
-        value="<?= htmlspecialchars($filtro_ricerca) ?>"
-        placeholder="Nome torneo..."
-    >
+            <select class="m-select" id="stato" name="stato" aria-label="Stato">
+                <option value="">Tutti gli stati</option>
+                <option value="aperto" <?= $filtro_stato === 'aperto' ? 'selected' : '' ?>>Aperto</option>
+                <option value="in_corso" <?= $filtro_stato === 'in_corso' ? 'selected' : '' ?>>In corso</option>
+                <option value="completato" <?= $filtro_stato === 'completato' ? 'selected' : '' ?>>Completato</option>
+            </select>
 
-    <label for="formato">Formato:</label>
+            <button type="submit" class="m-btn m-btn--primary">Filtra</button>
+            <a href="index.php" class="m-btn m-btn--ghost">Azzera</a>
+        </form>
 
-    <select id="formato" name="formato">
+        <?php if (isset($_GET['msg'])): ?>
+            <?php if ($_GET['msg'] === 'errTorneoNonTrovato'): ?>
+                <div class="m-alert m-alert--danger m-mt-4">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <div>Errore: torneo non trovato.</div>
+                </div>
+            <?php elseif ($_GET['msg'] === 'err'): ?>
+                <div class="m-alert m-alert--danger m-mt-4">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <div>Errore, riprova pi tardi.</div>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
 
-        <option value="">Tutti</option>
+        <h2 class="m-mt-6 m-mb-5">Lista tornei</h2>
 
-        <option value="girone_unico"
-            <?= $filtro_formato === 'girone_unico' ? 'selected' : '' ?>>
-            Girone unico
-        </option>
+        <?php include("components/tabella_tornei.php"); ?>
 
-        <option value="eliminazione_diretta"
-            <?= $filtro_formato === 'eliminazione_diretta' ? 'selected' : '' ?>>
-            Eliminazione diretta
-        </option>
-
-        <option value="gironi_playoff"
-            <?= $filtro_formato === 'gironi_playoff' ? 'selected' : '' ?>>
-            Gironi + playoff
-        </option>
-
-    </select>
-
-    <label for="stato">Stato:</label>
-
-    <select id="stato" name="stato">
-
-        <option value="">Tutti</option>
-
-        <option value="aperto"
-            <?= $filtro_stato === 'aperto' ? 'selected' : '' ?>>
-            Aperto
-        </option>
-
-        <option value="in_corso"
-            <?= $filtro_stato === 'in_corso' ? 'selected' : '' ?>>
-            In corso
-        </option>
-
-        <option value="completato"
-            <?= $filtro_stato === 'completato' ? 'selected' : '' ?>>
-            Completato
-        </option>
-
-    </select>
-
-    <button type="submit">Filtra</button>
-
-    <a href="index.php">
-        <button type="button">
-            Azzera filtri
-        </button>
-    </a>
-
-</form>
-
-<br>
-<h2>Lista tornei</h2>
-
-<?php include("components/tabella_tornei.php"); ?>
+    </div>
+</main>
 
 <?php
 
-if(isset($_GET['msg'])) {
-
-    if($_GET['msg'] == 'errTorneoNonTrovato')
-        echo "<div style='color:red;'>Errore torneo non trovato</div>";
-
-    else if($_GET['msg'] == 'err')
-        echo "<div style='color:red;'>Errore, riprova più tardi</div>";
-}
-
-/* CLOSE */
 $stmt->close();
 $conn->close();
 
 require_once('templates/footer.php');
-
 ?>

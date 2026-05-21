@@ -106,7 +106,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $stmt_dup->execute();
             $dup = $stmt_dup->get_result()->fetch_assoc()['cnt'];
             if($dup > 0){
-                $errori[] = "Esiste già una squadra con questo nome in questo torneo. Scegline un altro.";
+                $errori[] = "Esiste gi una squadra con questo nome in questo torneo. Scegline un altro.";
             }
         }
     }
@@ -179,7 +179,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         if($stmt_dup2->get_result()->fetch_assoc()['cnt'] > 0){
 
-            $errori[] = "Il nome squadra è stato preso da un'altra squadra nel frattempo. Torna indietro e scegline un altro.";
+            $errori[] = "Il nome squadra  stato preso da un'altra squadra nel frattempo. Torna indietro e scegline un altro.";
 
         } else {
 
@@ -188,14 +188,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             foreach($w['giocatori'] as $uid){
                 if(utente_gia_in_squadra($conn, $torneo_id, $uid)){
                     if($uid === $utente_id){
-                        $conflitti[] = "Sei già iscritto a un'altra squadra di questo torneo.";
+                        $conflitti[] = "Sei gi iscritto a un'altra squadra di questo torneo.";
                     } else {
                         $st = $conn->prepare("SELECT nome, cognome FROM utente WHERE id=?");
                         $st->bind_param("i", $uid);
                         $st->execute();
                         $u = $st->get_result()->fetch_assoc();
                         $nome = $u ? "{$u['nome']} {$u['cognome']}" : "Utente #$uid";
-                        $conflitti[] = "$nome è già iscritto a un'altra squadra di questo torneo.";
+                        $conflitti[] = "$nome  gi iscritto a un'altra squadra di questo torneo.";
                         $w['giocatori'] = array_values(array_filter($w['giocatori'], fn($g) => $g !== $uid));
                     }
                 }
@@ -257,7 +257,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                     $link_rifiuta = "$base_url/staging/php/approva_squadra.php?token=$token_rifiuta&azione=rifiuta";
 
                     $to      = $organizzatore['email'];
-                    $subject = "Nuova richiesta squadra — {$torneo['nome']}";
+                    $subject = "Nuova richiesta squadra  {$torneo['nome']}";
                     $message =
                         "Ciao {$organizzatore['nome']},
 
@@ -273,7 +273,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                         $link_rifiuta
 
                         ---
-                        Questo messaggio è stato generato automaticamente.";
+                        Questo messaggio  stato generato automaticamente.";
 
                     $headers = "From: noreply@" . $_SERVER['HTTP_HOST'] . "\r\n" .
                             "Content-Type: text/plain; charset=UTF-8\r\n";
@@ -326,8 +326,7 @@ if($step == 2 && $cerca !== ''){
         $risultati[] = $r;
 }
 
-// Controlla se un giocatore nei risultati di ricerca è già occupato
-// (per mostrarlo in grigio/disabilitato nell'UI)
+// Controlla se un giocatore nei risultati di ricerca  gi occupato
 $occupati = [];
 foreach($risultati as $r){
     if(utente_gia_in_squadra($conn, $torneo_id, $r['id']))
@@ -335,157 +334,249 @@ foreach($risultati as $r){
 }
 
 require_once('templates/header_riservato.php');
+
+/* Helper iniziali avatar */
+function iniziali($nome, $cognome=''){
+    $a = mb_substr(trim($nome), 0, 1);
+    $b = mb_substr(trim($cognome), 0, 1);
+    return strtoupper($a . $b) ?: 'U';
+}
+function step_class($n, $cur){
+    if ($n < $cur) return 'm-step m-step--done';
+    if ($n === $cur) return 'm-step m-step--current';
+    return 'm-step';
+}
 ?>
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <title>Crea squadra</title>
-    <style>
-        body        { font-family: Arial; max-width: 700px; margin: 30px auto; }
-        .step       { background: #eee; padding: 10px; margin-bottom: 15px; }
-        fieldset    { padding: 15px; margin-bottom: 15px; }
-        input       { width: 100%; padding: 8px; box-sizing: border-box; }
-        table       { width: 100%; border-collapse: collapse; }
-        td, th      { border: 1px solid #ccc; padding: 8px; }
-        .errori     { background: #ffdede; padding: 10px; margin-bottom: 10px; }
-        .avviso     { background: #fff3cd; padding: 10px; margin-bottom: 10px; }
-        button      { padding: 8px 12px; margin-top: 10px; }
-        .occupato   { color: #999; font-style: italic; }
-    </style>
-</head>
-<body>
 
-<h1>Crea squadra — <?= htmlspecialchars($torneo['nome']) ?></h1>
-<div class="step">Step <?= $step ?> / 3</div>
+<main class="m-page">
+    <div class="m-container" style="max-width: 980px;">
 
-<?php if(!empty($errori)): ?>
-    <div class="errori">
-        <?php foreach($errori as $e): ?>
-            <p><?= htmlspecialchars($e) ?></p>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+        <div style="margin-bottom: var(--m-4); font-size: 13px;">
+            <a href="dettagli_torneo.php?id=<?= $torneo_id ?>" style="color: var(--m-text-mute);"> Torna a <?= htmlspecialchars($torneo['nome']) ?></a>
+        </div>
 
-<?php if(($GET_msg = $_GET['msg'] ?? '') === 'errGiocatoreOccupato'): ?>
-    <div class="avviso">
-        <p>Questo giocatore è già iscritto a un'altra squadra in questo torneo e non può essere aggiunto.</p>
-    </div>
-<?php endif; ?>
+        <div class="m-page-head">
+            <div>
+                <h1>Iscrivi la tua squadra</h1>
+                <div class="m-page-head__sub">
+                    Torneo: <b style="color: var(--m-primary-700)"><?= htmlspecialchars($torneo['nome']) ?></b>
+                     min <?= (int)$torneo['min_giocatori_per_squadra'] ?> / max <?= (int)$torneo['max_giocatori_per_squadra'] ?> giocatori
+                </div>
+            </div>
+        </div>
 
-<!-- ══ STEP 1 ══ -->
-<?php if($step == 1): ?>
+        <div class="m-stepper">
+            <div class="<?= step_class(1, $step) ?>">
+                <span class="m-step__num">
+                    <?php if ($step > 1): ?><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <?php else: ?>1<?php endif; ?>
+                </span>
+                <div class="m-step__text"><span class="m-step__label">Step 1</span><span class="m-step__title">Nome squadra</span></div>
+            </div>
+            <svg class="m-stepper__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <div class="<?= step_class(2, $step) ?>">
+                <span class="m-step__num">
+                    <?php if ($step > 2): ?><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <?php else: ?>2<?php endif; ?>
+                </span>
+                <div class="m-step__text"><span class="m-step__label">Step 2</span><span class="m-step__title">Aggiungi giocatori</span></div>
+            </div>
+            <svg class="m-stepper__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <div class="<?= step_class(3, $step) ?>">
+                <span class="m-step__num">3</span>
+                <div class="m-step__text"><span class="m-step__label">Step 3</span><span class="m-step__title">Riepilogo e invio</span></div>
+            </div>
+        </div>
 
-    <form method="POST">
-        <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
-        <input type="hidden" name="step" value="1">
-        <fieldset>
-            <legend>Nome squadra</legend>
-            <input type="text" name="nome_squadra"
-                   value="<?= htmlspecialchars($w['nome_squadra']) ?>">
-        </fieldset>
-        <button name="azione" value="avanti">Avanti →</button>
-    </form>
+        <?php if(!empty($errori)): ?>
+            <div class="m-alert m-alert--danger m-mb-5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <div>
+                    <?php foreach($errori as $e): ?><p style="margin:0"><?= htmlspecialchars($e) ?></p><?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
 
-<!-- ══ STEP 2 ══ -->
-<?php elseif($step == 2): ?>
+        <?php if(($_GET['msg'] ?? '') === 'errGiocatoreOccupato'): ?>
+            <div class="m-alert m-alert--warn m-mb-5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <div>Questo giocatore  gi iscritto a un'altra squadra in questo torneo.</div>
+            </div>
+        <?php endif; ?>
 
-    <!-- Form ricerca (GET) -->
-    <form method="GET">
-        <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
-        <input type="hidden" name="step" value="2">
-        <input type="text" name="cerca" value="<?= htmlspecialchars($cerca) ?>"
-               placeholder="Cerca per nome, cognome o email…">
-        <button type="submit">Cerca</button>
-    </form>
+        <?php if($step == 1): ?>
+            <form method="POST" class="m-card" style="padding: var(--m-6); max-width: 520px;">
+                <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
+                <input type="hidden" name="step" value="1">
 
-    <?php if($cerca !== '' && empty($risultati) && empty($occupati)): ?>
-        <p><em>Nessun utente trovato.</em></p>
-    <?php endif; ?>
+                <h3 style="margin: 0 0 var(--m-2);">Come si chiama la tua squadra?</h3>
+                <p class="m-muted m-mb-5">Scegli un nome riconoscibile, sar visibile a tutti.</p>
 
-    <?php if($risultati): ?>
-        <table>
-            <tr><th>Nome</th><th>Email</th><th></th></tr>
-            <?php foreach($risultati as $r): ?>
-                <?php $is_occupato = in_array($r['id'], $occupati); ?>
-                <tr class="<?= $is_occupato ? 'occupato' : '' ?>">
-                    <td><?= htmlspecialchars($r['nome']) ?> <?= htmlspecialchars($r['cognome']) ?></td>
-                    <td><?= htmlspecialchars($r['email']) ?></td>
-                    <td>
-                        <?php if($is_occupato): ?>
-                            <span title="Già in una squadra di questo torneo">Occupato</span>
-                        <?php else: ?>
-                            <form method="POST">
-                                <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
-                                <input type="hidden" name="step" value="2">
-                                <input type="hidden" name="cerca" value="<?= htmlspecialchars($cerca) ?>">
-                                <input type="hidden" name="aggiungi_id" value="<?= $r['id'] ?>">
-                                <button>+ Aggiungi</button>
-                            </form>
+                <div class="m-field">
+                    <label class="m-label" for="nome_squadra">Nome squadra</label>
+                    <input class="m-input" type="text" id="nome_squadra" name="nome_squadra"
+                           value="<?= htmlspecialchars($w['nome_squadra']) ?>" placeholder="Es. I Falchi di Cuneo" required>
+                </div>
+
+                <div class="m-row-between m-mt-6" style="padding-top: var(--m-4); border-top: 1px solid var(--m-border);">
+                    <a href="dettagli_torneo.php?id=<?= $torneo_id ?>" class="m-btn m-btn--ghost">Annulla</a>
+                    <button name="azione" value="avanti" class="m-btn m-btn--primary">
+                        Avanti
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
+            </form>
+
+        <?php elseif($step == 2): ?>
+            <div class="m-grid" style="grid-template-columns: 1fr 320px; gap: var(--m-5);">
+
+                <section>
+                    <div class="m-card">
+                        <div class="m-card__header">
+                            <h3 class="m-card__title">Cerca giocatori da invitare</h3>
+                        </div>
+
+                        <form method="GET" class="m-mb-5">
+                            <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
+                            <input type="hidden" name="step" value="2">
+                            <div class="m-input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
+                                <input class="m-input" type="search" name="cerca" placeholder="Cerca per email" value="<?= htmlspecialchars($cerca) ?>">
+                            </div>
+                        </form>
+
+                        <?php if($cerca !== '' && empty($risultati)): ?>
+                            <p class="m-muted" style="font-style: italic;">Nessun utente trovato per "<?= htmlspecialchars($cerca) ?>".</p>
                         <?php endif; ?>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-    <?php endif; ?>
 
-    <h3>Squadra corrente
-        (<?= count($w['giocatori']) ?> / <?= $torneo['max_giocatori_per_squadra'] ?>)
-    </h3>
-    <ul>
-        <?php foreach($w['giocatori'] as $id): ?>
-            <li>
-                <?= htmlspecialchars($giocatori_dati[$id]['nome']) ?>
-                <?= htmlspecialchars($giocatori_dati[$id]['cognome']) ?>
-                <?php if($id == $utente_id): ?>
-                    <strong>(Tu — Capitano)</strong>
-                <?php else: ?>
-                    <form method="POST" style="display:inline;">
-                        <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
-                        <input type="hidden" name="step" value="2">
-                        <input type="hidden" name="cerca" value="<?= htmlspecialchars($cerca) ?>">
-                        <input type="hidden" name="rimuovi_id" value="<?= $id ?>">
-                        <button>✕ Rimuovi</button>
-                    </form>
-                <?php endif; ?>
-            </li>
-        <?php endforeach; ?>
-    </ul>
+                        <?php if($risultati): ?>
+                            <p class="m-muted" style="font-size: 13px;"><?= count($risultati) ?> risultati per "<?= htmlspecialchars($cerca) ?>"</p>
+                            <div style="border: 1px solid var(--m-border); border-radius: var(--m-r-sm); overflow: hidden;">
+                                <?php foreach($risultati as $r): $is_occ = in_array($r['id'], $occupati); ?>
+                                    <div style="display: grid; grid-template-columns: 36px 1fr auto; gap: var(--m-3); padding: var(--m-3); align-items: center; <?= $is_occ ? 'opacity: 0.55;' : '' ?> border-top: 1px solid var(--m-border);">
+                                        <span class="m-avatar<?= $is_occ ? '' : '' ?>" style="<?= $is_occ ? 'background: linear-gradient(135deg, #b0a8cc, #888a9c);' : '' ?>"><?= iniziali($r['nome'], $r['cognome']) ?></span>
+                                        <div>
+                                            <div style="font-weight: 500;<?= $is_occ ? ' text-decoration: line-through;' : '' ?>"><?= htmlspecialchars($r['nome']) ?> <?= htmlspecialchars($r['cognome']) ?></div>
+                                            <div class="m-muted" style="font-size: 12px;"><?= htmlspecialchars($r['email']) ?></div>
+                                        </div>
+                                        <?php if($is_occ): ?>
+                                            <span class="m-badge m-badge--warn">Già in una squadra</span>
+                                        <?php else: ?>
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
+                                                <input type="hidden" name="step" value="2">
+                                                <input type="hidden" name="cerca" value="<?= htmlspecialchars($cerca) ?>">
+                                                <input type="hidden" name="aggiungi_id" value="<?= $r['id'] ?>">
+                                                <button class="m-btn m-btn--secondary m-btn--sm">
+                                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                                    Aggiungi
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </section>
 
-    <form method="POST">
-        <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
-        <input type="hidden" name="step" value="2">
-        <button name="azione" value="indietro">← Indietro</button>
-        <button name="azione" value="avanti">Avanti →</button>
-    </form>
+                <aside>
+                    <div class="m-card" style="position: sticky; top: calc(var(--m-navbar-h) + var(--m-3));">
+                        <h4 class="m-profile-section-label">La tua squadra</h4>
+                        <div style="font-family: var(--m-font-display); font-size: 20px; font-weight: 700; margin-bottom: 4px;"><?= htmlspecialchars($w['nome_squadra'] ?: 'Senza nome') ?></div>
+                        <div class="m-muted" style="font-size: 13px; margin-bottom: var(--m-3);">
+                            <b style="color: var(--m-text);"><?= count($w['giocatori']) ?> / <?= (int)$torneo['max_giocatori_per_squadra'] ?></b> giocatori
+                        </div>
+                        <?php $pct = $torneo['max_giocatori_per_squadra'] ? min(100, round(count($w['giocatori']) / $torneo['max_giocatori_per_squadra'] * 100)) : 0; ?>
+                        <div style="height: 6px; background: var(--m-surface-2); border-radius: 999px; overflow: hidden; margin-bottom: var(--m-4);">
+                            <div style="height: 100%; width: <?= $pct ?>%; background: linear-gradient(90deg, var(--m-primary-400), var(--m-primary-600));"></div>
+                        </div>
 
-<!-- ══ STEP 3 ══ -->
-<?php elseif($step == 3): ?>
+                        <div style="display: flex; flex-direction: column; gap: var(--m-2);">
+                            <?php foreach($w['giocatori'] as $id): $g = $giocatori_dati[$id] ?? null; if (!$g) continue; $is_me = ($id == $utente_id); ?>
+                                <div style="display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; padding: 8px; <?= $is_me ? 'background: var(--m-primary-50); border-radius: 8px;' : '' ?>">
+                                    <span class="m-avatar" style="width: 32px; height: 32px; font-size: 12px;"><?= iniziali($g['nome'], $g['cognome']) ?></span>
+                                    <div>
+                                        <div style="font-weight: <?= $is_me ? '600' : '500' ?>; font-size: 13px;"><?= htmlspecialchars($g['nome']) ?> <?= htmlspecialchars($g['cognome']) ?></div>
+                                        <?php if($is_me): ?>
+                                            <div class="m-muted" style="font-size: 11px;">Capitano  Tu</div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if($is_me): ?>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--m-gold-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/></svg>
+                                    <?php else: ?>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
+                                            <input type="hidden" name="step" value="2">
+                                            <input type="hidden" name="cerca" value="<?= htmlspecialchars($cerca) ?>">
+                                            <input type="hidden" name="rimuovi_id" value="<?= $id ?>">
+                                            <button class="m-btn m-btn--ghost" style="padding: 4px; width: auto; height: auto;" aria-label="Rimuovi">
+                                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                            <?php for($i = count($w['giocatori']); $i < (int)$torneo['max_giocatori_per_squadra']; $i++): ?>
+                                <div style="display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: center; padding: 8px; opacity: 0.5; border: 1px dashed var(--m-border); border-radius: 8px;">
+                                    <span class="m-avatar" style="width: 32px; height: 32px; background: transparent; border: 1px dashed var(--m-border-strong); color: var(--m-text-mute); font-size: 14px;">+</span>
+                                    <div class="m-muted" style="font-size: 12px;">Slot libero (opzionale)</div>
+                                </div>
+                            <?php endfor; ?>
+                        </div>
 
-    <fieldset>
-        <legend>Riepilogo</legend>
-        <p><strong>Nome squadra:</strong> <?= htmlspecialchars($w['nome_squadra']) ?></p>
-        <p><strong>Giocatori (<?= count($w['giocatori']) ?>):</strong></p>
-        <ul>
-            <?php foreach($w['giocatori'] as $id): ?>
-                <li>
-                    <?= htmlspecialchars($giocatori_dati[$id]['nome']) ?>
-                    <?= htmlspecialchars($giocatori_dati[$id]['cognome']) ?>
-                    <?= ($id == $utente_id) ? '<strong>(Capitano)</strong>' : '' ?>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    </fieldset>
+                        <form method="POST" style="display: flex; gap: var(--m-2); margin-top: var(--m-4); padding-top: var(--m-4); border-top: 1px dashed var(--m-border);">
+                            <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
+                            <input type="hidden" name="step" value="2">
+                            <button name="azione" value="indietro" class="m-btn m-btn--ghost" style="flex: 1;"> Indietro</button>
+                            <button name="azione" value="avanti" class="m-btn m-btn--primary" style="flex: 2;">Avanti </button>
+                        </form>
+                    </div>
+                </aside>
+            </div>
 
-    <form method="POST">
-        <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
-        <input type="hidden" name="step" value="3">
-        <button name="azione" value="indietro">← Indietro</button>
-        <button name="azione" value="crea">✔ Invia richiesta</button>
-    </form>
+        <?php elseif($step == 3): ?>
+            <div class="m-card" style="padding: var(--m-6);">
+                <div class="m-card__header">
+                    <h3 class="m-card__title">Riepilogo</h3>
+                    <span class="m-badge m-badge--info"><?= count($w['giocatori']) ?> giocatori</span>
+                </div>
 
-<?php endif; ?>
+                <dl style="display: grid; grid-template-columns: 180px 1fr; gap: var(--m-3) var(--m-4); font-size: 14px; margin: 0;">
+                    <dt class="m-muted">Nome squadra</dt><dd style="margin: 0; font-weight: 600;"><?= htmlspecialchars($w['nome_squadra']) ?></dd>
+                    <dt class="m-muted">Giocatori</dt>
+                    <dd style="margin: 0;">
+                        <ul style="margin: 0; padding-left: 18px;">
+                            <?php foreach($w['giocatori'] as $id): $g = $giocatori_dati[$id] ?? null; if(!$g) continue; ?>
+                                <li>
+                                    <?= htmlspecialchars($g['nome']) ?> <?= htmlspecialchars($g['cognome']) ?>
+                                    <?php if($id == $utente_id): ?>
+                                        <span class="m-badge m-badge--gold" style="margin-left: 6px;">Capitano</span>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </dd>
+                </dl>
 
-</body>
-</html>
+                <div class="m-alert m-alert--info m-mt-5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <div>La richiesta verrà inviata all'organizzatore via email. Riceverai una notifica appena verrà approvata o rifiutata.</div>
+                </div>
+
+                <form method="POST" class="m-row-between" style="margin-top: var(--m-6); padding-top: var(--m-4); border-top: 1px solid var(--m-border);">
+                    <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
+                    <input type="hidden" name="step" value="3">
+                    <button name="azione" value="indietro" class="m-btn m-btn--ghost"> Indietro</button>
+                    <button name="azione" value="crea" class="m-btn m-btn--primary m-btn--lg">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Invia richiesta
+                    </button>
+                </form>
+            </div>
+        <?php endif; ?>
+
+    </div>
+</main>
+
 <?php require_once('templates/footer.php'); ?>
