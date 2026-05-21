@@ -6,7 +6,7 @@ require_once('components/squadre_torneo.php');
 session_start();
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
-
+ 
 
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita, numero_squadre,
                creato_da, stato, min_giocatori_per_squadra, max_giocatori_per_squadra,
