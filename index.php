@@ -116,6 +116,7 @@ $result = $stmt->get_result();
                 <option value="">Tutti gli sport</option>
                 <option value="calcio" <?= $filtro_sport === 'calcio' ? 'selected' : '' ?>>calcio</option>
                 <option value="beachvolley" <?= $filtro_sport === 'beachvolley' ? 'selected' : '' ?>>beachvolley</option>
+                <option value="padel" <?= $filtro_sport === 'padel' ? 'selected' : '' ?>>padel</option>
             </select>
 
             <select class="m-select" id="stato" name="stato" aria-label="Stato">
