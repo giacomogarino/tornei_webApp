@@ -5,9 +5,9 @@ include("./templates/header.php")
 <link rel="stylesheet" href="css/register.css">
 
 <div class="m-auth-shell">
-    <aside class="m-auth-shell__brand">
+    <aside class="m-auth-shell__brand"> 
         <div>
-            <img src="assets/matchora_icon.png" alt="" class="m-auth-shell__brand-logo">
+            <img src="assets/matchora_icon.png" alt="" width="200">
             <h2>Crea il tuo account.</h2>
             <p>Bastano due minuti. Potrai creare tornei, iscriverti come squadra e seguire i match preferiti.</p>
 
