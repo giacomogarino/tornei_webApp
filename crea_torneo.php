@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nome_file   = $w['nome_file'] ?? null;
         $percorso    = $w['percorso'] ?? null;
         $stmt->bind_param(
-            "sssssiiississsss",
+            "sssssiiiississss",
             $w['nome'],
             $descrizione,
             $w['formato'],
