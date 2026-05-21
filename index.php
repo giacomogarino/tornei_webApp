@@ -6,7 +6,8 @@ include("conf/db_config.php");
 /* FILTRI */
 $filtro_ricerca = $_GET['ricerca'] ?? '';
 $filtro_stato   = $_GET['stato'] ?? '';
-$filtro_formato = $_GET['formato'] ?? '';
+$filtro_luogo = $_GET['luogo'] ?? '';
+$filtro_sport = $_GET['sport'] ?? '';
 
 /* QUERY BASE */
 $sql = "
@@ -25,17 +26,24 @@ if (!empty($filtro_ricerca)) {
     $tipi .= "s";
 }
 
-/* FILTRO FORMATO */
-if (!empty($filtro_formato)) {
-    $sql .= " AND formato = ?";
-    $parametri[] = $filtro_formato;
-    $tipi .= "s";
-}
-
 /* FILTRO STATO */
 if (!empty($filtro_stato)) {
     $sql .= " AND stato = ?";
     $parametri[] = $filtro_stato;
+    $tipi .= "s";
+}
+
+/* FILTRO LUOGO */
+if (!empty($filtro_luogo)) {
+    $sql .= " AND luogo LIKE ?";
+    $parametri[] = "%" . $filtro_luogo . "%";
+    $tipi .= "s";
+}
+
+/* FILTRO SPORT */
+if (!empty($filtro_sport)) {
+    $sql .= " AND sport = ?";
+    $parametri[] = $filtro_sport;
     $tipi .= "s";
 }
 
@@ -89,11 +97,22 @@ $result = $stmt->get_result();
                 >
             </div>
 
-            <select class="m-select" id="formato" name="formato" aria-label="Formato">
-                <option value="">Tutti i formati</option>
-                <option value="girone_unico" <?= $filtro_formato === 'girone_unico' ? 'selected' : '' ?>>Girone unico</option>
-                <option value="eliminazione_diretta" <?= $filtro_formato === 'eliminazione_diretta' ? 'selected' : '' ?>>Eliminazione diretta</option>
-                <option value="gironi_playoff" <?= $filtro_formato === 'gironi_playoff' ? 'selected' : '' ?>>Gironi + playoff</option>
+            <div class="m-input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
+                <input
+                    class="m-input"
+                    type="search"
+                    id="luogo"
+                    name="luogo"
+                    value="<?= htmlspecialchars($filtro_luogo) ?>"
+                    placeholder="Cerca per luogo"
+                >
+            </div>
+
+            <select class="m-select" id="sport" name="sport" aria-label="Sport">
+                <option value="">Tutti gli sport</option>
+                <option value="calcio" <?= $filtro_sport === 'calcio' ? 'selected' : '' ?>>calcio</option>
+                <option value="beachvolley" <?= $filtro_sport === 'beachvolley' ? 'selected' : '' ?>>beachvolley</option>
             </select>
 
             <select class="m-select" id="stato" name="stato" aria-label="Stato">

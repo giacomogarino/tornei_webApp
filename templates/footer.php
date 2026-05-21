@@ -30,9 +30,9 @@
             <div>
                 <h5>Aiuto</h5>
                 <ul>
-                    <li><a href="#">Contatti</a></li>
-                    <li><a href="#">Termini</a></li>
-                    <li><a href="#">Privacy</a></li>
+                    <li><a href="contatti.php">Contatti</a></li>
+                    <li><a href="termini.php">Termini</a></li>
+                    <li><a href="privacy.php">Privacy</a></li>
                 </ul>
             </div>
         </div>
