@@ -295,11 +295,13 @@ $tipo_label = [
                 </div>
 
                 <?php if (!empty($torneo['percorso'])): ?>
-                    <div class="m-card m-mt-4" style="padding: 0; overflow: hidden;">
-                        <img src="<?= htmlspecialchars($torneo['percorso']) ?>"
-                             alt="Locandina <?= htmlspecialchars($torneo['nome']) ?>"
-                             style="width: 100%; display: block; border-radius: inherit;">
-                    </div>
+                    <a href="<?= htmlspecialchars($torneo['percorso']) ?>" target="_blank">
+                        <div class="m-card m-mt-4" style="padding: 0; overflow: hidden; cursor: pointer;">
+                            <img src="<?= htmlspecialchars($torneo['percorso']) ?>"
+                                alt="Locandina <?= htmlspecialchars($torneo['nome']) ?>"
+                                style="width: 100%; display: block; border-radius: inherit;">
+                        </div>
+                    </a>
                 <?php endif; ?>
 
                 <?php if ($organizzatore): ?>
