@@ -57,7 +57,7 @@ $data_registrazione = $created ? date('d F Y', strtotime($created)) : '-';
                             <div class="m-muted">Email</div>
                             <div><?= htmlspecialchars($email) ?></div>
 
-                            <div class="m-muted">Codice carta d'identit</div>
+                            <div class="m-muted">Codice carta d'identità</div>
                             <div class="m-mono"><?= htmlspecialchars($cod_ci) ?></div>
 
                             <div class="m-muted">Membro dal</div>
