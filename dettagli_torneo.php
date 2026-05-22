@@ -5,13 +5,12 @@ include("conf/db_config.php");
 require_once('components/squadre_torneo.php');
 session_start();
 
-$id = isset($_GET['id']) ? $_GET['id'] : null;
- 
+$id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita, numero_squadre,
                creato_da, stato, min_giocatori_per_squadra, max_giocatori_per_squadra,
                min_squadre, data_chiusura_iscrizioni, codice_privato, sport, luogo,
-               nome_file, percorso
+               nome_file, percorso, gironi_mode
         FROM torneo WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
@@ -19,59 +18,80 @@ $stmt->execute();
 $result = $stmt->get_result();
 $torneo = $result->fetch_assoc();
 
-if(!$torneo)
+if (!$torneo) {
     header("Location: index.php?msg=errTorneoNonTrovato");
-
-
-$utente_id = isset($_SESSION['id_utente']) ? $_SESSION['id_utente']: null;
-
-$check = "SELECT id, utente_id FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
-$stmt = $conn->prepare($check);
-$stmt->bind_param("ii", $id, $utente_id);
-$stmt->execute();
-$res = $stmt->get_result();
-$isFollowing = ($res->num_rows > 0);
-$author = $torneo['creato_da'];
-$isOrganizzatore = ($author == ($_SESSION['id_utente'] ?? null));
-
-# per seguire o smettere di seguire il torneo
-if (isset($_POST['toggle_follow'])) {
-    if ($isFollowing) {
-        $delete = "DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
-        $stmt = $conn->prepare($delete);
-        $stmt->bind_param("ii", $id, $utente_id);
-        $stmt->execute();
-        $isFollowing = false;
-    } else {
-        $insert = "INSERT INTO torneo_seguito (torneo_id, utente_id) VALUES (?, ?)";
-        $stmt = $conn->prepare($insert);
-        $stmt->bind_param("ii", $id, $utente_id);
-        $stmt->execute();
-        $isFollowing = true;
-    }
-    header("Location: dettagli_torneo.php?id=" . $id);
     exit;
 }
 
-// Eliminazione torneo (solo organizzatore)
+// Compatibilità: se la colonna gironi_mode non esiste ancora, default 'auto'
+$gironi_mode = $torneo['gironi_mode'] ?? 'auto';
+
+$utente_id = isset($_SESSION['id_utente']) ? $_SESSION['id_utente'] : null;
+
+$check = "SELECT id FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?";
+$stmt  = $conn->prepare($check);
+$stmt->bind_param("ii", $id, $utente_id);
+$stmt->execute();
+$isFollowing  = ($stmt->get_result()->num_rows > 0);
+$author       = $torneo['creato_da'];
+$isOrganizzatore = ($author == ($utente_id ?? null));
+
+/* -------------------------------------------------------
+   POST: segui / smetti di seguire
+------------------------------------------------------- */
+if (isset($_POST['toggle_follow'])) {
+    if ($isFollowing) {
+        $stmt = $conn->prepare("DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?");
+        $stmt->bind_param("ii", $id, $utente_id);
+        $stmt->execute();
+    } else {
+        $stmt = $conn->prepare("INSERT INTO torneo_seguito (torneo_id, utente_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $id, $utente_id);
+        $stmt->execute();
+    }
+    header("Location: dettagli_torneo.php?id=$id");
+    exit;
+}
+
+/* -------------------------------------------------------
+   POST: elimina torneo
+------------------------------------------------------- */
 if (isset($_POST['elimina_torneo']) && $isOrganizzatore) {
-    // Le FK con ON DELETE CASCADE gestiscono automaticamente:
-    // partita, classifica, squadra (e giocatore_squadra, pranzi via squadra), torneo_seguito
     $del = $conn->prepare("DELETE FROM torneo WHERE id = ? AND creato_da = ?");
     $del->bind_param("ii", $id, $utente_id);
     $del->execute();
     if ($del->affected_rows > 0) {
         header("Location: index.php?msg=torneoEliminato");
     } else {
-        header("Location: dettagli_torneo.php?id=" . $id . "&msg=errEliminazione");
+        header("Location: dettagli_torneo.php?id=$id&msg=errEliminazione");
     }
     $del->close();
     exit;
 }
 
-// Dopo la query del torneo, prima dell'HTML
-$sql_squadre = "SELECT id, nome, capitano_id
-                FROM squadra
+/* -------------------------------------------------------
+   POST: toggle modalità gironi (auto / manuale)
+------------------------------------------------------- */
+if (isset($_POST['toggle_gironi_mode']) && $isOrganizzatore && $torneo['formato'] === 'gironi_playoff') {
+    // Possiamo cambiare la modalità solo se il torneo non è già in corso con partite generate
+    $res = $conn->query("SELECT COUNT(*) AS tot FROM partita WHERE torneo_id = $id");
+    $haPartite = (int)$res->fetch_assoc()['tot'] > 0;
+
+    if (!$haPartite) {
+        $nuovaMode = ($gironi_mode === 'auto') ? 'manuale' : 'auto';
+        $stmt = $conn->prepare("UPDATE torneo SET gironi_mode = ? WHERE id = ?");
+        $stmt->bind_param("si", $nuovaMode, $id);
+        $stmt->execute();
+        $gironi_mode = $nuovaMode;
+    }
+    header("Location: dettagli_torneo.php?id=$id");
+    exit;
+}
+
+/* -------------------------------------------------------
+   Dati sidebar
+------------------------------------------------------- */
+$sql_squadre = "SELECT id, nome, capitano_id FROM squadra
                 WHERE torneo_id = ? AND stato = 'approvata'
                 ORDER BY nome ASC";
 $stmt = $conn->prepare($sql_squadre);
@@ -80,7 +100,6 @@ $stmt->execute();
 $squadre = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* Dati organizzatore per la sidebar */
 $organizzatore = null;
 $stmt = $conn->prepare("SELECT nome, cognome FROM utente WHERE id = ?");
 $stmt->bind_param("i", $author);
@@ -88,21 +107,25 @@ $stmt->execute();
 $organizzatore = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
+// Controlla se esistono già partite (per disabilitare il toggle)
+$res = $conn->query("SELECT COUNT(*) AS tot FROM partita WHERE torneo_id = $id");
+$haPartite = (int)$res->fetch_assoc()['tot'] > 0;
+
 require_once('templates/header.php');
 
 $stato_label = [
-    'aperto' => 'Aperto',
-    'in_corso' => 'In corso',
+    'aperto'     => 'Aperto',
+    'in_corso'   => 'In corso',
     'completato' => 'Completato',
 ];
 $stato_class = 'm-state-' . htmlspecialchars($torneo['stato']);
 $formato_label = [
     'eliminazione_diretta' => 'Eliminazione diretta',
-    'girone_unico' => 'Girone unico',
-    'gironi_playoff' => 'Gironi + playoff',
+    'girone_unico'         => 'Girone unico',
+    'gironi_playoff'       => 'Gironi + playoff',
 ];
 $tipo_label = [
-    'andata' => 'Solo andata',
+    'andata'         => 'Solo andata',
     'andata_ritorno' => 'Andata e ritorno',
 ];
 ?>
@@ -123,7 +146,13 @@ $tipo_label = [
                         <?= htmlspecialchars($stato_label[$torneo['stato']] ?? $torneo['stato']) ?>
                     </span>
                     <span class="t-chip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><?php if ($torneo['visibilita'] === 'privato'): ?><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><?php else: ?><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M3 12h18"/><?php endif; ?></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <?php if ($torneo['visibilita'] === 'privato'): ?>
+                                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            <?php else: ?>
+                                <circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M3 12h18"/>
+                            <?php endif; ?>
+                        </svg>
                         <?= $torneo['visibilita'] === 'privato' ? 'Privato' : 'Pubblico' ?>
                     </span>
                     <?php if (!empty($torneo['sport']) || !empty($torneo['luogo'])): ?>
@@ -171,18 +200,17 @@ $tipo_label = [
             <?php endif; ?>
         </div>
 
-        <?php if(isset($_GET['msg'])): ?>
+        <?php if (isset($_GET['msg'])): ?>
             <?php
             $msg_map = [
-                'err' => ['danger', "Errore, riprova pi tardi."],
-                'errTorneoChiuso' => ['warn', "Torneo chiuso."],
-                'errTorneoPieno' => ['warn', "Torneo pieno."],
-                'errGiaInSquadra' => ['warn', "Sei gi in una squadra di questo torneo."],
-                'errEliminazione' => ['danger', "Errore durante l'eliminazione del torneo. Riprova."],
+                'err'            => ['danger', "Errore, riprova più tardi."],
+                'errTorneoChiuso'=> ['warn',   "Torneo chiuso."],
+                'errTorneoPieno' => ['warn',   "Torneo pieno."],
+                'errGiaInSquadra'=> ['warn',   "Sei già in una squadra di questo torneo."],
+                'errEliminazione'=> ['danger', "Errore durante l'eliminazione del torneo. Riprova."],
             ];
             $msg_key = $_GET['msg'];
-            ?>
-            <?php if (isset($msg_map[$msg_key])): ?>
+            if (isset($msg_map[$msg_key])): ?>
                 <div class="m-alert m-alert--<?= $msg_map[$msg_key][0] ?> m-mb-5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
                     <div><?= $msg_map[$msg_key][1] ?></div>
@@ -190,10 +218,10 @@ $tipo_label = [
             <?php endif; ?>
         <?php endif; ?>
 
-        <?php if(isset($_GET['squadra_inviata'])): ?>
+        <?php if (isset($_GET['squadra_inviata'])): ?>
             <div class="m-alert m-alert--success m-mb-5">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                <div>Richiesta inviata! L'organizzatore valuter la tua iscrizione.</div>
+                <div>Richiesta inviata! L'organizzatore valuterà la tua iscrizione.</div>
             </div>
         <?php endif; ?>
 
@@ -207,7 +235,7 @@ $tipo_label = [
                     </div>
                 <?php endif; ?>
 
-                <?php if (!$isOrganizzatore && ($torneo['stato'] === 'in_corso' || $torneo['stato'] === 'aperto')): ?>
+                <?php if (!$isOrganizzatore && in_array($torneo['stato'], ['in_corso', 'aperto'])): ?>
                     <div class="m-alert m-alert--info m-mb-5">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         <div>Se sei capitano di una squadra prenota il pranzo aprendo i dettagli della tua squadra, per vedere l'orario apri gestione pranzi.</div>
@@ -227,21 +255,68 @@ $tipo_label = [
                         <span class="m-mono m-muted" style="font-size: 12px;">ID #<?= (int)$torneo['id'] ?></span>
                     </div>
                     <dl style="display: grid; grid-template-columns: 200px 1fr; gap: var(--m-3) var(--m-4); font-size: 14px; margin: 0;">
-                        <dt class="m-muted">Formato</dt><dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($formato_label[$torneo['formato']] ?? $torneo['formato']) ?></dd>
-                        <dt class="m-muted">Tipo partita</dt><dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($tipo_label[$torneo['tipo_partita']] ?? $torneo['tipo_partita']) ?></dd>
+                        <dt class="m-muted">Formato</dt>
+                        <dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($formato_label[$torneo['formato']] ?? $torneo['formato']) ?></dd>
+
+                        <?php if ($torneo['formato'] === 'gironi_playoff'): ?>
+                            <dt class="m-muted">Modalità gironi</dt>
+                            <dd style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <?php if ($gironi_mode === 'auto'): ?>
+                                    <span class="m-badge m-badge--info" style="display:inline-flex; align-items:center; gap:4px;">
+                                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                        Automatica
+                                    </span>
+                                <?php else: ?>
+                                    <span class="m-badge m-badge--gold" style="display:inline-flex; align-items:center; gap:4px;">
+                                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                                        Manuale
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($isOrganizzatore && !$haPartite): ?>
+                                    <form method="POST" style="display:inline;">
+                                        <button type="submit" name="toggle_gironi_mode"
+                                                class="m-btn m-btn--ghost m-btn--sm"
+                                                style="font-size:11px; padding: 2px 8px;"
+                                                title="Cambia modalità">
+                                            Cambia
+                                        </button>
+                                    </form>
+                                <?php elseif ($isOrganizzatore && $haPartite): ?>
+                                    <span class="m-muted" style="font-size:11px; font-style:italic;">non modificabile (partite già generate)</span>
+                                <?php endif; ?>
+                            </dd>
+                        <?php endif; ?>
+
+                        <dt class="m-muted">Tipo partita</dt>
+                        <dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($tipo_label[$torneo['tipo_partita']] ?? $torneo['tipo_partita']) ?></dd>
+
                         <?php if (!empty($torneo['sport'])): ?>
-                            <dt class="m-muted">Sport</dt><dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($torneo['sport']) ?></dd>
+                            <dt class="m-muted">Sport</dt>
+                            <dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($torneo['sport']) ?></dd>
                         <?php endif; ?>
                         <?php if (!empty($torneo['luogo'])): ?>
-                            <dt class="m-muted">Luogo</dt><dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($torneo['luogo']) ?></dd>
+                            <dt class="m-muted">Luogo</dt>
+                            <dd style="margin: 0; font-weight: 500;"><?= htmlspecialchars($torneo['luogo']) ?></dd>
                         <?php endif; ?>
-                        <dt class="m-muted">Visibilit</dt><dd style="margin: 0;"><span class="m-badge m-badge--info"><?= htmlspecialchars($torneo['visibilita']) ?></span></dd>
-                        <dt class="m-muted">Stato</dt><dd style="margin: 0;"><span class="m-badge m-badge--dot <?= $stato_class ?>"><?= htmlspecialchars($stato_label[$torneo['stato']] ?? $torneo['stato']) ?></span></dd>
-                        <dt class="m-muted">Numero squadre</dt><dd style="margin: 0; font-weight: 500;"><?= (int)$torneo['numero_squadre'] ?> (min <?= (int)$torneo['min_squadre'] ?>)</dd>
-                        <dt class="m-muted">Giocatori per squadra</dt><dd style="margin: 0; font-weight: 500;">min <b><?= (int)$torneo['min_giocatori_per_squadra'] ?></b>  max <b><?= (int)$torneo['max_giocatori_per_squadra'] ?></b></dd>
-                       <dt class="m-muted">Chiusura iscrizioni</dt><dd style="margin: 0; font-weight: 500;"><?= date('d/m/Y H:i', strtotime($torneo['data_chiusura_iscrizioni'])) ?></dd>
+
+                        <dt class="m-muted">Visibilità</dt>
+                        <dd style="margin: 0;"><span class="m-badge m-badge--info"><?= htmlspecialchars($torneo['visibilita']) ?></span></dd>
+
+                        <dt class="m-muted">Stato</dt>
+                        <dd style="margin: 0;"><span class="m-badge m-badge--dot <?= $stato_class ?>"><?= htmlspecialchars($stato_label[$torneo['stato']] ?? $torneo['stato']) ?></span></dd>
+
+                        <dt class="m-muted">Numero squadre</dt>
+                        <dd style="margin: 0; font-weight: 500;"><?= (int)$torneo['numero_squadre'] ?> (min <?= (int)$torneo['min_squadre'] ?>)</dd>
+
+                        <dt class="m-muted">Giocatori per squadra</dt>
+                        <dd style="margin: 0; font-weight: 500;">min <b><?= (int)$torneo['min_giocatori_per_squadra'] ?></b> &nbsp;max <b><?= (int)$torneo['max_giocatori_per_squadra'] ?></b></dd>
+
+                        <dt class="m-muted">Chiusura iscrizioni</dt>
+                        <dd style="margin: 0; font-weight: 500;"><?= date('d/m/Y H:i', strtotime($torneo['data_chiusura_iscrizioni'])) ?></dd>
+
                         <?php if ($torneo['visibilita'] === 'privato' && $torneo['codice_privato']): ?>
-                            <dt class="m-muted">Codice privato</dt><dd style="margin: 0;"><span class="m-mono" style="font-weight: 600; letter-spacing: 0.1em;"><?= htmlspecialchars($torneo['codice_privato']) ?></span></dd>
+                            <dt class="m-muted">Codice privato</dt>
+                            <dd style="margin: 0;"><span class="m-mono" style="font-weight: 600; letter-spacing: 0.1em;"><?= htmlspecialchars($torneo['codice_privato']) ?></span></dd>
                         <?php endif; ?>
                     </dl>
                 </div>
@@ -249,60 +324,103 @@ $tipo_label = [
                 <div class="m-card m-mt-4">
                     <div class="m-card__header">
                         <h3 class="m-card__title">Squadre iscritte <span class="m-muted" style="font-weight: 400;">(<?= count($squadre) ?> di <?= (int)$torneo['numero_squadre'] ?>)</span></h3>
-                        <?php if ($torneo['stato'] == 'aperto' && ($torneo['visibilita'] === 'pubblico' || $torneo['visibilita'] === 'privato' && $author != ($_SESSION["id_utente"] ?? null))): ?>
+                        <?php if ($torneo['stato'] == 'aperto' && ($torneo['visibilita'] === 'pubblico' || ($torneo['visibilita'] === 'privato' && $author != ($utente_id ?? null)))): ?>
                             <a href="aggiungi_squadra.php?torneo_id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--sm">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                 Iscrivi squadra
                             </a>
                         <?php endif; ?>
                     </div>
-
                     <?php mostra_squadre_approvate($squadre, $utente_id); ?>
                 </div>
             </section>
 
+            <!-- =========================================
+                 SIDEBAR
+            ========================================= -->
             <aside>
                 <div class="m-card" style="background: linear-gradient(180deg, var(--m-primary-50), var(--m-surface)); border-color: var(--m-primary-200);">
                     <h4 class="m-profile-section-label">Azioni rapide</h4>
+
                     <a href="struttura_torneo.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--primary m-btn--block m-mb-3">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 7 4 7 20 3 20"/><polyline points="11 4 15 4 15 14 11 14"/><polyline points="19 4 21 4 21 10 19 10"/></svg>
                         Vedi struttura
                     </a>
+
                     <?php if ($isOrganizzatore): ?>
+
                         <a href="modifica_torneo.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block m-mb-3">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
                             Modifica impostazioni
                         </a>
+
                         <?php if ($torneo['stato'] === 'aperto' && $torneo['visibilita'] === 'privato'): ?>
                             <a href="aggiunta_squadre_manualmente.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block m-mb-3">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                 Aggiungi squadra manualmente
                             </a>
                         <?php endif; ?>
+
+                        <?php
+                        // Bottone "Componi gironi manualmente" — visibile solo se:
+                        // 1. Formato gironi_playoff
+                        // 2. Modalità manuale
+                        // 3. Nessuna partita ancora generata
+                        // 4. Torneo in_corso
+                        if (
+                            $torneo['formato'] === 'gironi_playoff' &&
+                            $gironi_mode === 'manuale' &&
+                            !$haPartite &&
+                            $torneo['stato'] === 'in_corso'
+                        ):
+                        ?>
+                            <a href="crea_gironi.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--block m-mb-3"
+                               style="background: var(--m-warning, #f59e0b); color: #fff; border-color: transparent; font-weight: 600;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+                                Componi gironi manualmente
+                            </a>
+                        <?php elseif (
+                            $torneo['formato'] === 'gironi_playoff' &&
+                            $gironi_mode === 'manuale' &&
+                            !$haPartite &&
+                            $torneo['stato'] === 'aperto'
+                        ): ?>
+                            <div class="m-alert m-alert--warn m-mb-3" style="font-size:13px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+                                <div>I gironi manuali potranno essere composti quando il torneo sarà <b>in corso</b>.</div>
+                            </div>
+                        <?php endif; ?>
+
                     <?php endif; ?>
-                    <?php if ($torneo['stato'] === 'in_corso' || $torneo['stato'] === 'aperto'): ?>
+
+                    <?php if (in_array($torneo['stato'], ['in_corso', 'aperto'])): ?>
                         <a href="gestione_pranzi.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18"/><path d="M5 11V8a7 7 0 1 1 14 0v3"/><path d="M5 11l-1 8h16l-1-8"/></svg>
                             Gestisci pranzi
                         </a>
                     <?php endif; ?>
+
                     <?php if ($isOrganizzatore): ?>
-                        <form method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare il torneo «<?= htmlspecialchars(addslashes($torneo['nome'])) ?>»?\nQuesta azione è irreversibile e rimuoverà tutte le squadre, partite e classifiche associate.');" style="display: contents;">
+                        <form method="POST"
+                              onsubmit="return confirm('Sei sicuro di voler eliminare il torneo «<?= htmlspecialchars(addslashes($torneo['nome'])) ?>»?\nQuesta azione è irreversibile e rimuoverà tutte le squadre, partite e classifiche associate.');"
+                              style="display: contents;">
                             <br><br>
-                            <button type="submit" name="elimina_torneo" class="m-btn m-btn--block m-mb-3" style="background: var(--m-danger, #dc2626); color: #fff; border-color: transparent;">
+                            <button type="submit" name="elimina_torneo"
+                                    class="m-btn m-btn--block m-mb-3"
+                                    style="background: var(--m-danger, #dc2626); color: #fff; border-color: transparent;">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                                 Elimina torneo
                             </button>
                         </form>
-                    <?php endif; ?> 
+                    <?php endif; ?>
                 </div>
 
                 <?php if (!empty($torneo['percorso'])): ?>
                     <a href="<?= htmlspecialchars($torneo['percorso']) ?>" target="_blank">
                         <div class="m-card m-mt-4" style="padding: 0; overflow: hidden; cursor: pointer;">
                             <img src="<?= htmlspecialchars($torneo['percorso']) ?>"
-                                alt="Locandina <?= htmlspecialchars($torneo['nome']) ?>"
-                                style="width: 100%; display: block; border-radius: inherit;">
+                                 alt="Locandina <?= htmlspecialchars($torneo['nome']) ?>"
+                                 style="width: 100%; display: block; border-radius: inherit;">
                         </div>
                     </a>
                 <?php endif; ?>
@@ -319,8 +437,8 @@ $tipo_label = [
                     </div>
                 <?php endif; ?>
             </aside>
-        </div>
 
+        </div>
     </div>
 </main>
 
