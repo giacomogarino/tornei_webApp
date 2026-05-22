@@ -40,7 +40,6 @@ if($row && (password_verify($psw, $row['password']))){
     $_SESSION['nome_utente'] = $row['nome'];
     $_SESSION['cognome_utente'] = $row['cognome'];
     $_SESSION['email_utente'] = $row['email'];
-    $_SESSION['cod_ci_utente'] = $row['cod_ci'];
     $_SESSION['verified_utente'] = $row['cognome'];
     $_SESSION['created_at_utente'] = $row['created_at'];
 

@@ -88,7 +88,7 @@ $stmt->execute();
 $organizzatore = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-require_once('templates/header_riservato.php');
+require_once('templates/header.php');
 
 $stato_label = [
     'aperto' => 'Aperto',

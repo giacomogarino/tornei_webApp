@@ -9,7 +9,6 @@ include("conf/db_config.php");
 $nome    = $_SESSION['nome_utente']    ?? '';
 $cognome = $_SESSION['cognome_utente'] ?? '';
 $email   = $_SESSION['email_utente']   ?? '';
-$cod_ci  = $_SESSION['cod_ci_utente']  ?? '';
 $created = $_SESSION['created_at_utente'] ?? null;
 
 $initials = strtoupper(
@@ -56,9 +55,6 @@ $data_registrazione = $created ? date('d F Y', strtotime($created)) : '-';
                         <div class="m-profile-info">
                             <div class="m-muted">Email</div>
                             <div><?= htmlspecialchars($email) ?></div>
-
-                            <div class="m-muted">Codice carta d'identit</div>
-                            <div class="m-mono"><?= htmlspecialchars($cod_ci) ?></div>
 
                             <div class="m-muted">Membro dal</div>
                             <div><?= htmlspecialchars($data_registrazione) ?></div>

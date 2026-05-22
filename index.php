@@ -3,9 +3,9 @@ require_once 'templates/header.php';
 include("conf/db_config.php");
 
 /* FILTRI */
-$filtro_ricerca = $_GET['ricerca'] ?? '';
+$filtro_ricerca = trim($_GET['ricerca']) ?? '';
 $filtro_stato   = $_GET['stato'] ?? '';
-$filtro_luogo = $_GET['luogo'] ?? '';
+$filtro_luogo = trim($_GET['luogo']) ?? '';
 $filtro_sport = $_GET['sport'] ?? '';
 
 /* QUERY BASE */
@@ -26,13 +26,18 @@ if (!empty($filtro_ricerca)) {
 }
 
 /* FILTRO STATO */
-if (!empty($filtro_stato)) {
+if ($filtro_stato === 'default' || $filtro_stato === '') {
+    // "Seleziona lo stato" → solo aperto e in_corso
+    $sql .= " AND stato IN (?, ?)";
+    $parametri[] = "aperto";
+    $parametri[] = "in_corso";
+    $tipi .= "ss";
+} elseif ($filtro_stato === 'tutti') {
+    // "Tutti gli stati" → nessun filtro, mostra anche completati
+} else {
+    // Valore specifico (aperto / in_corso / completato)
     $sql .= " AND stato = ?";
     $parametri[] = $filtro_stato;
-    $tipi .= "s";
-} else {
-    $sql .= " AND stato != ?";
-    $parametri[] = "completato";
     $tipi .= "s";
 }
 
@@ -120,9 +125,10 @@ $result = $stmt->get_result();
             </select>
 
             <select class="m-select" id="stato" name="stato" aria-label="Stato">
-                <option value="">Tutti gli stati</option>
-                <option value="aperto" <?= $filtro_stato === 'aperto' ? 'selected' : '' ?>>Aperto</option>
-                <option value="in_corso" <?= $filtro_stato === 'in_corso' ? 'selected' : '' ?>>In corso</option>
+                <option value="default" <?= $filtro_stato === 'default' ? 'selected' : '' ?>>Seleziona lo stato</option>
+                <option value="tutti"   <?= $filtro_stato === 'tutti'   ? 'selected' : '' ?>>Tutti gli stati</option>
+                <option value="aperto"  <?= $filtro_stato === 'aperto'  ? 'selected' : '' ?>>Aperto</option>
+                <option value="in_corso"   <?= $filtro_stato === 'in_corso'   ? 'selected' : '' ?>>In corso</option>
                 <option value="completato" <?= $filtro_stato === 'completato' ? 'selected' : '' ?>>Completato</option>
             </select>
 

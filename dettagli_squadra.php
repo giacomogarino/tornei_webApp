@@ -70,7 +70,7 @@ $stmt->close();
 $utente_id = $_SESSION['id_utente'] ?? null;
 $is_capitano = ($utente_id && $utente_id == $squadra['capitano_id']);
 
-require_once('templates/header_riservato.php');
+require_once('templates/header.php');
 
 function squadra_iniziali($nome, $cognome=''){
     $a = mb_substr(trim($nome), 0, 1);

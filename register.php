@@ -57,12 +57,6 @@ include("./templates/header.php")
                     <input class="m-input" type="email" id="email" name="email" placeholder="mario.rossi@esempio.it" required>
                 </div>
 
-                <div class="m-field">
-                    <label class="m-label" for="ci">N carta d'identità</label>
-                    <input class="m-input m-mono" type="text" id="ci" name="ci" placeholder="CA01234AB" required>
-                    <span class="m-muted" style="font-size: 12px;">Lo usiamo per verificare la tua identità.</span>
-                </div>
-
                 <div class="m-form-grid-2">
                     <div class="m-field">
                         <label class="m-label" for="password">Password</label>
@@ -92,7 +86,6 @@ include("./templates/header.php")
                     'campiVuoti'      => 'Compila tutti i campi obbligatori.',
                     'emailNonValida'  => 'Email non valida.',
                     'passwordDebole'  => 'La password deve avere almeno 8 caratteri.',
-                    'ciNonValida'     => 'Carta identit non valida.',
                     'emailEsistente'  => 'Email gi registrata.',
                     'errMsg'          => 'Errore durante la registrazione.',
                     'passwordDiverse' => 'Le password non corrispondono.',

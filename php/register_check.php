@@ -10,7 +10,6 @@ $cognome = trim($_POST['cognome'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $psw = $_POST['password'] ?? '';
 $psw2 = $_POST['password2'] ?? '';
-$ci = trim($_POST['ci'] ?? '');
 $privacy  = $_POST['privacy_ok']    ?? '';
 
 //Validazioni 
@@ -28,10 +27,6 @@ if(strlen($psw) < 8){
 }
 if($psw != $psw2){
     header("location: ../register.php?msg=passwordDiverse"); 
-    exit;
-}
-if(!empty($ci) && strlen($ci) < 5){
-    header("location: ../register.php?msg=ciNonValida"); 
     exit;
 }
 
@@ -70,10 +65,10 @@ $token = bin2hex(random_bytes(32));
 
 //inserisci ma non verificato (0)
 $stmt = $conn->prepare(
-    "INSERT INTO utente (nome, cognome, password, email, cod_ci, token, verified)
-     VALUES (?, ?, ?, ?, ?, ?, 0)"
+    "INSERT INTO utente (nome, cognome, password, email, token, verified)
+     VALUES (?, ?, ?, ?, ?, 0)"
 );
-$stmt->bind_param("ssssss", $nome, $cognome, $password, $email, $ci, $token);
+$stmt->bind_param("ssssss", $nome, $cognome, $password, $email, $token);
 
 if(!$stmt->execute()){
     header("location: ../register.php?msg=errMsg"); exit;
