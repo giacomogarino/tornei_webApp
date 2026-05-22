@@ -25,6 +25,11 @@ $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
 
+if ($row && empty($row['password'])) {
+    header("location: ../login.php?msg=usaGoogle");
+    exit;
+}
+
 //$password = cryptPsw($psw);
 //if($row && ($password == $row['password'])){
 if($row && (password_verify($psw, $row['password']))){

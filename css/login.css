@@ -96,3 +96,35 @@
   .m-auth-shell { grid-template-columns: 1fr; min-height: auto; }
   .m-auth-shell__brand { display: none; }
 }
+
+.m-auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--m-text-soft);
+    font-size: 13px;
+}
+.m-auth-divider::before,
+.m-auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--m-border, #e0e0e0);
+}
+
+.m-btn--google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #fff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    font-weight: 500;
+    text-decoration: none;
+}
+.m-btn--google:hover {
+    background: #f8f9fa;
+    border-color: #bbb;
+}

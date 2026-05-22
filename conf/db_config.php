@@ -42,4 +42,8 @@ function aggiorna_tornei_scaduti($conn){
 }
 
 aggiorna_tornei_scaduti($conn);
+
+define('GOOGLE_CLIENT_ID',     'Client id');
+define('GOOGLE_CLIENT_SECRET', 'client secret');
+define('GOOGLE_REDIRECT_URI',  'https://matchoratorneo.netsons.org/php/google_callback.php');
 ?>
