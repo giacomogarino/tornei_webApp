@@ -34,8 +34,6 @@ $squadre = $conn->query("SELECT id, nome FROM squadra WHERE torneo_id = $torneo_
 /* ── POST: salva gironi ───────────────────────────────────────────── */
 $errore = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gironi_data'])) {
-    // Punto 3: verifica CSRF
-    csrf_verify();
     $gironiData = json_decode($_POST['gironi_data'], true);
 
     if (!$gironiData || count($gironiData) < 1) {
@@ -260,7 +258,6 @@ require_once('templates/header_riservato.php');
                 </div>
 
                 <form method="POST" id="form-salva" style="margin-top:var(--m-5);">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                     <input type="hidden" name="gironi_data" id="gironi-data-input">
                     <div style="display:flex; gap:var(--m-3); align-items:center; flex-wrap:wrap;">
                         <button type="submit" class="m-btn m-btn--primary">
