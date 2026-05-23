@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once('../conf/security.php');
 require_once '../conf/db_config.php';
 
 $state = bin2hex(random_bytes(16));

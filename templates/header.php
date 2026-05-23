@@ -1,7 +1,7 @@
 <?php
-    // per sapere in che pagina si  e per la sessione
-    if(session_status() === PHP_SESSION_NONE)
-        session_start();
+    // Sicurezza centralizzata: disabilita errori, cookie sicuri, header HTTP, CSRF
+    // (avvia anche session_start() internamente)
+    require_once __DIR__ . '/../conf/security.php';
 
     $current = basename($_SERVER['PHP_SELF']);
 

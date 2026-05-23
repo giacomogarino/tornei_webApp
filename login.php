@@ -23,6 +23,7 @@ require_once("./templates/header.php");
             <p class="m-auth-card__sub">Entra con la tua email e password.</p>
 
             <form method="POST" action="./php/login_check.php" class="m-stack">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <div class="m-field">
                     <label class="m-label" for="email">Email</label>
                     <div class="m-input-icon">
@@ -54,6 +55,7 @@ require_once("./templates/header.php");
                 $messaggi_err = [
                     'errLogin'                  => 'Email o password errata.',
                     'campiVuoti'                => 'Compila tutti i campi.',
+                    'troppiTentativi'           => 'Troppi tentativi falliti. Attendi 5 minuti e riprova.',
                     'emailNonConfermata'        => 'Devi confermare la mail per poter accedere.',
                     'errCambioPsw'              => 'Errore nel cambio della password.',
                     'err'                       => 'Errore nel login, riprova pi tardi.',

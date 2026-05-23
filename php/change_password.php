@@ -1,15 +1,12 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
+require_once('../conf/security.php');
 include("../conf/db_config.php");
 
 $token = $_GET['token'] ?? '';
 
-if(empty($token)){
+if(empty($token))
     header("Location: ../login.php?msg=errCambioPsw");
-    exit;
-}
+
 
 // hash del token ricevuto
 $token_hash = hash('sha256', $token);
@@ -25,15 +22,13 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-if(!$user){
+if(!$user)
     header("Location: ../login.php?msg=errCambioPsw");
-    exit;
-}
 
-if($user['token_expiry'] < date("Y-m-d H:i:s")){
+
+if($user['token_expiry'] < date("Y-m-d H:i:s"))
     header("Location: ../login.php?msg=errCambioPsw");
-    exit;
-}
+
 
 $stmt->close();
 
@@ -43,25 +38,20 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     $confirm  = $_POST['confirm'] ?? '';
 
 
-    if(empty($password) || empty($confirm)){
+    if(empty($password) || empty($confirm))
         header("Location: ../change_password.php?msg=campiMancanti");
-        exit;
-    }
         //die("Compila tutti i campi.");
     
 
-    if($password !== $confirm){
+    if($password !== $confirm)
         header("Location: ../change_password.php?msg=passwordDiverse");
-        exit;
-    }
         //die("Le password non coincidono.");
     
 
-    if(strlen($password) < 8){
+    if(strlen($password) < 8)
         header("Location: ../change_password.php?msg=passwordCorta");
         //die("Password troppo corta (min 8 caratteri).");
-        exit;
-    }
+    
 
     // hash password
     $psw = password_hash($password, PASSWORD_BCRYPT);
@@ -78,11 +68,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     if($update->execute()){
         header("Location: ../login.php?msg=passwordAggiornata");
         exit;
-    }else{
+    }else
         header("Location: ../login.php?msg=errCambioPsw");
         //die("Errore aggiornamento password.");
-        exit;
-    }
 }
 
 $conn->close();
@@ -99,6 +87,7 @@ $conn->close();
 <h2>Imposta una nuova password</h2>
 
 <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
     <label>Nuova password:</label><br>
     <input type="password" name="password" required><br><br>
 

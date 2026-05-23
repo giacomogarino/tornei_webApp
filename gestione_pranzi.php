@@ -18,6 +18,8 @@ $isOrganizzatore=isset($_SESSION['id_utente']) && $_SESSION['id_utente']==$torne
 
 // INSERIMENTO / UPDATE PRANZO
 if($_SERVER['REQUEST_METHOD']==='POST' && $isOrganizzatore){
+    // Punto 3: verifica CSRF
+    csrf_verify();
 
     $squadra_id=$_POST['squadra_id'];
     $orario=$_POST['orario'];
@@ -155,6 +157,7 @@ function pranzi_iniziali($nome) {
                                     </td>
                                     <td>
                                         <form method="POST" style="display: flex; gap: 8px; align-items: center;">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="squadra_id" value="<?= (int)$row['id'] ?>">
                                             <input class="m-input" type="datetime-local" name="orario" value="<?= htmlspecialchars($row['orario'] ?? '') ?>" required style="padding: 6px 10px; font-size: 13px;">
                                             <button class="m-btn m-btn--<?= empty($row['orario']) ? 'primary' : 'secondary' ?> m-btn--sm"><?= empty($row['orario']) ? 'Salva' : 'Aggiorna' ?></button>

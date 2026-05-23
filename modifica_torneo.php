@@ -1,6 +1,11 @@
 <?php
 include("conf/db_config.php");
 
+// Punto 3: verifica CSRF per richieste POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
+}
+
 $id = isset($_GET['id']) ? $_GET['id']: null;
 
 if(!$id)
@@ -94,6 +99,7 @@ require_once('templates/header_riservato.php');
         </div>
 
         <form method="POST" class="m-card" style="padding: var(--m-6);">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <div class="m-stack">
                 <div class="m-field">
                     <label class="m-label" for="nome">Nome torneo <span style="color: var(--m-danger-500);">*</span></label>
@@ -111,6 +117,9 @@ require_once('templates/header_riservato.php');
                         <select class="m-select" id="sport" name="sport">
                             <option value="calcio" <?= $torneo['sport']=="calcio" ? "selected" : "" ?>>Calcio</option>
                             <option value="beachvolley" <?= $torneo['sport']=="beachvolley" ? "selected" : "" ?>>Beach Volley</option>
+                            <option value="padel" <?= $torneo['sport']=="padel" ? "selected" : "" ?>>Padel</option>
+                            <option value="tennis" <?= $torneo['sport']=="tennis" ? "selected" : "" ?>>Tennis</option>
+                        </select>
                         </select>
                     </div>
 

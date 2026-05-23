@@ -1,6 +1,5 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require_once('../conf/security.php');
 include("../conf/db_config.php");
 
 $token  = trim($_GET['token']  ?? '');

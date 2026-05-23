@@ -1,4 +1,5 @@
 <?php
+require_once('../conf/security.php');
 include("../conf/db_config.php");
 
 $token = trim($_GET['token'] ?? '');

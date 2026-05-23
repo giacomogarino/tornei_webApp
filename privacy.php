@@ -12,7 +12,7 @@ require_once('templates/header.php');
             <span>Privacy Policy</span>
         </div>
         <h1>Informativa sulla Privacy</h1>
-        <p class="desc">Ultimo aggiornamento: <?= date('d/m/Y') ?> — ai sensi del Regolamento (UE) 2016/679 (GDPR)</p>
+        <p class="desc">Ultimo aggiornamento: 23/05/2025 — ai sensi del Regolamento (UE) 2016/679 (GDPR)</p>
     </div>
 </header>
 

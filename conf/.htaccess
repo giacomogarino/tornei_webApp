@@ -1,0 +1,3 @@
+# Blocca qualsiasi accesso HTTP diretto a questa cartella
+Order deny,allow
+Deny from all

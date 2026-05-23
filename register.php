@@ -41,6 +41,7 @@ include("./templates/header.php")
             <p class="m-auth-card__sub">Registrati per gestire e seguire i tuoi tornei.</p>
 
             <form method="POST" action="./php/register_check.php" class="m-stack">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <div class="m-form-grid-2">
                     <div class="m-field">
                         <label class="m-label" for="nome">Nome</label>

@@ -1,13 +1,14 @@
 <?php
+require_once('../conf/security.php');
 ob_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 // Accetta solo POST
 if($_SERVER['REQUEST_METHOD'] !== 'POST'){
     header("Location: ../contatti.php");
     exit;
 }
+
+// Punto 3: verifica CSRF
+csrf_verify('../contatti.php?msg=err');
 
 $nome     = trim($_POST['nome']     ?? '');
 $cognome  = trim($_POST['cognome']  ?? '');
