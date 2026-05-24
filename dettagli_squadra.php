@@ -31,9 +31,6 @@ if (!$squadra) {
 
 // update persone pranzo
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Punto 3: verifica CSRF
-    csrf_verify();
-
 
     if (isset($_POST['persone_pranzo'])) {
 
@@ -157,7 +154,6 @@ $stato_class = 'm-state-' . htmlspecialchars($squadra['stato']);
                         <h4 class="m-profile-section-label">Gestione pranzo</h4>
                         <p class="m-muted m-mb-3" style="font-size: 13px;">Sei il capitano. Aggiorna quante persone della tua squadra mangeranno.</p>
                         <form method="POST" class="m-stack">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                             <div class="m-field">
                                 <label class="m-label" for="persone_pranzo">Numero persone</label>
                                 <input class="m-input m-num" type="number" id="persone_pranzo" name="persone_pranzo" min="0" value="<?= (int)$squadra['persone_pranzo'] ?>" required>

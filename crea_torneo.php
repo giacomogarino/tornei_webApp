@@ -12,8 +12,6 @@ $errori = [];
 
 //controlla che il metodo sia post
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Punto 3: verifica CSRF
-    csrf_verify();
 
     $step = intval($_POST['step_corrente'] ?? 1);
     $azione = $_POST['azione'] ?? 'avanti';
@@ -50,20 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $tipi_ammessi = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
             $max_size = 5 * 1024 * 1024; // 5 MB
 
-            // Punto 4: usa finfo per leggere il MIME reale dal contenuto del file
-            // (NON fidarsi di $_FILES['type'] che viene dal browser ed è falsificabile)
-            $finfo     = new finfo(FILEINFO_MIME_TYPE);
-            $mime_reale = $finfo->file($file['tmp_name']);
-
-            if(!in_array($mime_reale, $tipi_ammessi)){
+            if(!in_array($file['type'], $tipi_ammessi)){
                 $errori[] = "Formato locandina non valido. Usa JPG, PNG, WebP o GIF.";
             } elseif($file['size'] > $max_size){
                 $errori[] = "La locandina supera i 5 MB consentiti.";
             } else {
-                // Estensione basata sul MIME reale (non sul nome originale)
-                $ext_map  = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp','image/gif'=>'gif'];
-                $ext      = $ext_map[$mime_reale];
-                $nome_file = 'locandina_' . bin2hex(random_bytes(8)) . '.' . $ext;
+                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $nome_file = 'locandina_' . uniqid() . '.' . $ext;
                 $cartella  = 'uploads/locandine/';
                 if(!is_dir($cartella)) mkdir($cartella, 0755, true);
                 $percorso  = $cartella . $nome_file;
@@ -178,8 +169,6 @@ $tipo_label = [
 $sport_label = [
     'calcio'       => 'Calcio',
     'beachvolley'  => 'Beach Volley',
-    'padel'        => 'Padel',
-    'tennis'        => 'Tennis'
 ];
 
 $w = $_SESSION['wizard'];
@@ -256,7 +245,6 @@ function step_class($step_n, $cur){
         <?php endif; ?>
 
         <form method="POST" action="crea_torneo.php" class="m-card" style="padding: var(--m-6);" enctype="multipart/form-data">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <input type="hidden" name="step_corrente" value="<?= $step ?>">
 
             <?php if($step===1): ?>
@@ -366,8 +354,7 @@ function step_class($step_n, $cur){
                                 <option value="">-- Seleziona sport --</option>
                                 <option value="calcio" <?= (($w['sport'] ?? '')=='calcio') ? 'selected' : '' ?>>Calcio</option>
                                 <option value="beachvolley" <?= (($w['sport'] ?? '')=='beachvolley') ? 'selected' : '' ?>>Beach Volley</option>
-                                <option value="padel" <?= (($w['sport'] ?? '')=='padel') ? 'selected' : '' ?>>Padel</option>
-                                <option value="tennis" <?= (($w['sport'] ?? '')=='tennis') ? 'selected' : '' ?>>Tennis</option>
+                                <option value="beachvolley" <?= (($w['sport'] ?? '')=='padel') ? 'selected' : '' ?>>Padel</option>
                             </select>
                         </div>
                         <div class="m-field">

@@ -85,8 +85,6 @@ $errori = [];
 $msg_ricerca = '';
 
 if($_SERVER['REQUEST_METHOD']==='POST'){
-    // Punto 3: verifica CSRF
-    csrf_verify();
 
     $azione = $_POST['azione'] ?? '';
 
@@ -408,7 +406,6 @@ function step_class($n, $cur){
 
         <?php if($step == 1): ?>
             <form method="POST" class="m-card" style="padding: var(--m-6); max-width: 520px;">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                 <input type="hidden" name="step" value="1">
 
@@ -466,7 +463,6 @@ function step_class($n, $cur){
                                             <span class="m-badge m-badge--warn">Già in una squadra</span>
                                         <?php else: ?>
                                             <form method="POST" style="display: inline;">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                 <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                                                 <input type="hidden" name="step" value="2">
                                                 <input type="hidden" name="cerca" value="<?= htmlspecialchars($cerca) ?>">
@@ -510,7 +506,6 @@ function step_class($n, $cur){
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--m-gold-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/></svg>
                                     <?php else: ?>
                                         <form method="POST" style="display: inline;">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                                             <input type="hidden" name="step" value="2">
                                             <input type="hidden" name="cerca" value="<?= htmlspecialchars($cerca) ?>">
@@ -531,7 +526,6 @@ function step_class($n, $cur){
                         </div>
 
                         <form method="POST" style="display: flex; gap: var(--m-2); margin-top: var(--m-4); padding-top: var(--m-4); border-top: 1px dashed var(--m-border);">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                             <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                             <input type="hidden" name="step" value="2">
                             <button name="azione" value="indietro" class="m-btn m-btn--ghost" style="flex: 1;"> Indietro</button>
@@ -571,7 +565,6 @@ function step_class($n, $cur){
                 </div>
 
                 <form method="POST" class="m-row-between" style="margin-top: var(--m-6); padding-top: var(--m-4); border-top: 1px solid var(--m-border);">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                     <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                     <input type="hidden" name="step" value="3">
                     <button name="azione" value="indietro" class="m-btn m-btn--ghost"> Indietro</button>

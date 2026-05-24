@@ -50,7 +50,6 @@ $msg = $_GET['msg'] ?? null;
                     <p style="margin-bottom: var(--m-5);">Risponderemo entro 48 ore lavorative.</p>
 
                     <form method="POST" action="php/invia_contatti.php" style="display: flex; flex-direction: column; gap: var(--m-4);">
-                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
                         <div class="c-name-grid">
                             <div class="m-field">
@@ -127,6 +126,7 @@ $msg = $_GET['msg'] ?? null;
                         </div>
                         <div>
                             <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--m-text-mute); margin-bottom: 4px;">Email</div>
+                            <!-- TODO: sostituisci con email reale -->
                             <a href="mailto:matchora.torneo@gmail.com" style="font-weight: 600; font-size: 15px;">matchora.torneo@gmail.com</a>
                             <div style="font-size: 12px; color: var(--m-text-mute); margin-top: 3px;">Per richieste generali</div>
                         </div>
@@ -140,6 +140,7 @@ $msg = $_GET['msg'] ?? null;
                         </div>
                         <div>
                             <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--m-text-mute); margin-bottom: 4px;">Privacy & Dati</div>
+                            <!-- TODO: sostituisci con email privacy reale -->
                             <a href="mailto:matchora.torneo@gmail.com" style="font-weight: 600; font-size: 15px;">matchora.torneo@gmail.com</a>
                             <div style="font-size: 12px; color: var(--m-text-mute); margin-top: 3px;">Esercizio diritti GDPR artt. 15–22</div>
                         </div>
@@ -167,10 +168,6 @@ $msg = $_GET['msg'] ?? null;
                 <div class="m-card">
                     <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--m-text-mute); margin-bottom: var(--m-3);">Link utili</div>
                     <div style="display: flex; flex-direction: column; gap: var(--m-2);">
-                        <a href="team.php" style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; padding: 6px 0; color: var(--m-text-soft);">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                            Il nostro Team
-                        </a>
                         <a href="privacy.php" style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; padding: 6px 0; color: var(--m-text-soft);">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                             Informativa sulla Privacy

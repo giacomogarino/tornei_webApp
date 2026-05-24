@@ -1,16 +1,9 @@
 <?php
 ob_start();
-// Punto 2: sicurezza centralizzata (no display_errors, cookie sicuri, header HTTP, CSRF)
-require_once("../conf/security.php");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 include("../conf/db_config.php");
-
-// Solo POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: ../register.php"); exit;
-}
-
-// Punto 3: verifica CSRF
-csrf_verify('../register.php?msg=err');
 
 $nome = trim($_POST['nome'] ?? '');
 $cognome = trim($_POST['cognome'] ?? '');

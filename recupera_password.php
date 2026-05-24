@@ -12,7 +12,6 @@ require_once("./templates/header.php");
         <p class="m-muted">Inserisci l'email che hai usato per registrarti. Ti invieremo un link per impostare una nuova password.</p>
 
         <form method="POST" action="./php/recovery.php" class="m-stack m-mt-5">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <div class="m-field">
                 <label class="m-label" for="email">Email</label>
                 <div class="m-input-icon">
