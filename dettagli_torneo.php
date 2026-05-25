@@ -1,3 +1,4 @@
+
 <?php
 require_once 'php/helpers/session.php';
 require_once 'php/helpers/csrf.php';
@@ -148,6 +149,94 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
     cursor: pointer;
     line-height: 0;
 }
+
+/* ── Layout responsive dettagli_torneo ──────────────── */
+.dt-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: var(--m-6);
+    align-items: start;
+}
+
+/* Tabella dati torneo: su desktop 2 colonne (label | valore) */
+.dt-dati-dl {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: var(--m-3) var(--m-4);
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Header hero: titolo + badge stato + azioni */
+.dt-hero-inner {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--m-4);
+    flex-wrap: wrap;
+}
+
+/* Squadre iscritte header */
+.dt-squadre-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--m-3);
+    flex-wrap: wrap;
+}
+
+/* ── Mobile (<= 700px) ─────────────────────────────── */
+@media (max-width: 700px) {
+    .dt-layout {
+        grid-template-columns: 1fr;
+    }
+    /* Sidebar va sopra il contenuto principale su mobile */
+    .dt-layout aside {
+        order: -1;
+    }
+
+    /* Azioni rapide sidebar: bottoni in colonna su mobile (già block, ok) */
+
+    /* Tabella dati torneo: una sola colonna su mobile */
+    .dt-dati-dl {
+        grid-template-columns: 1fr;
+        gap: var(--m-2);
+    }
+    .dt-dati-dl dt {
+        margin-top: var(--m-3);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .dt-dati-dl dt:first-child {
+        margin-top: 0;
+    }
+    .dt-dati-dl dd {
+        margin: 0;
+    }
+
+    /* Hero: titolo + badge in colonna */
+    .dt-hero-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* Tab: scroll orizzontale se non entrano */
+    .m-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+    }
+    .m-tabs::-webkit-scrollbar { display: none; }
+    .m-tab { white-space: nowrap; }
+
+    /* Squadre iscritte: header in colonna */
+    .dt-squadre-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
 </style>
 
 <header class="t-hero">
@@ -158,7 +247,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
             <span><?= htmlspecialchars($torneo['nome']) ?></span>
         </div>
 
-        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:var(--m-4); flex-wrap:wrap;">
+        <div class="dt-hero-inner">
             <div>
                 <div style="display:flex; gap:8px; margin-bottom:var(--m-3); flex-wrap:wrap;">
                     <span class="t-chip<?= $torneo['stato'] === 'in_corso' ? ' t-chip--live' : '' ?>">
@@ -188,7 +277,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                 <?php endif; ?>
             </div>
 
-            <div style="display:flex; gap:var(--m-2);">
+            <div style="display:flex; gap:var(--m-2); flex-wrap:wrap;">
                 <form method="POST" style="display:inline;">
                     <?= csrf_field() ?>
                     <button type="submit" name="toggle_follow" class="m-btn <?= $isFollowing ? 'm-btn--secondary' : 'm-btn--gold' ?>">
@@ -244,7 +333,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
             </div>
         <?php endif; ?>
 
-        <div class="m-grid" style="grid-template-columns: 1fr 360px; gap: var(--m-6);">
+        <div class="dt-layout">
 
             <!-- ══ COLONNA PRINCIPALE ══════════════════════════════════ -->
             <section>
@@ -273,7 +362,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                         <h3 class="m-card__title">Dati torneo</h3>
                         <span class="m-mono m-muted" style="font-size:12px;">ID #<?= (int)$torneo['id'] ?></span>
                     </div>
-                    <dl style="display:grid; grid-template-columns:200px 1fr; gap:var(--m-3) var(--m-4); font-size:14px; margin:0;">
+                    <dl class="dt-dati-dl">
                         <dt class="m-muted">Formato</dt>
                         <dd style="margin:0; font-weight:500;"><?= htmlspecialchars($formato_label[$torneo['formato']] ?? $torneo['formato']) ?></dd>
 
@@ -282,7 +371,6 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                         <dd style="margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
 
                             <?php if ($isOrganizzatore && !$haPartite): ?>
-                                <!-- Toggle pill cliccabile -->
                                 <form method="POST" class="gm-toggle-form">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="toggle_gironi_mode" value="1">
@@ -303,7 +391,6 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                                 <span class="m-muted" style="font-size:11px;">clicca per cambiare</span>
 
                             <?php else: ?>
-                                <!-- Solo visualizzazione (partite già generate) -->
                                 <span class="gm-toggle" style="cursor:default; pointer-events:none;">
                                     <span class="gm-toggle__option <?= $gironi_mode === 'auto' ? 'gm-toggle__option--active-auto' : '' ?>">
                                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -351,7 +438,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
 
                 <!-- Squadre -->
                 <div class="m-card m-mt-4">
-                    <div class="m-card__header">
+                    <div class="m-card__header dt-squadre-header">
                         <h3 class="m-card__title">Squadre iscritte <span class="m-muted" style="font-weight:400;">(<?= count($squadre) ?> di <?= (int)$torneo['numero_squadre'] ?>)</span></h3>
                         <?php if ($torneo['stato'] == 'aperto' && ($torneo['visibilita'] === 'pubblico' || ($torneo['visibilita'] === 'privato' && $author != ($utente_id ?? null)))): ?>
                             <a href="aggiungi_squadra.php?torneo_id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--sm">
