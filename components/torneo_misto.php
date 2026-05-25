@@ -1,8 +1,8 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-if (session_status() === PHP_SESSION_NONE)
-    session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    require_once __DIR__ . '/../php/helpers/session.php';
+    session_secure_start();
+}
 include_once("conf/db_config.php");
 
 $torneo_id = isset($_GET['id']) ? (int)$_GET['id'] : null;

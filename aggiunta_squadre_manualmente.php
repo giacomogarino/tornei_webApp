@@ -1,7 +1,7 @@
 <?php
-if(session_status() === PHP_SESSION_NONE)
-    session_start();
-
+require_once 'php/helpers/session.php';
+require_once 'php/helpers/csrf.php';
+session_secure_start();
 include_once("conf/db_config.php");
 
 $torneo_id = (int)($_GET['torneo_id'] ?? $_POST['torneo_id'] ?? $_GET['id'] ?? 0);
@@ -62,6 +62,7 @@ $cerca_cap   = trim($_POST['cerca_cap'] ?? $_GET['cerca_cap'] ?? '');
 $errori      = [];
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    csrf_verify();
 
     $azione = $_POST['azione'] ?? '';
 
@@ -80,7 +81,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $stmt_dup->bind_param("is", $torneo_id, $nome_squadra);
             $stmt_dup->execute();
             if($stmt_dup->get_result()->fetch_assoc()['cnt'] > 0){
-                $errori[] = "Esiste gi una squadra con questo nome. Scegline un altro.";
+                $errori[] = "Esiste già una squadra con questo nome. Scegline un altro.";
             }
         }
 
@@ -125,7 +126,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         } elseif(utente_gia_in_squadra($conn, $torneo_id, $w['capitano_id'])){
             $w['capitano_id'] = null;
             $w['giocatori']   = [];
-            $errori[] = "Il capitano selezionato  stato nel frattempo iscritto a un'altra squadra. Selezionane un altro.";
+            $errori[] = "Il capitano selezionato è stato nel frattempo iscritto a un'altra squadra. Selezionane un altro.";
         } else {
             header("Location: aggiunta_squadre_manualmente.php?torneo_id=$torneo_id&step=3");
             exit;
@@ -205,7 +206,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $stmt_dup2->execute();
 
             if($stmt_dup2->get_result()->fetch_assoc()['cnt'] > 0){
-                $errori[] = "Il nome squadra  gi stato preso. Torna indietro e scegline un altro.";
+                $errori[] = "Il nome squadra è già stato preso. Torna indietro e scegline un altro.";
             } else {
                 $conflitti = [];
                 foreach($w['giocatori'] as $uid){
@@ -217,11 +218,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                         $nome_u = $u ? "{$u['nome']} {$u['cognome']}" : "Utente #$uid";
 
                         if($uid == $w['capitano_id']){
-                            $conflitti[] = "Il capitano $nome_u  gi iscritto a un'altra squadra di questo torneo. Devi tornare allo step 2 e sceglierne un altro.";
+                            $conflitti[] = "Il capitano $nome_u è già iscritto a un'altra squadra di questo torneo. Devi tornare allo step 2 e sceglierne un altro.";
                             $w['capitano_id'] = null;
                             $w['giocatori']   = [];
                         } else {
-                            $conflitti[] = "$nome_u  gi iscritto a un'altra squadra di questo torneo ed  stato rimosso dalla lista.";
+                            $conflitti[] = "$nome_u è già iscritto a un'altra squadra di questo torneo ed è stato rimosso dalla lista.";
                             $w['giocatori'] = array_values(array_filter($w['giocatori'], fn($g) => $g !== $uid));
                         }
                     }
@@ -335,7 +336,7 @@ if($step === 3 && $cerca !== ''){
     }
 }
 
-/* SQUADRE GI INSERITE (lista in fondo) */
+/* SQUADRE GIÀ INSERITE (lista in fondo) */
 $stmt_sq = $conn->prepare("
     SELECT s.*, u.nome AS n, u.cognome AS c
     FROM squadra s
@@ -365,7 +366,7 @@ function step_class($n, $cur){
     <div class="m-container" style="max-width: 980px;">
 
         <div style="margin-bottom: var(--m-4); font-size: 13px;">
-            <a href="dettagli_torneo.php?id=<?= $torneo_id ?>" style="color: var(--m-text-mute);"> Torna al torneo</a>
+            <a href="dettagli_torneo.php?id=<?= $torneo_id ?>" style="color: var(--m-text-mute);">← Torna al torneo</a>
         </div>
 
         <div class="m-page-head">
@@ -373,7 +374,7 @@ function step_class($n, $cur){
                 <h1>Aggiunta squadra manuale</h1>
                 <div class="m-page-head__sub">
                     Torneo: <b style="color: var(--m-primary-700)"><?= htmlspecialchars($torneo['nome']) ?></b>
-                     Squadre <b><?= count($squadre_inserite) ?>/<?= (int)$torneo['numero_squadre'] ?></b>
+                    — Squadre <b><?= count($squadre_inserite) ?>/<?= (int)$torneo['numero_squadre'] ?></b>
                 </div>
             </div>
         </div>
@@ -392,12 +393,12 @@ function step_class($n, $cur){
             <?php elseif($_GET['msg'] === 'errCapiOccupato'): ?>
                 <div class="m-alert m-alert--warn m-mb-5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
-                    <div>Questo utente  gi capitano o giocatore di un'altra squadra in questo torneo.</div>
+                    <div>Questo utente è già capitano o giocatore di un'altra squadra in questo torneo.</div>
                 </div>
             <?php elseif($_GET['msg'] === 'errGiocatoreOccupato'): ?>
                 <div class="m-alert m-alert--warn m-mb-5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
-                    <div>Questo giocatore  gi iscritto a un'altra squadra in questo torneo.</div>
+                    <div>Questo giocatore è già iscritto a un'altra squadra in questo torneo.</div>
                 </div>
             <?php endif; ?>
         <?php endif; ?>
@@ -411,17 +412,17 @@ function step_class($n, $cur){
 
         <div class="m-stepper">
             <div class="<?= step_class(1, $step) ?>">
-                <span class="m-step__num"><?= $step > 1 ? '' : '1' ?></span>
+                <span class="m-step__num"><?= $step > 1 ? '✓' : '1' ?></span>
                 <div class="m-step__text"><span class="m-step__label">Step 1</span><span class="m-step__title">Nome</span></div>
             </div>
             <svg class="m-stepper__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
             <div class="<?= step_class(2, $step) ?>">
-                <span class="m-step__num"><?= $step > 2 ? '' : '2' ?></span>
+                <span class="m-step__num"><?= $step > 2 ? '✓' : '2' ?></span>
                 <div class="m-step__text"><span class="m-step__label">Step 2</span><span class="m-step__title">Capitano</span></div>
             </div>
             <svg class="m-stepper__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
             <div class="<?= step_class(3, $step) ?>">
-                <span class="m-step__num"><?= $step > 3 ? '' : '3' ?></span>
+                <span class="m-step__num"><?= $step > 3 ? '✓' : '3' ?></span>
                 <div class="m-step__text"><span class="m-step__label">Step 3</span><span class="m-step__title">Giocatori</span></div>
             </div>
             <svg class="m-stepper__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -433,6 +434,7 @@ function step_class($n, $cur){
 
         <?php if($step === 1): ?>
             <form method="POST" class="m-card" style="padding: var(--m-6); max-width: 520px;">
+                <?= csrf_field() ?>
                 <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                 <input type="hidden" name="step" value="1">
 
@@ -491,9 +493,10 @@ function step_class($n, $cur){
                                     <div class="m-muted" style="font-size: 12px;"><?= htmlspecialchars($r['email']) ?></div>
                                 </div>
                                 <?php if($is_occ): ?>
-                                    <span class="m-badge m-badge--warn">Gi in squadra</span>
+                                    <span class="m-badge m-badge--warn">Già in squadra</span>
                                 <?php else: ?>
                                     <form method="POST">
+                                        <?= csrf_field() ?>
                                         <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                                         <input type="hidden" name="step" value="2">
                                         <input type="hidden" name="cerca_cap" value="<?= htmlspecialchars($cerca_cap) ?>">
@@ -510,10 +513,11 @@ function step_class($n, $cur){
                 <?php endif; ?>
 
                 <form method="POST" class="m-row-between m-mt-6" style="padding-top: var(--m-4); border-top: 1px solid var(--m-border);">
+                    <?= csrf_field() ?>
                     <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                     <input type="hidden" name="step" value="2">
-                    <button name="azione" value="indietro" class="m-btn m-btn--ghost"> Indietro</button>
-                    <button name="azione" value="avanti" class="m-btn m-btn--primary">Avanti </button>
+                    <button name="azione" value="indietro" class="m-btn m-btn--ghost">← Indietro</button>
+                    <button name="azione" value="avanti" class="m-btn m-btn--primary">Avanti →</button>
                 </form>
             </div>
 
@@ -549,9 +553,10 @@ function step_class($n, $cur){
                                             <div class="m-muted" style="font-size: 12px;"><?= htmlspecialchars($r['email']) ?></div>
                                         </div>
                                         <?php if($is_occ): ?>
-                                            <span class="m-badge m-badge--warn">Gi in squadra</span>
+                                            <span class="m-badge m-badge--warn">Già in squadra</span>
                                         <?php else: ?>
                                             <form method="POST">
+                                                <?= csrf_field() ?>
                                                 <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                                                 <input type="hidden" name="step" value="3">
                                                 <input type="hidden" name="cerca" value="<?= htmlspecialchars($cerca) ?>">
@@ -586,6 +591,7 @@ function step_class($n, $cur){
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--m-gold-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/></svg>
                                     <?php else: ?>
                                         <form method="POST" style="display: inline;">
+                                            <?= csrf_field() ?>
                                             <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                                             <input type="hidden" name="step" value="3">
                                             <input type="hidden" name="cerca" value="<?= htmlspecialchars($cerca) ?>">
@@ -600,10 +606,11 @@ function step_class($n, $cur){
                         </div>
 
                         <form method="POST" style="display: flex; gap: var(--m-2); margin-top: var(--m-4); padding-top: var(--m-4); border-top: 1px dashed var(--m-border);">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                             <input type="hidden" name="step" value="3">
-                            <button name="azione" value="indietro" class="m-btn m-btn--ghost" style="flex: 1;"> Indietro</button>
-                            <button name="azione" value="avanti" class="m-btn m-btn--primary" style="flex: 2;">Avanti </button>
+                            <button name="azione" value="indietro" class="m-btn m-btn--ghost" style="flex: 1;">← Indietro</button>
+                            <button name="azione" value="avanti" class="m-btn m-btn--primary" style="flex: 2;">Avanti →</button>
                         </form>
                     </div>
                 </aside>
@@ -612,7 +619,7 @@ function step_class($n, $cur){
         <?php elseif($step === 4): ?>
             <div class="m-card" style="padding: var(--m-6);">
                 <h3 style="margin: 0 0 var(--m-2);">Riepilogo</h3>
-                <p class="m-muted m-mb-5">La squadra verr creata e approvata automaticamente.</p>
+                <p class="m-muted m-mb-5">La squadra verrà creata e approvata automaticamente.</p>
 
                 <dl style="display: grid; grid-template-columns: 180px 1fr; gap: var(--m-3) var(--m-4); font-size: 14px; margin: 0;">
                     <dt class="m-muted">Nome squadra</dt><dd style="margin: 0; font-weight: 600;"><?= htmlspecialchars($w['nome_squadra']) ?></dd>
@@ -630,9 +637,10 @@ function step_class($n, $cur){
                 </dl>
 
                 <form method="POST" class="m-row-between" style="margin-top: var(--m-6); padding-top: var(--m-4); border-top: 1px solid var(--m-border);">
+                    <?= csrf_field() ?>
                     <input type="hidden" name="torneo_id" value="<?= $torneo_id ?>">
                     <input type="hidden" name="step" value="4">
-                    <button name="azione" value="indietro" class="m-btn m-btn--ghost"> Indietro</button>
+                    <button name="azione" value="indietro" class="m-btn m-btn--ghost">← Indietro</button>
                     <button name="azione" value="crea" class="m-btn m-btn--primary m-btn--lg">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         Crea squadra
@@ -643,7 +651,7 @@ function step_class($n, $cur){
 
         <hr>
 
-        <h3>Squadre gi inserite</h3>
+        <h3>Squadre già inserite</h3>
         <?php if(empty($squadre_inserite)): ?>
             <p class="m-muted">Nessuna squadra ancora.</p>
         <?php else: ?>

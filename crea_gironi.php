@@ -1,8 +1,7 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-if (session_status() === PHP_SESSION_NONE)
-    session_start();
+require_once 'php/helpers/session.php';
+require_once 'php/helpers/csrf.php';
+session_secure_start();
 include("conf/db_config.php");
 
 $torneo_id = (int)($_GET['id'] ?? 0);
@@ -34,6 +33,7 @@ $squadre = $conn->query("SELECT id, nome FROM squadra WHERE torneo_id = $torneo_
 /* ── POST: salva gironi ───────────────────────────────────────────── */
 $errore = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gironi_data'])) {
+    csrf_verify();
     $gironiData = json_decode($_POST['gironi_data'], true);
 
     if (!$gironiData || count($gironiData) < 1) {
@@ -258,6 +258,7 @@ require_once('templates/header_riservato.php');
                 </div>
 
                 <form method="POST" id="form-salva" style="margin-top:var(--m-5);">
+                    <?= csrf_field() ?>
                     <input type="hidden" name="gironi_data" id="gironi-data-input">
                     <div style="display:flex; gap:var(--m-3); align-items:center; flex-wrap:wrap;">
                         <button type="submit" class="m-btn m-btn--primary">

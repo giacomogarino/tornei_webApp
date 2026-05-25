@@ -1,8 +1,7 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-if (session_status() === PHP_SESSION_NONE)
-    session_start();
+require_once 'php/helpers/session.php';
+require_once 'php/helpers/csrf.php';
+session_secure_start();
 include("conf/db_config.php");
 require_once('components/squadre_torneo.php');
 
@@ -30,6 +29,11 @@ $stmt  = $conn->prepare($check);
 $stmt->bind_param("ii", $id, $utente_id);
 $stmt->execute();
 $isFollowing = ($stmt->get_result()->num_rows > 0);
+
+/* ── CSRF verification per tutte le richieste POST ───────────────── */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
+}
 
 /* ── POST: segui / smetti ─────────────────────────────────────────── */
 if (isset($_POST['toggle_follow'])) {
@@ -186,6 +190,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
 
             <div style="display:flex; gap:var(--m-2);">
                 <form method="POST" style="display:inline;">
+                    <?= csrf_field() ?>
                     <button type="submit" name="toggle_follow" class="m-btn <?= $isFollowing ? 'm-btn--secondary' : 'm-btn--gold' ?>">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="<?= $isFollowing ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>
                         <?= $isFollowing ? 'Stai seguendo' : 'Segui torneo' ?>
@@ -279,6 +284,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                             <?php if ($isOrganizzatore && !$haPartite): ?>
                                 <!-- Toggle pill cliccabile -->
                                 <form method="POST" class="gm-toggle-form">
+                                    <?= csrf_field() ?>
                                     <input type="hidden" name="toggle_gironi_mode" value="1">
                                     <button type="submit" title="Clicca per cambiare modalità">
                                         <span class="gm-toggle">
@@ -405,6 +411,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                     <?php if ($isOrganizzatore): ?>
                         <form method="POST" style="display:contents;"
                               onsubmit="return confirm('Sei sicuro di voler eliminare il torneo «<?= htmlspecialchars(addslashes($torneo['nome'])) ?>»?\nQuesta azione è irreversibile.');">
+                            <?= csrf_field() ?>
                             <br><br>
                             <button type="submit" name="elimina_torneo" class="m-btn m-btn--block m-mb-3"
                                     style="background:var(--m-danger,#dc2626); color:#fff; border-color:transparent;">

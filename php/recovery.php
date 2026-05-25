@@ -1,50 +1,65 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require_once __DIR__ . '/../php/helpers/session.php';
+require_once __DIR__ . '/../php/helpers/csrf.php';
 
-include("../conf/db_config.php");
+session_secure_start();
+csrf_verify();
+
+require_once __DIR__ . '/../conf/db_config.php';
+require_once __DIR__ . '/../conf/app_config.php';
 
 $email = trim($_POST['email'] ?? '');
 
-if(empty($email)){
-    header("location: ../recupera_password.php?msg=emptyEmail");
+if (empty($email)) {
+    header('Location: ../recupera_password.php?msg=emptyEmail');
     exit;
 }
 
-$check = $conn->prepare("SELECT nome FROM utente WHERE email = ?");
-$check->bind_param("s", $email);
-$check->execute();
-$result = $check->get_result();
-$row = $result->fetch_assoc();
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    // Risposta sempre uguale per evitare user enumeration
+    header('Location: ../login.php?msg=ok');
+    exit;
+}
 
-if($row){
-    $token = bin2hex(random_bytes(32));
+$check = $conn->prepare('SELECT id, nome FROM utente WHERE email = ? AND verified = 1 LIMIT 1');
+$check->bind_param('s', $email);
+$check->execute();
+$row = $check->get_result()->fetch_assoc();
+$check->close();
+
+if ($row) {
+    $token      = bin2hex(random_bytes(32));
     $token_hash = hash('sha256', $token);
-    $date = date("Y-m-d H:i:s", strtotime("+24 hours"));
+    $expiry     = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
     $stmt = $conn->prepare(
-        "UPDATE utente
-         SET token = ?, token_expiry = ?
-         WHERE email = ?"
+        'UPDATE utente SET token = ?, token_expiry = ? WHERE id = ?'
     );
-    $stmt->bind_param("sss", $token_hash, $date, $email);
+    $stmt->bind_param('ssi', $token_hash, $expiry, $row['id']);
     $stmt->execute();
     $stmt->close();
 
-    $baseUrl = "https://matchoratorneo.netsons.org/staging";
-    $link = "$baseUrl/php/change_password.php?token=$token";
+    $link = BASE_URL . '/php/change_password.php?token=' . urlencode($token);
 
-    $subject = 'Recupera la tua password';
-    $body = "Ciao {$row['nome']},\n\nRecupera la tua password cliccando qui:\n\n$link\n\nIl link scade tra 24 ore.";
-    $headers = "From: noreply@matchoratorneo.netsons.org\r\nContent-Type: text/plain; charset=UTF-8";
+    $subject = 'Recupera la tua password — Matchora';
+    $body    = "Ciao {$row['nome']},\n\n"
+             . "Hai richiesto di reimpostare la password del tuo account Matchora.\n\n"
+             . "Clicca il link seguente per impostare una nuova password:\n\n"
+             . "$link\n\n"
+             . "Il link è valido per 24 ore. Se non hai richiesto questo recupero, ignora questa email.\n\n"
+             . "— Il team di Matchora\n"
+             . BASE_URL;
+    $headers = "From: " . MAIL_FROM . "\r\n"
+             . "Content-Type: text/plain; charset=UTF-8\r\n"
+             . "X-Mailer: Matchora/1.0\r\n";
 
-    if(!mail($email, $subject, $body, $headers)){
+    // Invia al destinatario corretto (l'utente, non l'admin!)
+    if (!mail($email, $subject, $body, $headers)) {
+        // Rollback token se la mail non parte
         $del = $conn->prepare(
-            "UPDATE utente
-             SET token = NULL, token_expiry = NULL
-             WHERE email = ?"
+            'UPDATE utente SET token = NULL, token_expiry = NULL WHERE id = ?'
         );
-        $del->bind_param("s", $email);
+        $del->bind_param('i', $row['id']);
         $del->execute();
         $del->close();
     }
@@ -52,7 +67,7 @@ if($row){
 
 $conn->close();
 
-// risposta sempre uguale
-header("location: ../login.php?msg=ok");
+// Risposta sempre uguale indipendentemente dall'esistenza dell'email
+// (evita user enumeration — art. 5 §1 GDPR: minimizzazione dati)
+header('Location: ../login.php?msg=ok');
 exit;
-?>

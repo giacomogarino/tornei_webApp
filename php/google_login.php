@@ -1,6 +1,7 @@
 <?php
-session_start();
-require_once '../conf/db_config.php';
+require_once __DIR__ . '/helpers/session.php';
+session_secure_start();
+require_once __DIR__ . '/../conf/db_config.php';
 
 $state = bin2hex(random_bytes(16));
 $_SESSION['oauth_state'] = $state;

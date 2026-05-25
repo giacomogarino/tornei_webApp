@@ -1,38 +1,49 @@
 <?php
-include("./templates/header.php")
+$page_title       = 'Crea account';
+$page_description = 'Registrati su Matchora per creare e gestire tornei sportivi gratuitamente.';
+require_once './templates/header.php';
 ?>
 <link rel="stylesheet" href="css/login.css">
 <link rel="stylesheet" href="css/register.css">
 
 <div class="m-auth-shell">
-    <aside class="m-auth-shell__brand"> 
+    <aside class="m-auth-shell__brand">
         <div>
-            <img src="assets/matchora_icon.png" alt="" width="200">
+            <img src="assets/matchora_icon.png" alt="Logo Matchora" width="200">
             <h2>Crea il tuo account.</h2>
             <p>Bastano due minuti. Potrai creare tornei, iscriverti come squadra e seguire i match preferiti.</p>
 
             <div class="m-auth-shell__bullets">
                 <div class="m-auth-shell__bullet">
                     <span class="m-auth-shell__bullet-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
                     </span>
                     <span>Crea tornei illimitati, pubblici o privati</span>
                 </div>
                 <div class="m-auth-shell__bullet">
                     <span class="m-auth-shell__bullet-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
                     </span>
                     <span>Tabellone e classifiche generati automaticamente</span>
                 </div>
                 <div class="m-auth-shell__bullet">
                     <span class="m-auth-shell__bullet-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
                     </span>
                     <span>Gestione squadre, giocatori e pranzi inclusa</span>
                 </div>
             </div>
         </div>
-        <div class="m-auth-shell__brand-copyright"> <?= date('Y') ?> Matchora  Tornei</div>
+        <div class="m-auth-shell__brand-copyright">&copy; <?= date('Y') ?> Matchora Tornei</div>
     </aside>
 
     <div class="m-auth-shell__form-wrap">
@@ -41,76 +52,93 @@ include("./templates/header.php")
             <p class="m-auth-card__sub">Registrati per gestire e seguire i tuoi tornei.</p>
 
             <form method="POST" action="./php/register_check.php" class="m-stack">
+                <?= csrf_field() ?>
+
                 <div class="m-form-grid-2">
                     <div class="m-field">
                         <label class="m-label" for="nome">Nome</label>
-                        <input class="m-input" type="text" id="nome" name="nome" placeholder="Mario" required>
+                        <input class="m-input" type="text" id="nome" name="nome"
+                               placeholder="Mario" required>
                     </div>
                     <div class="m-field">
                         <label class="m-label" for="cognome">Cognome</label>
-                        <input class="m-input" type="text" id="cognome" name="cognome" placeholder="Rossi" required>
+                        <input class="m-input" type="text" id="cognome" name="cognome"
+                               placeholder="Rossi" required>
                     </div>
                 </div>
 
                 <div class="m-field">
                     <label class="m-label" for="email">Email</label>
-                    <input class="m-input" type="email" id="email" name="email" placeholder="mario.rossi@esempio.it" required>
+                    <input class="m-input" type="email" id="email" name="email"
+                           placeholder="mario.rossi@esempio.it" required>
                 </div>
 
                 <div class="m-form-grid-2">
                     <div class="m-field">
                         <label class="m-label" for="password">Password</label>
-                        <input class="m-input" type="password" id="password" name="password" placeholder="min 8 caratteri" required>
+                        <input class="m-input" type="password" id="password" name="password"
+                               placeholder="min 8 caratteri" required>
                     </div>
                     <div class="m-field">
                         <label class="m-label" for="password2">Conferma</label>
-                        <input class="m-input" type="password" id="password2" name="password2" placeholder="ripeti" required>
+                        <input class="m-input" type="password" id="password2" name="password2"
+                               placeholder="ripeti" required>
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--m-text-soft);">
+                <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--m-text-soft);">
                     <input class="m-checkbox" type="checkbox" id="privacy_ok" name="privacy_ok"
-                        value="1" required style="margin-top: 1px; flex-shrink: 0;">
+                           value="1" required style="margin-top:2px;flex-shrink:0;">
                     <label for="privacy_ok">
-                         Ho letto e accetto l'<a href="privacy.php">Informativa sulla Privacy</a>.
-                        I miei dati saranno trattati esclusivamente per rispondere alla mia richiesta ai sensi dell'art. 6 §1 lett. b) GDPR.
+                        Ho letto e accetto l'<a href="privacy.php">Informativa sulla Privacy</a>.
+                        I miei dati saranno trattati per la gestione dell'account ai sensi
+                        dell'art.&nbsp;6 §1 lett.&nbsp;b) GDPR.
                     </label>
-                 </div>
+                </div>
 
-                <button type="submit" class="m-btn m-btn--primary m-btn--lg m-btn--block m-mt-3">Crea il mio account</button>
+                <button type="submit"
+                        class="m-btn m-btn--primary m-btn--lg m-btn--block m-mt-3">
+                    Crea il mio account
+                </button>
             </form>
 
-            <?php if(isset($_GET['msg'])):
+            <?php if (isset($_GET['msg'])): ?>
+                <?php
                 $msg = $_GET['msg'];
                 $err = [
-                    'campiVuoti'      => 'Compila tutti i campi obbligatori.',
-                    'emailNonValida'  => 'Email non valida.',
-                    'passwordDebole'  => 'La password deve avere almeno 8 caratteri.',
-                    'emailEsistente'  => 'Email gi registrata.',
-                    'errMsg'          => 'Errore durante la registrazione.',
-                    'passwordDiverse' => 'Le password non corrispondono.',
-                    'privacyNonAccettata' => 'Accetta la privacy per continuare.'
+                    'campiVuoti'          => 'Compila tutti i campi obbligatori.',
+                    'emailNonValida'      => 'Indirizzo email non valido.',
+                    'passwordDebole'      => 'La password deve avere almeno 8 caratteri.',
+                    'emailEsistente'      => 'Email già registrata.',
+                    'errMsg'              => 'Errore durante la registrazione. Riprova.',
+                    'passwordDiverse'     => 'Le password non corrispondono.',
+                    'privacyNonAccettata' => 'Accetta l\'Informativa sulla Privacy per continuare.',
                 ];
                 $ok = [
-                    'confermaInviata' => 'Registrazione completata. Conferma la mail per poter accedere.',
+                    'confermaInviata' => 'Registrazione completata! Controlla la tua email per confermare l\'account.',
                 ];
-            ?>
+                ?>
                 <?php if (isset($err[$msg])): ?>
                     <div class="m-alert m-alert--danger m-mt-4">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                        <div><?= htmlspecialchars($err[$msg]) ?></div>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        <div><?= htmlspecialchars($err[$msg], ENT_QUOTES, 'UTF-8') ?></div>
                     </div>
                 <?php elseif (isset($ok[$msg])): ?>
                     <div class="m-alert m-alert--success m-mt-4">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        <div><?= htmlspecialchars($ok[$msg]) ?></div>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <div><?= htmlspecialchars($ok[$msg], ENT_QUOTES, 'UTF-8') ?></div>
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
-                
-            <div class="m-auth-divider">
-                <span>oppure</span>
-            </div>
+
+            <div class="m-auth-divider"><span>oppure</span></div>
 
             <a href="php/google_login.php" class="m-btn m-btn--google m-btn--lg m-btn--block">
                 <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -123,13 +151,11 @@ include("./templates/header.php")
             </a>
 
             <div class="m-auth-card__footer">
-                Hai gi un account?
+                Hai già un account?
                 <a href="login.php">Accedi</a>
             </div>
         </div>
     </div>
 </div>
 
-<?php
-include("./templates/footer.php")
-?>
+<?php require_once './templates/footer.php'; ?>

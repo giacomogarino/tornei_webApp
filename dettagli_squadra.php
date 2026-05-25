@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once 'php/helpers/session.php';
+require_once 'php/helpers/csrf.php';
+session_secure_start();
 include("conf/db_config.php");
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;

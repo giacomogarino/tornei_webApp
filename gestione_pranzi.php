@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once 'php/helpers/session.php';
+require_once 'php/helpers/csrf.php';
+session_secure_start();
 include("conf/db_config.php");
 
 $torneo_id=$_GET['id'] ?? null;
@@ -18,6 +20,7 @@ $isOrganizzatore=isset($_SESSION['id_utente']) && $_SESSION['id_utente']==$torne
 
 // INSERIMENTO / UPDATE PRANZO
 if($_SERVER['REQUEST_METHOD']==='POST' && $isOrganizzatore){
+    csrf_verify();
 
     $squadra_id=$_POST['squadra_id'];
     $orario=$_POST['orario'];
@@ -155,6 +158,7 @@ function pranzi_iniziali($nome) {
                                     </td>
                                     <td>
                                         <form method="POST" style="display: flex; gap: 8px; align-items: center;">
+                                            <?= csrf_field() ?>
                                             <input type="hidden" name="squadra_id" value="<?= (int)$row['id'] ?>">
                                             <input class="m-input" type="datetime-local" name="orario" value="<?= htmlspecialchars($row['orario'] ?? '') ?>" required style="padding: 6px 10px; font-size: 13px;">
                                             <button class="m-btn m-btn--<?= empty($row['orario']) ? 'primary' : 'secondary' ?> m-btn--sm"><?= empty($row['orario']) ? 'Salva' : 'Aggiorna' ?></button>

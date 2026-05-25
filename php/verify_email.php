@@ -1,68 +1,51 @@
 <?php
-include("../conf/db_config.php");
+require_once __DIR__ . '/../conf/db_config.php';
 
 $token = trim($_GET['token'] ?? '');
 
-if(empty($token) || strlen($token) !== 64){
-    header("location: ../register.php?msg=errMsg");
+if (empty($token) || strlen($token) !== 64) {
+    header('Location: ../register.php?msg=errMsg');
     exit;
 }
 
-// cerca utente con token non verificato
+// Cerca utente con quel token non ancora verificato
 $stmt = $conn->prepare(
-    "SELECT id, created_at FROM utente WHERE token = ? AND verified = 0"
+    'SELECT id, created_at FROM utente WHERE token = ? AND verified = 0 LIMIT 1'
 );
-
-$stmt->bind_param("s", $token);
+$stmt->bind_param('s', $token);
 $stmt->execute();
-
-$result = $stmt->get_result();
-
-if($result->num_rows === 0){
-    header("location: ../register.php?msg=errMsg");
-    exit;
-}
-
-$row = $result->fetch_assoc();
+$row = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-
-// controllo scadenza 24 ore (CORRETTO)
-$createdAt = new DateTime($row['created_at']);
-
-$diff = time() - $createdAt->getTimestamp();
-
-if($diff > 86400){
-
-    $del = $conn->prepare(
-        "DELETE FROM utente WHERE id = ?"
-    );
-
-    $del->bind_param("i", $row['id']);
-    $del->execute();
-
-    header("location: ../register.php?msg=errMsg");
+if (!$row) {
+    header('Location: ../register.php?msg=errMsg');
     exit;
 }
 
+// Controllo scadenza 24 ore
+$diff = time() - (new DateTime($row['created_at']))->getTimestamp();
+if ($diff > 86400) {
+    $del = $conn->prepare('DELETE FROM utente WHERE id = ?');
+    $del->bind_param('i', $row['id']);
+    $del->execute();
+    $del->close();
+    $conn->close();
+    header('Location: ../register.php?msg=errMsg');
+    exit;
+}
 
-// verifica account
-$upd_user = $conn->prepare(
-    "UPDATE utente
-     SET verified = 1,
-         token = NULL
-     WHERE id = ?"
+// Verifica l'account e cancella il token
+$upd = $conn->prepare(
+    'UPDATE utente SET verified = 1, token = NULL WHERE id = ?'
 );
-
-$upd_user->bind_param("i", $row['id']);
-
-if($upd_user->execute())
-    header("location: ../login.php?msg=registrazioneCompletata");
-else
-    header("location: ../register.php?msg=errMsg");
-
-
-$upd_user->close();
+$upd->bind_param('i', $row['id']);
+$success = $upd->execute();
+$upd->close();
 $conn->close();
 
-?>
+if ($success) {
+    header('Location: ../login.php?msg=registrazioneCompletata');
+} else {
+    header('Location: ../register.php?msg=errMsg');
+}
+exit;

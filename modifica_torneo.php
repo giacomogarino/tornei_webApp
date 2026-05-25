@@ -1,4 +1,7 @@
 <?php
+require_once 'php/helpers/session.php';
+require_once 'php/helpers/csrf.php';
+session_secure_start();
 include("conf/db_config.php");
 
 $id = isset($_GET['id']) ? $_GET['id']: null;
@@ -24,6 +27,7 @@ $torneo = $result->fetch_assoc();
 
 // Salvataggio modifiche
 if (isset($_POST['salva'])) {
+    csrf_verify();
     $nome = isset($_POST['nome']) ? $_POST['nome'] : '';
     $descrizione = isset($_POST['descrizione']) ? $_POST['descrizione'] : '';
     $formato = isset($_POST['formato']) ? $_POST['formato'] : '';
@@ -94,6 +98,7 @@ require_once('templates/header_riservato.php');
         </div>
 
         <form method="POST" class="m-card" style="padding: var(--m-6);">
+            <?= csrf_field() ?>
             <div class="m-stack">
                 <div class="m-field">
                     <label class="m-label" for="nome">Nome torneo <span style="color: var(--m-danger-500);">*</span></label>
@@ -111,6 +116,9 @@ require_once('templates/header_riservato.php');
                         <select class="m-select" id="sport" name="sport">
                             <option value="calcio" <?= $torneo['sport']=="calcio" ? "selected" : "" ?>>Calcio</option>
                             <option value="beachvolley" <?= $torneo['sport']=="beachvolley" ? "selected" : "" ?>>Beach Volley</option>
+                            <option value="padel" <?= $torneo['sport']=="padel" ? "selected" : "" ?>>Padel</option>
+                            <option value="tennis" <?= $torneo['sport']=="tennis" ? "selected" : "" ?>>Tennis</option>
+                        </select>
                         </select>
                     </div>
 
