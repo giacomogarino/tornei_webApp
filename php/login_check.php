@@ -1,58 +1,64 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require_once __DIR__ . '/../php/helpers/session.php';
+require_once __DIR__ . '/../php/helpers/csrf.php';
 
-session_start();
-include("../conf/db_config.php");
+session_secure_start();
+csrf_verify(); // blocca richieste senza token valido
 
-$email = trim($_POST["email"] ?? '');
-$psw = $_POST["password"] ?? '';
+require_once __DIR__ . '/../conf/db_config.php';
 
-if(empty($email) || empty($psw)){
-    header("location: ../login.php?msg=campiVuoti");
+$email = trim($_POST['email'] ?? '');
+$psw   = $_POST['password'] ?? '';
+
+if (empty($email) || empty($psw)) {
+    header('Location: ../login.php?msg=campiVuoti');
     exit;
 }
 
-$stmt = $conn->prepare("SELECT * FROM utente WHERE email = ?");
-if(!$stmt){
-    header("location: ../login.php?msg=err");
-    //die("Errore prepare: " . $conn->error);
+// Seleziona solo le colonne necessarie (non SELECT *)
+$stmt = $conn->prepare(
+    'SELECT id, nome, cognome, email, password, verified, created_at, google_id
+     FROM utente WHERE email = ? LIMIT 1'
+);
+if (!$stmt) {
+    error_log('Login prepare error: ' . $conn->error);
+    header('Location: ../login.php?msg=err');
+    exit;
 }
 
-$stmt->bind_param("s", $email);
+$stmt->bind_param('s', $email);
 $stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+$conn->close();
 
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
+// Account creato via Google: non ha password locale
+if ($row && !empty($row['google_id']) && empty($row['password'])) {
+    header('Location: ../login.php?msg=usaGoogle');
+    exit;
+}
 
-//$password = cryptPsw($psw);
-//if($row && ($password == $row['password'])){
-if($row && (password_verify($psw, $row['password']))){
+if ($row && password_verify($psw, $row['password'])) {
 
-    //controllo email verificata
-    if($row['verified'] == 0){
-        header("location: ../login.php?msg=emailNonConfermata");
+    if ((int)$row['verified'] === 0) {
+        header('Location: ../login.php?msg=emailNonConfermata');
         exit;
     }
 
-    $_SESSION['login'] = 'ok';
-    $_SESSION['id_utente'] = $row['id'];
-    $_SESSION['nome_utente'] = $row['nome'];
-    $_SESSION['cognome_utente'] = $row['cognome'];
-    $_SESSION['email_utente'] = $row['email'];
-    $_SESSION['cod_ci_utente'] = $row['cod_ci'];
-    $_SESSION['verified_utente'] = $row['cognome'];
+    // Rigenera l'ID di sessione dopo il login (session fixation protection)
+    session_regenerate_id(true);
+
+    $_SESSION['login']             = 'ok';
+    $_SESSION['id_utente']         = $row['id'];
+    $_SESSION['nome_utente']       = $row['nome'];
+    $_SESSION['cognome_utente']    = $row['cognome'];
+    $_SESSION['email_utente']      = $row['email'];
+    $_SESSION['verified_utente']   = (bool)$row['verified'];
     $_SESSION['created_at_utente'] = $row['created_at'];
 
-
-    header("location: ../index.php");
-    exit;
-
-} else {
-    header("location: ../login.php?msg=errLogin");
+    header('Location: ../index.php');
     exit;
 }
 
-$stmt->close();
-$conn->close();
-?>
+header('Location: ../login.php?msg=errLogin');
+exit;

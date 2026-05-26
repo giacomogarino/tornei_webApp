@@ -1,7 +1,4 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 // header_riservato include db_config + check login (con exit se non loggato)
 require_once 'templates/header_riservato.php';
 include("conf/db_config.php");

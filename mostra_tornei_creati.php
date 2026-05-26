@@ -1,10 +1,7 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors',1);
-
+require_once 'php/helpers/session.php';
+session_secure_start();
 include("conf/db_config.php");
-if(session_status() === PHP_SESSION_NONE)
-    session_start();
 
 $filtro_ricerca = $_SESSION['id_utente'];
 

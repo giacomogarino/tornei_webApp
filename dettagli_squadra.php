@@ -1,5 +1,8 @@
+
 <?php
-session_start();
+require_once 'php/helpers/session.php';
+require_once 'php/helpers/csrf.php';
+session_secure_start();
 include("conf/db_config.php");
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -70,7 +73,7 @@ $stmt->close();
 $utente_id = $_SESSION['id_utente'] ?? null;
 $is_capitano = ($utente_id && $utente_id == $squadra['capitano_id']);
 
-require_once('templates/header_riservato.php');
+require_once('templates/header.php');
 
 function squadra_iniziali($nome, $cognome=''){
     $a = mb_substr(trim($nome), 0, 1);
@@ -80,21 +83,75 @@ function squadra_iniziali($nome, $cognome=''){
 $stato_class = 'm-state-' . htmlspecialchars($squadra['stato']);
 ?>
 
+<style>
+/* ── Responsive dettagli_squadra ─────────────────────────────────── */
+.ds-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: var(--m-5);
+    align-items: start;
+}
+.ds-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--m-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--m-5);
+}
+.ds-header h1 {
+    margin-bottom: var(--m-1);
+}
+.ds-player-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: var(--m-3);
+    padding: var(--m-3);
+    align-items: center;
+}
+.ds-info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--m-3);
+    font-size: 14px;
+    margin: 0;
+}
+
+@media (max-width: 700px) {
+    .ds-layout {
+        grid-template-columns: 1fr;
+    }
+    /* Su mobile la sidebar va SOTTO i giocatori */
+    .ds-layout aside {
+        order: 2;
+    }
+    .ds-layout section {
+        order: 1;
+    }
+    .ds-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+
 <main class="m-page">
     <div class="m-container" style="max-width: 880px;">
 
         <div style="margin-bottom: var(--m-4); font-size: 13px;">
-            <a href="dettagli_torneo.php?id=<?= (int)$squadra['torneo_id'] ?>" style="color: var(--m-text-mute);"> Torna a <?= htmlspecialchars($squadra['nome_torneo']) ?></a>
+            <a href="dettagli_torneo.php?id=<?= (int)$squadra['torneo_id'] ?>" style="color: var(--m-text-mute);">
+                ← Torna a <?= htmlspecialchars($squadra['nome_torneo']) ?>
+            </a>
         </div>
 
-        <div class="m-page-head">
+        <div class="ds-header">
             <div>
                 <h1><?= htmlspecialchars($squadra['nome']) ?></h1>
                 <div class="m-page-head__sub">
                     Torneo: <a href="dettagli_torneo.php?id=<?= (int)$squadra['torneo_id'] ?>"><b><?= htmlspecialchars($squadra['nome_torneo']) ?></b></a>
                 </div>
             </div>
-            <span class="m-badge m-badge--dot <?= $stato_class ?>" style="font-size: 13px; padding: 6px 14px;"><?= htmlspecialchars(ucfirst($squadra['stato'])) ?></span>
+            <span class="m-badge m-badge--dot <?= $stato_class ?>" style="font-size: 13px; padding: 6px 14px; white-space: nowrap;"><?= htmlspecialchars(ucfirst($squadra['stato'])) ?></span>
         </div>
 
         <?php if (isset($_GET['msg']) && $_GET['msg'] == 'ok'): ?>
@@ -104,7 +161,7 @@ $stato_class = 'm-state-' . htmlspecialchars($squadra['stato']);
             </div>
         <?php endif; ?>
 
-        <div class="m-grid" style="grid-template-columns: 1fr 320px; gap: var(--m-5);">
+        <div class="ds-layout">
 
             <section>
                 <div class="m-card">
@@ -116,15 +173,18 @@ $stato_class = 'm-state-' . htmlspecialchars($squadra['stato']);
                     <?php else: ?>
                         <div>
                             <?php foreach ($giocatori as $i => $g): $is_cap = ($g['id'] == $squadra['capitano_id']); ?>
-                                <div style="display: grid; grid-template-columns: 36px 1fr auto; gap: var(--m-3); padding: var(--m-3); align-items: center; <?= $i > 0 ? 'border-top: 1px solid var(--m-border);' : '' ?>">
-                                    <span class="m-avatar<?= $is_cap ? '' : '' ?>" style="<?= $is_cap ? 'background: linear-gradient(135deg, var(--m-gold-400), var(--m-gold-600)); color: #2a1d00;' : '' ?>"><?= squadra_iniziali($g['nome'], $g['cognome']) ?></span>
+                                <div class="ds-player-row" style="<?= $i > 0 ? 'border-top: 1px solid var(--m-border);' : '' ?>">
+                                    <span class="m-avatar" style="<?= $is_cap ? 'background: linear-gradient(135deg, var(--m-gold-400), var(--m-gold-600)); color: #2a1d00;' : '' ?>"><?= squadra_iniziali($g['nome'], $g['cognome']) ?></span>
                                     <div>
                                         <div style="font-weight: 500;"><?= htmlspecialchars($g['nome']) ?> <?= htmlspecialchars($g['cognome']) ?></div>
+                                        <?php if ($is_cap): ?>
+                                            <div class="m-muted" style="font-size: 12px;">Capitano</div>
+                                        <?php endif; ?>
                                     </div>
                                     <?php if ($is_cap): ?>
                                         <span class="m-badge m-badge--gold">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/></svg>
-                                            Capitano
+                                            Cap
                                         </span>
                                     <?php endif; ?>
                                 </div>
@@ -137,7 +197,7 @@ $stato_class = 'm-state-' . htmlspecialchars($squadra['stato']);
             <aside>
                 <div class="m-card">
                     <h4 class="m-profile-section-label">Info squadra</h4>
-                    <dl style="display: grid; grid-template-columns: 1fr; gap: var(--m-3); font-size: 14px; margin: 0;">
+                    <dl class="ds-info-grid">
                         <div>
                             <dt class="m-muted" style="font-size: 12px;">ID</dt>
                             <dd style="margin: 0; font-family: var(--m-font-mono);">#<?= (int)$squadra['id'] ?></dd>

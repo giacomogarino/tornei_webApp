@@ -1,7 +1,7 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-session_start();
+require_once 'php/helpers/session.php';
+require_once 'php/helpers/csrf.php';
+session_secure_start();
 include("conf/db_config.php");
 
 //recupera dati dalla sessione --> persistenza tra step
@@ -12,6 +12,7 @@ $errori = [];
 
 //controlla che il metodo sia post
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
 
     $step = intval($_POST['step_corrente'] ?? 1);
     $azione = $_POST['azione'] ?? 'avanti';
@@ -247,6 +248,7 @@ function step_class($step_n, $cur){
         <?php endif; ?>
 
         <form method="POST" action="crea_torneo.php" class="m-card" style="padding: var(--m-6);" enctype="multipart/form-data">
+            <?= csrf_field() ?>
             <input type="hidden" name="step_corrente" value="<?= $step ?>">
 
             <?php if($step===1): ?>

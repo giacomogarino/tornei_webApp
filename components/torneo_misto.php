@@ -1,13 +1,15 @@
 <?php
-if(session_status() === PHP_SESSION_NONE)
-    session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    require_once __DIR__ . '/../php/helpers/session.php';
+    session_secure_start();
+}
 include_once("conf/db_config.php");
 
-$torneo_id = $_GET['id'] ?? null;
+$torneo_id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $view      = $_GET['view'] ?? 'classifica';
 
-if(!$torneo_id){
-    header("Location: dettagli_torneo.php?msg=err");
+if (!$torneo_id) {
+    header("Location: index.php?msg=err");
     exit;
 }
 
@@ -20,21 +22,22 @@ $stmt->bind_param("i", $torneo_id);
 $stmt->execute();
 $torneo = $stmt->get_result()->fetch_assoc();
 
-if(!$torneo){
-    header("Location: dettagli_torneo.php?msg=err");
+if (!$torneo) {
+    header("Location: index.php?msg=err");
     exit;
 }
 
 $isOrganizzatore = isset($_SESSION['id_utente']) &&
                    $_SESSION['id_utente'] == $torneo['creato_da'];
 
-$formato = $torneo['formato']; // 'eliminazione_diretta' | 'gironi_playoff' | 'girone_unico'
+$formato     = $torneo['formato']; // 'eliminazione_diretta' | 'gironi_playoff' | 'girone_unico'
+$gironi_mode = $torneo['gironi_mode'] ?? 'auto';
 
 /* =====================================================
    FUNZIONI DI SUPPORTO
 ===================================================== */
 
-function prossimoTurno($turno){
+function prossimoTurno($turno) {
     return match($turno) {
         'ottavi'     => 'quarti',
         'quarti'     => 'semifinale',
@@ -43,21 +46,16 @@ function prossimoTurno($turno){
     };
 }
 
-function turnoInizialePerN($n){
+function turnoInizialePerN($n) {
     if ($n <= 2)  return 'finale';
     if ($n <= 4)  return 'semifinale';
     if ($n <= 8)  return 'quarti';
     return 'ottavi';
 }
 
-/* =====================================================
-   CONTROLLA SE IL TURNO SUCCESSIVO DEL PLAYOFF È GIÀ STATO GENERATO
-===================================================== */
-
-function turnoSuccessivoPlayoffEsiste($conn, $torneo_id, $turno){
+function turnoSuccessivoPlayoffEsiste($conn, $torneo_id, $turno) {
     $next = prossimoTurno($turno);
-    if(!$next) return false;
-
+    if (!$next) return false;
     $stmt = $conn->prepare("
         SELECT COUNT(*) as tot FROM partita
         WHERE torneo_id = ? AND turno = ? AND girone IS NULL
@@ -71,9 +69,9 @@ function turnoSuccessivoPlayoffEsiste($conn, $torneo_id, $turno){
    FUNZIONE: GENERA TURNO SUCCESSIVO (eliminazione diretta)
 ===================================================== */
 
-function generaTurnoSuccessivo($conn, $torneo_id, $turno){
+function generaTurnoSuccessivo($conn, $torneo_id, $turno) {
     $next = prossimoTurno($turno);
-    if(!$next) return;
+    if (!$next) return;
 
     $stmt = $conn->prepare("
         SELECT CASE WHEN punti_casa > punti_ospite THEN squadra_casa_id ELSE squadra_ospite_id END AS vincitore
@@ -85,14 +83,13 @@ function generaTurnoSuccessivo($conn, $torneo_id, $turno){
     $res = $stmt->get_result();
 
     $vincitori = [];
-    while($r = $res->fetch_assoc()) $vincitori[] = $r['vincitore'];
-
-    if(count($vincitori) < 2) return;
+    while ($r = $res->fetch_assoc()) $vincitori[] = $r['vincitore'];
+    if (count($vincitori) < 2) return;
     shuffle($vincitori);
 
-    for($i = 0; $i + 1 < count($vincitori); $i += 2){
+    for ($i = 0; $i + 1 < count($vincitori); $i += 2) {
         $stmt = $conn->prepare("INSERT INTO partita (torneo_id, squadra_casa_id, squadra_ospite_id, turno) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("iiis", $torneo_id, $vincitori[$i], $vincitori[$i+1], $next);
+        $stmt->bind_param("iiis", $torneo_id, $vincitori[$i], $vincitori[$i + 1], $next);
         $stmt->execute();
     }
 }
@@ -101,60 +98,53 @@ function generaTurnoSuccessivo($conn, $torneo_id, $turno){
    FUNZIONE: CALCOLA GIRONI
 ===================================================== */
 
-function calcolaGironi($squadre){
-    $n = count($squadre);
+function calcolaGironi($squadre) {
+    $n         = count($squadre);
     $numGironi = 1;
-    for($g = 2; $g <= $n; $g++){
+    for ($g = 2; $g <= $n; $g++) {
         $dim = ceil($n / $g);
-        if($dim >= 3 && $dim <= 6){
+        if ($dim >= 3 && $dim <= 6) {
             $numGironi = $g;
             break;
         }
     }
-    if($n <= 6) $numGironi = 1;
+    if ($n <= 6) $numGironi = 1;
 
     shuffle($squadre);
     $gironi = array_fill(0, $numGironi, []);
-    foreach($squadre as $i => $s)
+    foreach ($squadre as $i => $s)
         $gironi[$i % $numGironi][] = $s;
 
     return $gironi;
 }
 
 /* =====================================================
-   FUNZIONE: GENERA GIRONI
+   FUNZIONE: GENERA PARTITE DA COMPOSIZIONE GIRONI
+   (usata sia da generaGironi automatico sia da crea_gironi.php manuale)
 ===================================================== */
 
-function generaGironi($conn, $torneo_id){
-    $res = $conn->query("SELECT id FROM squadra WHERE torneo_id = $torneo_id AND stato='approvata'");
-    $squadre = [];
-    while($r = $res->fetch_assoc()) $squadre[] = $r['id'];
-
-    if(count($squadre) < 2) return;
-
+function generaPartiteGironi($conn, $torneo_id, $gironi) {
     $stmt = $conn->prepare("SELECT tipo_partita FROM torneo WHERE id = ?");
     $stmt->bind_param("i", $torneo_id);
     $stmt->execute();
     $tipo = $stmt->get_result()->fetch_assoc()['tipo_partita'];
 
-    $gironi = calcolaGironi($squadre);
-
-    foreach($gironi as $numGirone => $squadreGirone){
+    foreach ($gironi as $numGirone => $squadreGirone) {
         $g   = $numGirone + 1;
         $sq  = $squadreGirone;
         $tot = count($sq);
 
         $partite = [];
-        for($i = 0; $i < $tot; $i++){
-            for($j = $i + 1; $j < $tot; $j++){
+        for ($i = 0; $i < $tot; $i++) {
+            for ($j = $i + 1; $j < $tot; $j++) {
                 $partite[] = [$sq[$i], $sq[$j]];
-                if($tipo === 'andata_ritorno')
+                if ($tipo === 'andata_ritorno')
                     $partite[] = [$sq[$j], $sq[$i]];
             }
         }
         shuffle($partite);
 
-        foreach($partite as [$casa, $ospite]){
+        foreach ($partite as [$casa, $ospite]) {
             $stmt = $conn->prepare("INSERT INTO partita (torneo_id, squadra_casa_id, squadra_ospite_id, girone) VALUES (?, ?, ?, ?)");
             $stmt->bind_param("iiii", $torneo_id, $casa, $ospite, $g);
             $stmt->execute();
@@ -163,10 +153,24 @@ function generaGironi($conn, $torneo_id){
 }
 
 /* =====================================================
+   FUNZIONE: GENERA GIRONI (automatico)
+===================================================== */
+
+function generaGironi($conn, $torneo_id) {
+    $res     = $conn->query("SELECT id FROM squadra WHERE torneo_id = $torneo_id AND stato='approvata'");
+    $squadre = [];
+    while ($r = $res->fetch_assoc()) $squadre[] = $r['id'];
+    if (count($squadre) < 2) return;
+
+    $gironi = calcolaGironi($squadre);
+    generaPartiteGironi($conn, $torneo_id, $gironi);
+}
+
+/* =====================================================
    FUNZIONE: CLASSIFICA GIRONE
 ===================================================== */
 
-function classificaGirone($conn, $torneo_id, $girone){
+function classificaGirone($conn, $torneo_id, $girone) {
     $stmt = $conn->prepare("
         SELECT p.*, sc.nome AS nome_casa, so.nome AS nome_ospite
         FROM partita p
@@ -188,17 +192,17 @@ function classificaGirone($conn, $torneo_id, $girone){
     $squadreRaw = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
 
     $classifica = [];
-    foreach($squadreRaw as $sq){
+    foreach ($squadreRaw as $sq) {
         $classifica[$sq['id']] = [
-            'id'   => $sq['id'], 'nome' => $sq['nome'],
-            'G'    => 0, 'V'   => 0, 'P' => 0, 'S'   => 0,
-            'PF'   => 0, 'PS'  => 0, 'DP'=> 0, 'Pts' => 0
+            'id' => $sq['id'], 'nome' => $sq['nome'],
+            'G' => 0, 'V' => 0, 'P' => 0, 'S' => 0,
+            'PF' => 0, 'PS' => 0, 'DP' => 0, 'Pts' => 0
         ];
     }
 
-    foreach($partite as $p){
-        $c  = $p['squadra_casa_id'];
-        $o  = $p['squadra_ospite_id'];
+    foreach ($partite as $p) {
+        $c = $p['squadra_casa_id'];
+        $o = $p['squadra_ospite_id'];
         $pc = $p['punti_casa'];
         $po = $p['punti_ospite'];
 
@@ -206,19 +210,19 @@ function classificaGirone($conn, $torneo_id, $girone){
         $classifica[$c]['PF'] += $pc; $classifica[$c]['PS'] += $po;
         $classifica[$o]['PF'] += $po; $classifica[$o]['PS'] += $pc;
 
-        if($pc > $po){
+        if ($pc > $po) {
             $classifica[$c]['V']++; $classifica[$c]['Pts'] += 3;
             $classifica[$o]['S']++;
-        }elseif($pc < $po){
+        } elseif ($pc < $po) {
             $classifica[$o]['V']++; $classifica[$o]['Pts'] += 3;
             $classifica[$c]['S']++;
-        }else{
+        } else {
             $classifica[$c]['P']++; $classifica[$c]['Pts']++;
             $classifica[$o]['P']++; $classifica[$o]['Pts']++;
         }
     }
 
-    foreach($classifica as &$sq)
+    foreach ($classifica as &$sq)
         $sq['DP'] = $sq['PF'] - $sq['PS'];
 
     usort($classifica, fn($a, $b) =>
@@ -232,10 +236,10 @@ function classificaGirone($conn, $torneo_id, $girone){
    FUNZIONE: CALCOLA PARAMETRI PLAYOFF
 ===================================================== */
 
-function calcolaParametriPlayoff($numGironi){
+function calcolaParametriPlayoff($numGironi) {
     $target = 4;
-    while($target < $numGironi * 2) $target *= 2;
-    if($target > 16) $target = 16;
+    while ($target < $numGironi * 2) $target *= 2;
+    if ($target > 16) $target = 16;
 
     $perGirone = (int)floor($target / $numGironi);
     $extras    = $target - ($perGirone * $numGironi);
@@ -244,93 +248,91 @@ function calcolaParametriPlayoff($numGironi){
 }
 
 /* =====================================================
-   FUNZIONE: GENERA PLAYOFF (con migliori terze)
+   FUNZIONE: GENERA PLAYOFF
 ===================================================== */
 
-function generaPlayoff($conn, $torneo_id){
-    $res = $conn->query("SELECT MAX(girone) as mg FROM partita WHERE torneo_id = $torneo_id AND girone IS NOT NULL");
+function generaPlayoff($conn, $torneo_id) {
+    $res       = $conn->query("SELECT MAX(girone) as mg FROM partita WHERE torneo_id = $torneo_id AND girone IS NOT NULL");
     $numGironi = (int)$res->fetch_assoc()['mg'];
+    if ($numGironi < 1) return;
 
-    if($numGironi < 1) return;
-
-    // Tutte le partite di girone devono essere terminate
     $stmt = $conn->prepare("
         SELECT COUNT(*) as mancanti FROM partita
         WHERE torneo_id = ? AND girone IS NOT NULL AND stato != 'terminata'
     ");
     $stmt->bind_param("i", $torneo_id);
     $stmt->execute();
-    if($stmt->get_result()->fetch_assoc()['mancanti'] > 0) return;
+    if ($stmt->get_result()->fetch_assoc()['mancanti'] > 0) return;
 
-    // Playoff già generato?
     $stmt = $conn->prepare("SELECT COUNT(*) as tot FROM partita WHERE torneo_id = ? AND girone IS NULL");
     $stmt->bind_param("i", $torneo_id);
     $stmt->execute();
-    if($stmt->get_result()->fetch_assoc()['tot'] > 0) return;
+    if ($stmt->get_result()->fetch_assoc()['tot'] > 0) return;
 
     [$perGirone, $extras, $target] = calcolaParametriPlayoff($numGironi);
 
     $qualificate    = [];
     $candidateExtra = [];
 
-    for($g = 1; $g <= $numGironi; $g++){
+    for ($g = 1; $g <= $numGironi; $g++) {
         $cls = classificaGirone($conn, $torneo_id, $g);
-
-        for($pos = 0; $pos < min($perGirone, count($cls)); $pos++)
+        for ($pos = 0; $pos < min($perGirone, count($cls)); $pos++)
             $qualificate[] = $cls[$pos]['id'];
-
-        if($extras > 0 && isset($cls[$perGirone]))
+        if ($extras > 0 && isset($cls[$perGirone]))
             $candidateExtra[] = $cls[$perGirone];
     }
 
-    if($extras > 0 && count($candidateExtra) > 0){
+    if ($extras > 0 && count($candidateExtra) > 0) {
         usort($candidateExtra, fn($a, $b) =>
             $b['Pts'] <=> $a['Pts'] ?: $b['DP'] <=> $a['DP'] ?: $b['PF'] <=> $a['PF']
         );
-        for($i = 0; $i < min($extras, count($candidateExtra)); $i++)
+        for ($i = 0; $i < min($extras, count($candidateExtra)); $i++)
             $qualificate[] = $candidateExtra[$i]['id'];
     }
 
     shuffle($qualificate);
     $turno = turnoInizialePerN(count($qualificate));
 
-    for($i = 0; $i + 1 < count($qualificate); $i += 2){
+    for ($i = 0; $i + 1 < count($qualificate); $i += 2) {
         $stmt = $conn->prepare("INSERT INTO partita (torneo_id, squadra_casa_id, squadra_ospite_id, turno) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("iiis", $torneo_id, $qualificate[$i], $qualificate[$i+1], $turno);
+        $stmt->bind_param("iiis", $torneo_id, $qualificate[$i], $qualificate[$i + 1], $turno);
         $stmt->execute();
     }
 }
 
 /* =====================================================
    GENERAZIONE AUTOMATICA GIRONI ALL'AVVIO
+   (solo se modalità = auto)
 ===================================================== */
 
-if($torneo['stato'] === 'in_corso'){
+if ($torneo['stato'] === 'in_corso' && $formato === 'gironi_playoff') {
     $res = $conn->query("SELECT COUNT(*) as tot FROM partita WHERE torneo_id = $torneo_id");
     $tot = $res->fetch_assoc()['tot'];
 
-    if($tot == 0 && $formato === 'gironi_playoff')
+    if ($tot == 0 && $gironi_mode === 'auto') {
         generaGironi($conn, $torneo_id);
+    }
+    // Se modalità manuale e tot==0: non generiamo nulla, aspettiamo crea_gironi.php
 }
 
 /* =====================================================
-   GESTIONE POST (inserimento e aggiornamento risultati e orari)
+   GESTIONE POST (risultati e orari)
 ===================================================== */
 
-if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore) {
 
     // SALVATAGGIO ORARIO
-    if(isset($_POST['partita_id_orario'])){
-        $partita_id = (int)$_POST['partita_id_orario'];
-        $orario     = $_POST['orario'];
+    if (isset($_POST['partita_id_orario'])) {
+        $partita_id  = (int)$_POST['partita_id_orario'];
+        $orario      = $_POST['orario'];
 
         $stmt = $conn->prepare("SELECT girone FROM partita WHERE id = ?");
         $stmt->bind_param("i", $partita_id);
         $stmt->execute();
-        $infoOr = $stmt->get_result()->fetch_assoc();
+        $infoOr       = $stmt->get_result()->fetch_assoc();
         $redirectView = ($infoOr['girone'] !== null) ? 'gironi' : 'partite';
 
-        if(empty($orario)){
+        if (empty($orario)) {
             header("Location: struttura_torneo.php?id=$torneo_id&view=$redirectView&msg=errOrario");
             exit;
         }
@@ -338,13 +340,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
         $stmt = $conn->prepare("UPDATE partita SET orario = ? WHERE id = ?");
         $stmt->bind_param("si", $orario, $partita_id);
         $stmt->execute();
-
         header("Location: struttura_torneo.php?id=$torneo_id&view=$redirectView");
         exit;
     }
 
     // INSERIMENTO / AGGIORNAMENTO RISULTATO
-    if(isset($_POST['partita_id'])){
+    if (isset($_POST['partita_id'])) {
         $partita_id = (int)$_POST['partita_id'];
         $casa       = (int)$_POST['casa'];
         $ospite     = (int)$_POST['ospite'];
@@ -352,16 +353,15 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
         $stmt = $conn->prepare("SELECT turno, girone FROM partita WHERE id = ?");
         $stmt->bind_param("i", $partita_id);
         $stmt->execute();
-        $info = $stmt->get_result()->fetch_assoc();
+        $info         = $stmt->get_result()->fetch_assoc();
         $redirectView = ($info['girone'] !== null) ? 'gironi' : 'partite';
 
-        if($casa < 0 || $ospite < 0){
+        if ($casa < 0 || $ospite < 0) {
             header("Location: struttura_torneo.php?id=$torneo_id&view=$redirectView&msg=errPunti");
             exit;
         }
 
-        // Pareggio vietato in eliminazione diretta (partite senza girone, solo andata)
-        if($info['girone'] === null && $torneo['tipo_partita'] === 'andata' && $casa == $ospite){
+        if ($info['girone'] === null && $torneo['tipo_partita'] === 'andata' && $casa == $ospite) {
             header("Location: struttura_torneo.php?id=$torneo_id&view=$redirectView&msg=errRisultato");
             exit;
         }
@@ -370,15 +370,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
         $stmt->bind_param("iii", $casa, $ospite, $partita_id);
         $stmt->execute();
 
-        if($info['girone'] !== null){
-            // Partita di girone: il playoff viene generato solo se non esiste ancora
+        if ($info['girone'] !== null) {
             generaPlayoff($conn, $torneo_id);
-        }else{
-            // Partita di playoff: avanza solo se il turno successivo non esiste già
-            $turno      = $info['turno'];
+        } else {
+            $turno     = $info['turno'];
             $nextEsiste = turnoSuccessivoPlayoffEsiste($conn, $torneo_id, $turno);
 
-            if(!$nextEsiste){
+            if (!$nextEsiste) {
                 $stmt = $conn->prepare("
                     SELECT COUNT(*) as mancanti FROM partita
                     WHERE torneo_id = ? AND turno = ? AND stato != 'terminata' AND girone IS NULL
@@ -387,12 +385,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
                 $stmt->execute();
                 $mancanti = $stmt->get_result()->fetch_assoc()['mancanti'];
 
-                if($mancanti == 0){
-                    if($turno === 'finale'){
+                if ($mancanti == 0) {
+                    if ($turno === 'finale') {
                         $stmt = $conn->prepare("UPDATE torneo SET stato = 'completato' WHERE id = ?");
                         $stmt->bind_param("i", $torneo_id);
                         $stmt->execute();
-                    }else{
+                    } else {
                         generaTurnoSuccessivo($conn, $torneo_id, $turno);
                     }
                 }
@@ -409,7 +407,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizzatore){
 ===================================================== */
 
 $playoffGenerato = false;
-if($formato === 'gironi_playoff'){
+if ($formato === 'gironi_playoff') {
     $stmt = $conn->prepare("SELECT COUNT(*) as tot FROM partita WHERE torneo_id = ? AND girone IS NULL");
     $stmt->bind_param("i", $torneo_id);
     $stmt->execute();
@@ -417,19 +415,25 @@ if($formato === 'gironi_playoff'){
 }
 
 $numGironi = 0;
-if($formato === 'gironi_playoff'){
-    $res = $conn->query("SELECT MAX(girone) as mg FROM partita WHERE torneo_id = $torneo_id AND girone IS NOT NULL");
+if ($formato === 'gironi_playoff') {
+    $res       = $conn->query("SELECT MAX(girone) as mg FROM partita WHERE torneo_id = $torneo_id AND girone IS NOT NULL");
     $numGironi = (int)($res->fetch_assoc()['mg'] ?? 0);
 }
 
 $perGirone = 0;
 $extras    = 0;
-if($numGironi > 0)
+if ($numGironi > 0)
     [$perGirone, $extras,] = calcolaParametriPlayoff($numGironi);
 
 $extra_css = ['css/tabella_tornei.css', 'css/torneo_struttura.css'];
 require_once('templates/header.php');
-$turno_label_misto = ['ottavi' => 'Ottavi', 'quarti' => 'Quarti', 'semifinale' => 'Semifinale', 'finale' => 'Finale'];
+
+$turno_label_misto = [
+    'ottavi'     => 'Ottavi',
+    'quarti'     => 'Quarti',
+    'semifinale' => 'Semifinale',
+    'finale'     => 'Finale',
+];
 ?>
 
 <header class="t-hero">
@@ -439,10 +443,15 @@ $turno_label_misto = ['ottavi' => 'Ottavi', 'quarti' => 'Quarti', 'semifinale' =
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
             <a href="dettagli_torneo.php?id=<?= (int)$torneo_id ?>"><?= htmlspecialchars($torneo['nome']) ?></a>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span><?= htmlspecialchars(ucfirst($view)) ?></span>
+            <span>Struttura</span>
         </div>
         <div style="display: flex; gap: 8px; margin-bottom: var(--m-3); flex-wrap: wrap;">
             <span class="t-chip">Gironi + playoff</span>
+            <?php if ($formato === 'gironi_playoff'): ?>
+                <span class="t-chip" style="opacity:.75; font-size:12px;">
+                    <?= $gironi_mode === 'auto' ? '⚡ Gironi automatici' : '✋ Gironi manuali' ?>
+                </span>
+            <?php endif; ?>
         </div>
         <h1><?= htmlspecialchars($torneo['nome']) ?></h1>
     </div>
@@ -454,24 +463,29 @@ $turno_label_misto = ['ottavi' => 'Ottavi', 'quarti' => 'Quarti', 'semifinale' =
         <div class="m-tabs">
             <a href="dettagli_torneo.php?id=<?= (int)$torneo_id ?>" class="m-tab">Info torneo</a>
             <a href="struttura_torneo.php?id=<?= (int)$torneo_id ?>" class="m-tab m-tab--active">Struttura torneo</a>
-            <?php if ($torneo['stato'] === 'in_corso'): ?><a href="gestione_pranzi.php?id=<?= (int)$torneo_id ?>" class="m-tab">Gestione pranzi</a><?php endif; ?>
+            <?php if ($torneo['stato'] === 'in_corso'): ?>
+                <a href="gestione_pranzi.php?id=<?= (int)$torneo_id ?>" class="m-tab">Gestione pranzi</a>
+            <?php endif; ?>
         </div>
 
-        <?php if($formato === 'gironi_playoff'): ?>
+        <?php if ($formato === 'gironi_playoff'): ?>
             <div class="m-row m-mb-5">
-                <a href="?id=<?= (int)$torneo_id ?>&view=gironi"    class="m-btn <?= $view === 'gironi'    ? 'm-btn--primary' : 'm-btn--ghost' ?> m-btn--sm">Gironi</a>
-                <?php if($playoffGenerato): ?>
-                    <a href="?id=<?= (int)$torneo_id ?>&view=partite" class="m-btn <?= $view === 'partite' ? 'm-btn--primary' : 'm-btn--ghost' ?> m-btn--sm">Playoff</a>
+                <a href="?id=<?= (int)$torneo_id ?>&view=gironi"
+                   class="m-btn <?= $view === 'gironi' ? 'm-btn--primary' : 'm-btn--ghost' ?> m-btn--sm">Gironi</a>
+                <?php if ($playoffGenerato): ?>
+                    <a href="?id=<?= (int)$torneo_id ?>&view=partite"
+                       class="m-btn <?= $view === 'partite' ? 'm-btn--primary' : 'm-btn--ghost' ?> m-btn--sm">Playoff</a>
                 <?php endif; ?>
-                <a href="?id=<?= (int)$torneo_id ?>&view=classifica" class="m-btn <?= $view === 'classifica' ? 'm-btn--primary' : 'm-btn--ghost' ?> m-btn--sm">Classifica generale</a>
+                <a href="?id=<?= (int)$torneo_id ?>&view=classifica"
+                   class="m-btn <?= $view === 'classifica' ? 'm-btn--primary' : 'm-btn--ghost' ?> m-btn--sm">Classifica generale</a>
             </div>
         <?php endif; ?>
 
-        <?php if(isset($_GET['msg'])): ?>
+        <?php if (isset($_GET['msg'])): ?>
             <?php $errs_m = [
                 'errRisultato' => 'Le squadre non possono pareggiare in eliminazione diretta.',
                 'errPunti'     => 'Valori negativi non validi.',
-                'errOrario'    => 'Inserisci un orario valido.'
+                'errOrario'    => 'Inserisci un orario valido.',
             ]; ?>
             <?php if (isset($errs_m[$_GET['msg']])): ?>
                 <div class="m-alert m-alert--danger m-mb-5">
@@ -487,29 +501,28 @@ $turno_label_misto = ['ottavi' => 'Ottavi', 'quarti' => 'Quarti', 'semifinale' =
    VIEW: CLASSIFICA GENERALE
 ===================================================== */
 
-if($view === 'classifica'):
+if ($view === 'classifica'):
 
-// Calcolo migliori terze (una volta sola)
-$tutteLeTerze = [];
-for($gg = 1; $gg <= $numGironi; $gg++){
-    $tmpCls = classificaGirone($conn, $torneo_id, $gg);
-    if(isset($tmpCls[$perGirone])){
-        $tmpCls[$perGirone]['girone_origine'] = $gg;
-        $tutteLeTerze[] = $tmpCls[$perGirone];
+    $tutteLeTerze = [];
+    for ($gg = 1; $gg <= $numGironi; $gg++) {
+        $tmpCls = classificaGirone($conn, $torneo_id, $gg);
+        if (isset($tmpCls[$perGirone])) {
+            $tmpCls[$perGirone]['girone_origine'] = $gg;
+            $tutteLeTerze[] = $tmpCls[$perGirone];
+        }
     }
-}
-usort($tutteLeTerze, fn($a, $b) =>
-    $b['Pts'] <=> $a['Pts'] ?: $b['DP'] <=> $a['DP'] ?: $b['PF'] <=> $a['PF']
-);
-$idQualificateExtra = [];
-for($ei = 0; $ei < min($extras, count($tutteLeTerze)); $ei++)
-    $idQualificateExtra[] = $tutteLeTerze[$ei]['id'];
+    usort($tutteLeTerze, fn($a, $b) =>
+        $b['Pts'] <=> $a['Pts'] ?: $b['DP'] <=> $a['DP'] ?: $b['PF'] <=> $a['PF']
+    );
+    $idQualificateExtra = [];
+    for ($ei = 0; $ei < min($extras, count($tutteLeTerze)); $ei++)
+        $idQualificateExtra[] = $tutteLeTerze[$ei]['id'];
 
 ?>
 
 <h2 class="m-mb-5">Classifica generale</h2>
 
-<?php for($g = 1; $g <= $numGironi; $g++):
+<?php for ($g = 1; $g <= $numGironi; $g++):
     $cls = classificaGirone($conn, $torneo_id, $g);
 ?>
 <div class="m-card m-mb-5" style="padding: var(--m-5);">
@@ -523,11 +536,11 @@ for($ei = 0; $ei < min($extras, count($tutteLeTerze)); $ei++)
                     <th>#</th><th>Squadra</th>
                     <th class="m-num">G</th><th class="m-num">V</th><th class="m-num">P</th><th class="m-num">S</th>
                     <th class="m-num">PF</th><th class="m-num">PS</th><th class="m-num">DP</th><th class="m-num">Pts</th>
-                    <?php if($playoffGenerato): ?><th>Stato</th><?php endif; ?>
+                    <?php if ($playoffGenerato): ?><th>Stato</th><?php endif; ?>
                 </tr>
             </thead>
             <tbody>
-            <?php foreach($cls as $pos => $sq):
+            <?php foreach ($cls as $pos => $sq):
                 $rank_class = '';
                 if ($pos === 0) $rank_class = 'm-rank--1';
                 elseif ($pos === 1) $rank_class = 'm-rank--2';
@@ -549,11 +562,11 @@ for($ei = 0; $ei < min($extras, count($tutteLeTerze)); $ei++)
                     <td class="m-num"><?= (int)$sq['PS'] ?></td>
                     <td class="m-num"><?= (int)$sq['DP'] ?></td>
                     <td class="m-num"><b><?= (int)$sq['Pts'] ?></b></td>
-                    <?php if($playoffGenerato): ?>
+                    <?php if ($playoffGenerato): ?>
                     <td>
-                        <?php if($pos < $perGirone): ?>
+                        <?php if ($pos < $perGirone): ?>
                             <span class="m-badge m-badge--success m-badge--dot">Qualificata</span>
-                        <?php elseif($pos === $perGirone && in_array($sq['id'], $idQualificateExtra)): ?>
+                        <?php elseif ($pos === $perGirone && in_array($sq['id'], $idQualificateExtra)): ?>
                             <span class="m-badge m-badge--gold">Miglior terza</span>
                         <?php endif; ?>
                     </td>
@@ -572,25 +585,36 @@ for($ei = 0; $ei < min($extras, count($tutteLeTerze)); $ei++)
    VIEW: GIRONI (partite + classifica)
 ===================================================== */
 
-elseif($view === 'gironi'):
+elseif ($view === 'gironi'):
 
 ?>
 
-<?php if($numGironi === 0): ?>
+<?php if ($numGironi === 0): ?>
     <div class="m-empty">
         <div class="m-empty__icon">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>
         </div>
         <h3>Nessun girone generato</h3>
-        <p class="m-muted">I gironi saranno generati automaticamente all'avvio del torneo.</p>
+        <?php if ($gironi_mode === 'manuale' && $isOrganizzatore && $torneo['stato'] === 'in_corso'): ?>
+            <p class="m-muted">La modalità manuale è attiva. Componi i gironi scegliendo le squadre.</p>
+            <a href="crea_gironi.php?id=<?= (int)$torneo_id ?>" class="m-btn m-btn--primary m-mt-3"
+               style="background: var(--m-warning, #f59e0b); border-color: transparent;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+                Componi i gironi
+            </a>
+        <?php elseif ($gironi_mode === 'manuale'): ?>
+            <p class="m-muted">I gironi verranno composti manualmente dall'organizzatore.</p>
+        <?php else: ?>
+            <p class="m-muted">I gironi saranno generati automaticamente all'avvio del torneo.</p>
+        <?php endif; ?>
     </div>
+
 <?php else:
 
-    // Calcola le qualificate extra (una sola volta)
     $tutteLeTerzeGironi = [];
-    for($gg = 1; $gg <= $numGironi; $gg++){
+    for ($gg = 1; $gg <= $numGironi; $gg++) {
         $tmpCls = classificaGirone($conn, $torneo_id, $gg);
-        if(isset($tmpCls[$perGirone])){
+        if (isset($tmpCls[$perGirone])) {
             $tmpCls[$perGirone]['girone_origine'] = $gg;
             $tutteLeTerzeGironi[] = $tmpCls[$perGirone];
         }
@@ -599,10 +623,10 @@ elseif($view === 'gironi'):
         $b['Pts'] <=> $a['Pts'] ?: $b['DP'] <=> $a['DP'] ?: $b['PF'] <=> $a['PF']
     );
     $idQualificateExtraGironi = [];
-    for($ei = 0; $ei < min($extras, count($tutteLeTerzeGironi)); $ei++)
+    for ($ei = 0; $ei < min($extras, count($tutteLeTerzeGironi)); $ei++)
         $idQualificateExtraGironi[] = $tutteLeTerzeGironi[$ei]['id'];
 
-    for($g = 1; $g <= $numGironi; $g++):
+    for ($g = 1; $g <= $numGironi; $g++):
         $cls = classificaGirone($conn, $torneo_id, $g);
 
         $stmt = $conn->prepare("
@@ -634,11 +658,11 @@ elseif($view === 'gironi'):
                     <th>#</th><th>Squadra</th>
                     <th class="m-num">G</th><th class="m-num">V</th><th class="m-num">P</th><th class="m-num">S</th>
                     <th class="m-num">PF</th><th class="m-num">PS</th><th class="m-num">DP</th><th class="m-num">Pts</th>
-                    <?php if($playoffGenerato): ?><th>Stato</th><?php endif; ?>
+                    <?php if ($playoffGenerato): ?><th>Stato</th><?php endif; ?>
                 </tr>
             </thead>
             <tbody>
-            <?php foreach($cls as $pos => $sq):
+            <?php foreach ($cls as $pos => $sq):
                 $rank_class = '';
                 if ($pos === 0) $rank_class = 'm-rank--1';
                 elseif ($pos === 1) $rank_class = 'm-rank--2';
@@ -660,11 +684,11 @@ elseif($view === 'gironi'):
                     <td class="m-num"><?= (int)$sq['PS'] ?></td>
                     <td class="m-num"><?= (int)$sq['DP'] ?></td>
                     <td class="m-num"><b><?= (int)$sq['Pts'] ?></b></td>
-                    <?php if($playoffGenerato): ?>
+                    <?php if ($playoffGenerato): ?>
                     <td>
-                        <?php if($pos < $perGirone): ?>
+                        <?php if ($pos < $perGirone): ?>
                             <span class="m-badge m-badge--success m-badge--dot">Qualificata</span>
-                        <?php elseif($pos === $perGirone && in_array($sq['id'], $idQualificateExtraGironi)): ?>
+                        <?php elseif ($pos === $perGirone && in_array($sq['id'], $idQualificateExtraGironi)): ?>
                             <span class="m-badge m-badge--gold">Miglior terza</span>
                         <?php endif; ?>
                     </td>
@@ -681,35 +705,35 @@ elseif($view === 'gironi'):
             <thead>
                 <tr>
                     <th>Casa</th><th>Ospite</th><th>Orario</th><th>Risultato</th>
-                    <?php if($isOrganizzatore): ?><th>Gestione</th><?php endif; ?>
+                    <?php if ($isOrganizzatore): ?><th>Gestione</th><?php endif; ?>
                 </tr>
             </thead>
             <tbody>
-            <?php foreach($partite as $row):
+            <?php foreach ($partite as $row):
                 $finita = $row['stato'] === 'terminata';
             ?>
                 <tr>
                     <td><b><?= htmlspecialchars($row['casa']) ?></b></td>
                     <td><b><?= htmlspecialchars($row['ospite']) ?></b></td>
                     <td>
-                        <?php if(!empty($row['orario'])): ?>
+                        <?php if (!empty($row['orario'])): ?>
                             <span class="m-mono"><?= htmlspecialchars(date('d/m H:i', strtotime($row['orario']))) ?></span>
                         <?php else: ?>
                             <span class="m-muted" style="font-style:italic;">non impostato</span>
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if($finita): ?>
+                        <?php if ($finita): ?>
                             <b class="m-num"><?= (int)$row['punti_casa'] ?> &ndash; <?= (int)$row['punti_ospite'] ?></b>
                         <?php else: ?>
                             <span class="m-muted">&mdash;</span>
                         <?php endif; ?>
                     </td>
-                    <?php if($isOrganizzatore): ?>
+                    <?php if ($isOrganizzatore): ?>
                     <td>
-                        <?php if(!$playoffGenerato): ?>
+                        <?php if (!$playoffGenerato): ?>
                             <div style="display:flex; flex-direction:column; gap:6px;">
-                                <?php if(!$finita): ?>
+                                <?php if (!$finita): ?>
                                     <form method="POST" style="display:flex; gap:4px;">
                                         <input type="hidden" name="partita_id_orario" value="<?= (int)$row['id'] ?>">
                                         <input class="m-input" type="datetime-local" name="orario" required style="padding:4px 8px; font-size:12px;">
@@ -731,7 +755,7 @@ elseif($view === 'gironi'):
                                     </button>
                                 </form>
                             </div>
-                        <?php elseif($finita): ?>
+                        <?php elseif ($finita): ?>
                             <span class="m-badge m-badge--success m-badge--dot">Terminata</span>
                         <?php else: ?>
                             <span class="m-muted" style="font-size:11px; font-style:italic;">Playoff generato</span>
@@ -747,19 +771,19 @@ elseif($view === 'gironi'):
 
 <?php endfor; endif; ?>
 
-<?php if(!$playoffGenerato && $numGironi > 0): ?>
+<?php if (!$playoffGenerato && $numGironi > 0): ?>
     <div class="m-alert m-alert--info m-mb-5">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         <div>
             Il tabellone playoff verrà generato automaticamente al termine di tutti i gironi.
-            <?php if($extras > 0): ?>
+            <?php if ($extras > 0): ?>
                 <br>Avanzeranno <b><?= $perGirone ?></b> squadre per girone + le <b><?= $extras ?></b> migliori terze classificate.
             <?php else: ?>
                 <br>Avanzeranno le <b>prime <?= $perGirone ?></b> di ogni girone.
             <?php endif; ?>
         </div>
     </div>
-<?php elseif($playoffGenerato): ?>
+<?php elseif ($playoffGenerato): ?>
     <div class="m-alert m-alert--success m-mb-5">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         <div>
@@ -790,14 +814,14 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 $partitePerTurno = [];
-while($row = $result->fetch_assoc())
+while ($row = $result->fetch_assoc())
     $partitePerTurno[$row['turno']][] = $row;
 
 $ordineTurni = ['ottavi', 'quarti', 'semifinale', 'finale'];
 
 ?>
 
-<?php if(empty($partitePerTurno)): ?>
+<?php if (empty($partitePerTurno)): ?>
     <div class="m-empty">
         <div class="m-empty__icon">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 4 7 4 7 20 3 20"/><polyline points="11 4 15 4 15 14 11 14"/><polyline points="19 4 21 4 21 10 19 10"/></svg>
@@ -813,27 +837,27 @@ $ordineTurni = ['ottavi', 'quarti', 'semifinale', 'finale'];
     </div>
     <div class="m-bracket-scroll">
         <div class="m-bracket">
-            <?php foreach($ordineTurni as $turno):
-                if(!isset($partitePerTurno[$turno])) continue;
-                $is_final    = ($turno === 'finale');
-                $nextEsiste  = turnoSuccessivoPlayoffEsiste($conn, $torneo_id, $turno);
+            <?php foreach ($ordineTurni as $turno):
+                if (!isset($partitePerTurno[$turno])) continue;
+                $is_final   = ($turno === 'finale');
+                $nextEsiste = turnoSuccessivoPlayoffEsiste($conn, $torneo_id, $turno);
             ?>
                 <div class="m-bracket__round">
                     <div class="m-bracket__round-title"><?= htmlspecialchars($turno_label_misto[$turno] ?? $turno) ?></div>
-                    <?php foreach($partitePerTurno[$turno] as $row):
+                    <?php foreach ($partitePerTurno[$turno] as $row):
                         $finita = $row['stato'] === 'terminata';
                         $cls1 = $cls2 = '';
-                        if($finita){
-                            if($row['punti_casa'] > $row['punti_ospite']){ $cls1 = 'm-match__row--winner'; $cls2 = 'm-match__row--loser'; }
-                            else                                          { $cls2 = 'm-match__row--winner'; $cls1 = 'm-match__row--loser'; }
+                        if ($finita) {
+                            if ($row['punti_casa'] > $row['punti_ospite']) { $cls1 = 'm-match__row--winner'; $cls2 = 'm-match__row--loser'; }
+                            else                                             { $cls2 = 'm-match__row--winner'; $cls1 = 'm-match__row--loser'; }
                         }
                         $puoModificare = $isOrganizzatore && !$nextEsiste;
                     ?>
                         <div class="m-match<?= $is_final ? ' m-match--final' : '' ?>" style="min-width: 240px;">
                             <div class="m-match__head">
-                                <span class="m-match__head-id"><?= htmlspecialchars(strtoupper(substr($turno,0,3))) ?>-<?= (int)$row['id'] ?></span>
+                                <span class="m-match__head-id"><?= htmlspecialchars(strtoupper(substr($turno, 0, 3))) ?>-<?= (int)$row['id'] ?></span>
                                 <span>
-                                    <?php if(!empty($row['orario'])): ?>
+                                    <?php if (!empty($row['orario'])): ?>
                                         <?= htmlspecialchars(date('d/m H:i', strtotime($row['orario']))) ?>
                                     <?php else: ?>
                                         <?= $finita ? 'Terminata' : 'Da giocare' ?>
@@ -848,9 +872,9 @@ $ordineTurni = ['ottavi', 'quarti', 'semifinale', 'finale'];
                                 <span class="m-match__team"><?= htmlspecialchars($row['ospite']) ?></span>
                                 <span class="m-match__score"><?= $finita ? (int)$row['punti_ospite'] : '' ?></span>
                             </div>
-                            <?php if($puoModificare): ?>
+                            <?php if ($puoModificare): ?>
                                 <div style="padding:8px 10px; border-top:1px solid var(--m-border); display:flex; flex-direction:column; gap:6px;">
-                                    <?php if(!$finita): ?>
+                                    <?php if (!$finita): ?>
                                         <form method="POST" style="display:flex; gap:4px; align-items:center;">
                                             <input type="hidden" name="partita_id_orario" value="<?= (int)$row['id'] ?>">
                                             <input class="m-input" type="datetime-local" name="orario" required style="padding:4px; font-size:11px;">
@@ -872,7 +896,7 @@ $ordineTurni = ['ottavi', 'quarti', 'semifinale', 'finale'];
                                         </button>
                                     </form>
                                 </div>
-                            <?php elseif($isOrganizzatore && $nextEsiste): ?>
+                            <?php elseif ($isOrganizzatore && $nextEsiste): ?>
                                 <div style="padding:8px 10px; border-top:1px solid var(--m-border); font-size:11px; color:var(--m-text-mute); font-style:italic;">
                                     Turno successivo già generato
                                 </div>

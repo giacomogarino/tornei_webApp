@@ -1,7 +1,8 @@
 <?php
-if(session_status() === PHP_SESSION_NONE)
-    session_start();
-
+if (session_status() === PHP_SESSION_NONE) {
+    require_once __DIR__ . '/../php/helpers/session.php';
+    session_secure_start();
+}
 include_once("conf/db_config.php");
 
 $torneo_id = $_GET['id'] ?? null;

@@ -1,0 +1,20 @@
+# robots.txt — Matchora Tornei
+
+User-agent: MSNBot
+Crawl-delay: 5
+
+User-agent: bingbot
+Crawl-delay: 5
+
+# Blocca indicizzazione della cartella staging (ambiente di test)
+User-agent: *
+Disallow: /
+
+# Blocca file sensibili ovunque
+User-agent: *
+Disallow: /*/conf/
+Disallow: /*/php/helpers/
+Disallow: /php/
+Disallow: /*.log$
+Disallow: /*.bak$
+Disallow: /*.sql$
