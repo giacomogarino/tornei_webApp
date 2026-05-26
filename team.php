@@ -7,6 +7,7 @@ $team = [
         'ruolo'    => 'Programmatore',
         'bio'      => 'Studente di 5° anno all\'ITIS Mario Delpozzo di Cuneo. 18 anni, appassionato di sviluppo software.',
         'email'    => 'giacomo.garino@itiscuneo.edu.it',
+        'instagram'=> 'https://instagram.com/giacomo.garino_',
         'foto'     => 'assets/team/gari.webp',
         'foto_position' => 'center 10%',
         'iniziali' => 'GG',
@@ -17,6 +18,7 @@ $team = [
         'ruolo'    => 'Programmatore',
         'bio'      => 'Studente di 5° anno all\'ITIS Mario Delpozzo di Cuneo. 18 anni, appassionato di sviluppo software.',
         'email'    => 'luca.bertolotti@itiscuneo.edu.it',
+        'instagram'=> 'https://instagram.com/_luca.bertolotti_',
         'foto'     => 'assets/team/cluchy.webp',
         'foto_position' => 'center 5%',
         'iniziali' => 'LB',
@@ -27,6 +29,7 @@ $team = [
         'ruolo'    => 'Programmatore',
         'bio'      => 'Studente di 5° anno all\'ITIS Mario Delpozzo di Cuneo. 18 anni, appassionato di sviluppo software.',
         'email'    => 'matteo.luciano@itiscuneo.edu.it',
+        'instagram'=> 'https://instagram.com/matteo_luciano56',
         'foto'     => 'assets/team/ciano.webp',
         'foto_position' => 'center 10%',
         'iniziali' => 'ML',
@@ -37,22 +40,11 @@ $team = [
         'ruolo'    => 'Programmatore',
         'bio'      => 'Studente di 5° anno all\'ITIS Mario Delpozzo di Cuneo. 18 anni, appassionato di sviluppo software.',
         'email'    => 'sailiam.tu@itiscuneo.edu.it',
+        'instagram'=> 'https://instagram.com/l1l_l14m',
         'foto'     => 'assets/team/liam.webp',
         'foto_position' => 'center 10%',
         'iniziali' => 'LT',
         'colore'   => 'var(--m-gold-600)',
-    ],
-    [
-        'nome'     => 'Claude AI',
-        'ruolo'    => 'Assistente AI',
-        'bio'      => 'Intelligenza artificiale di Anthropic che supporta il team di Matchora in analisi, sviluppo e miglioramento continuo della piattaforma.',
-        'email'    => '',
-        'linkedin' => 'https://claude.ai',
-        'linkedin_label' => 'claude.ai',
-        'foto'     => '',
-        'iniziali' => 'AI',
-        'colore'   => '#c57a2e',
-        'is_ai'    => true,
     ],
 ];
 ?>
@@ -67,7 +59,7 @@ $team = [
             <span>Il Team</span>
         </div>
         <h1>Il nostro Team</h1>
-        <p class="desc">Le persone (e l'AI) che lavorano ogni giorno per rendere Matchora la migliore piattaforma per tornei.</p>
+        <p class="desc">Le persone che lavorano ogni giorno per rendere Matchora la migliore piattaforma per tornei.</p>
     </div>
 </header>
 
@@ -76,27 +68,21 @@ $team = [
 
         <div class="team-grid">
             <?php foreach ($team as $i => $membro): ?>
-            <div class="team-card <?= !empty($membro['is_ai']) ? 'team-card--ai' : '' ?>">
+            <div class="team-card">
 
                 <!-- Foto / Avatar -->
                 <div class="team-card__photo-wrap">
                     <?php if (!empty($membro['foto'])): ?>
-                        <img class="team-card__photo" src="<?= htmlspecialchars($membro['foto']) ?>" alt="Foto di <?= htmlspecialchars($membro['nome']) ?>">
+                        <img
+                            class="team-card__photo"
+                            src="<?= htmlspecialchars($membro['foto']) ?>"
+                            alt="Foto di <?= htmlspecialchars($membro['nome']) ?>"
+                            style="object-position: <?= htmlspecialchars($membro['foto_position'] ?? 'center center') ?>;"
+                        >
                     <?php else: ?>
                         <div class="team-card__avatar" style="background: <?= $membro['colore'] ?>;">
-                            <?php if (!empty($membro['is_ai'])): ?>
-                                <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 2a5 5 0 0 1 5 5v1h1a3 3 0 0 1 0 6h-1v1a5 5 0 0 1-10 0v-1H6a3 3 0 0 1 0-6h1V7a5 5 0 0 1 5-5z"/>
-                                    <circle cx="9" cy="9" r="1" fill="currentColor"/>
-                                    <circle cx="15" cy="9" r="1" fill="currentColor"/>
-                                </svg>
-                            <?php else: ?>
-                                <span><?= htmlspecialchars($membro['iniziali']) ?></span>
-                            <?php endif; ?>
+                            <span><?= htmlspecialchars($membro['iniziali']) ?></span>
                         </div>
-                    <?php endif; ?>
-                    <?php if (!empty($membro['is_ai'])): ?>
-                        <span class="team-card__ai-badge">AI</span>
                     <?php endif; ?>
                 </div>
 
@@ -114,13 +100,15 @@ $team = [
                             <span><?= htmlspecialchars($membro['email']) ?></span>
                         </a>
                         <?php endif; ?>
+                        <?php if (!empty($membro['instagram'])): ?>
+                        <a href="<?= htmlspecialchars($membro['instagram']) ?>" target="_blank" rel="noopener" class="team-card__link team-card__link--instagram" title="Instagram">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                            <span>Instagram</span>
+                        </a>
+                        <?php endif; ?>
                         <?php if (!empty($membro['linkedin']) && $membro['linkedin'] !== '#'): ?>
-                        <a href="<?= htmlspecialchars($membro['linkedin']) ?>" target="_blank" rel="noopener" class="team-card__link" title="<?= !empty($membro['is_ai']) ? 'Sito' : 'LinkedIn' ?>">
-                            <?php if (!empty($membro['is_ai'])): ?>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                            <?php else: ?>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-                            <?php endif; ?>
+                        <a href="<?= htmlspecialchars($membro['linkedin']) ?>" target="_blank" rel="noopener" class="team-card__link" title="LinkedIn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
                             <span><?= htmlspecialchars($membro['linkedin_label'] ?? 'LinkedIn') ?></span>
                         </a>
                         <?php endif; ?>
@@ -165,31 +153,20 @@ $team = [
     box-shadow: var(--m-sh-3);
     border-color: var(--m-primary-200);
 }
-.team-card--ai {
-    border-color: #e8d8b0;
-    background: linear-gradient(160deg, #fffdf5 0%, var(--m-surface) 60%);
-}
-.team-card--ai:hover {
-    border-color: var(--m-gold-400);
-    box-shadow: 0 8px 28px rgba(243, 156, 18, 0.18);
-}
 .team-card__photo-wrap {
     position: relative;
-    height: 180px;
+    height: 220px;
     background: var(--m-bg-soft);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
 }
-.team-card--ai .team-card__photo-wrap {
-    background: linear-gradient(135deg, #fff8e8 0%, #fdefc8 100%);
-}
 .team-card__photo {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: top center;
+    /* object-position viene applicato inline per rispettare il valore per-membro */
 }
 .team-card__avatar {
     width: 88px;
@@ -206,19 +183,6 @@ $team = [
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     flex-shrink: 0;
 }
-.team-card__ai-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: var(--m-gold-500);
-    color: #2a1d00;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    padding: 3px 8px;
-    border-radius: var(--m-r-full);
-    font-family: var(--m-font-display);
-}
 .team-card__body {
     padding: var(--m-5);
     display: flex;
@@ -232,9 +196,6 @@ $team = [
     letter-spacing: 0.1em;
     color: var(--m-primary-600);
     margin-bottom: 4px;
-}
-.team-card--ai .team-card__role {
-    color: var(--m-gold-600);
 }
 .team-card__name {
     font-size: 18px;
@@ -275,7 +236,7 @@ $team = [
     text-overflow: ellipsis;
 }
 .team-card__link:hover { color: var(--m-primary-600); }
-.team-card--ai .team-card__link:hover { color: var(--m-gold-600); }
+.team-card__link--instagram:hover { color: #e1306c; }
 .team-cta {
     display: flex;
     align-items: center;
