@@ -60,22 +60,27 @@ if (isset($_POST['elimina_torneo']) && $isOrganizzatore) {
     exit;
 }
 
-/* ── POST: toggle modalità gironi ─────────────────────────────────── */
-if (isset($_POST['toggle_gironi_mode']) && $isOrganizzatore && $torneo['formato'] === 'gironi_playoff') {
-    $res = $conn->query("SELECT COUNT(*) AS tot FROM partita WHERE torneo_id = $id");
-    $haPartite = (int)$res->fetch_assoc()['tot'] > 0;
-    if (!$haPartite) {
-        $nuovaMode = ($gironi_mode === 'auto') ? 'manuale' : 'auto';
-        $stmt = $conn->prepare("UPDATE torneo SET gironi_mode = ? WHERE id = ?");
-        $stmt->bind_param("si", $nuovaMode, $id);
-        $stmt->execute();
-        $gironi_mode = $nuovaMode;
+// Chiusura anticipata iscrizioni (solo organizzatore, solo se torneo aperto)
+if (isset($_POST['chiudi_iscrizioni']) && $isOrganizzatore && $torneo['stato'] === 'aperto') {
+    $now = date('Y-m-d H:i:s');
+    $upd = $conn->prepare("UPDATE torneo SET data_chiusura_iscrizioni = ? WHERE id = ? AND creato_da = ?");
+    $upd->bind_param("sii", $now, $id, $utente_id);
+    $upd->execute();
+    if ($upd->affected_rows > 0) {
+        header("Location: dettagli_torneo.php?id=" . $id . "&msg=iscrizioniChiuse");
+    } else {
+        header("Location: dettagli_torneo.php?id=" . $id . "&msg=errChiusuraIscrizioni");
     }
-    header("Location: dettagli_torneo.php?id=$id"); exit;
+    $upd->close();
+    exit;
 }
 
-/* ── Dati sidebar ─────────────────────────────────────────────────── */
-$stmt = $conn->prepare("SELECT id, nome, capitano_id FROM squadra WHERE torneo_id = ? AND stato = 'approvata' ORDER BY nome ASC");
+// Dopo la query del torneo, prima dell'HTML
+$sql_squadre = "SELECT id, nome, capitano_id
+                FROM squadra
+                WHERE torneo_id = ? AND stato = 'approvata'
+                ORDER BY nome ASC";
+$stmt = $conn->prepare($sql_squadre);
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $squadre = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -316,9 +321,13 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                 'errTorneoPieno'  => ['warn',   "Torneo pieno."],
                 'errGiaInSquadra' => ['warn',   "Sei già in una squadra di questo torneo."],
                 'errEliminazione' => ['danger', "Errore durante l'eliminazione del torneo. Riprova."],
-            ]; ?>
-            <?php if (isset($msg_map[$_GET['msg']])): ?>
-                <div class="m-alert m-alert--<?= $msg_map[$_GET['msg']][0] ?> m-mb-5">
+                'iscrizioniChiuse' => ['success', "Iscrizioni chiuse anticipatamente. Non sono accettate nuove squadre."],
+                'errChiusuraIscrizioni' => ['danger', "Errore durante la chiusura delle iscrizioni. Riprova."],
+            ];
+            $msg_key = $_GET['msg'];
+            ?>
+            <?php if (isset($msg_map[$msg_key])): ?>
+                <div class="m-alert m-alert--<?= $msg_map[$msg_key][0] ?> m-mb-5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
                     <div><?= $msg_map[$_GET['msg']][1] ?></div>
                 </div>
