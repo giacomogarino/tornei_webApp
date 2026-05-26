@@ -90,7 +90,7 @@ $_page_desc = !empty($page_description)
                         }
                         echo htmlspecialchars($iniziali ?: 'U', ENT_QUOTES, 'UTF-8');
                     ?></span>
-                    Ciao,&nbsp;<b><?= htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') ?></b>
+                    Ciao&nbsp;<b><?= htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') ?></b>
                 </span>
                 <a href="logout.php" class="m-btn m-btn--ghost m-btn--sm">Logout</a>
             <?php else: ?>
