@@ -69,6 +69,21 @@ if (isset($_POST['elimina_torneo']) && $isOrganizzatore) {
     exit;
 }
 
+// Chiusura anticipata iscrizioni (solo organizzatore, solo se torneo aperto)
+if (isset($_POST['chiudi_iscrizioni']) && $isOrganizzatore && $torneo['stato'] === 'aperto') {
+    $now = date('Y-m-d H:i:s');
+    $upd = $conn->prepare("UPDATE torneo SET data_chiusura_iscrizioni = ? WHERE id = ? AND creato_da = ?");
+    $upd->bind_param("sii", $now, $id, $utente_id);
+    $upd->execute();
+    if ($upd->affected_rows > 0) {
+        header("Location: dettagli_torneo.php?id=" . $id . "&msg=iscrizioniChiuse");
+    } else {
+        header("Location: dettagli_torneo.php?id=" . $id . "&msg=errChiusuraIscrizioni");
+    }
+    $upd->close();
+    exit;
+}
+
 // Dopo la query del torneo, prima dell'HTML
 $sql_squadre = "SELECT id, nome, capitano_id
                 FROM squadra
@@ -179,6 +194,8 @@ $tipo_label = [
                 'errTorneoPieno' => ['warn', "Torneo pieno."],
                 'errGiaInSquadra' => ['warn', "Sei gi in una squadra di questo torneo."],
                 'errEliminazione' => ['danger', "Errore durante l'eliminazione del torneo. Riprova."],
+                'iscrizioniChiuse' => ['success', "Iscrizioni chiuse anticipatamente. Non sono accettate nuove squadre."],
+                'errChiusuraIscrizioni' => ['danger', "Errore durante la chiusura delle iscrizioni. Riprova."],
             ];
             $msg_key = $_GET['msg'];
             ?>
@@ -239,7 +256,20 @@ $tipo_label = [
                         <dt class="m-muted">Stato</dt><dd style="margin: 0;"><span class="m-badge m-badge--dot <?= $stato_class ?>"><?= htmlspecialchars($stato_label[$torneo['stato']] ?? $torneo['stato']) ?></span></dd>
                         <dt class="m-muted">Numero squadre</dt><dd style="margin: 0; font-weight: 500;"><?= (int)$torneo['numero_squadre'] ?> (min <?= (int)$torneo['min_squadre'] ?>)</dd>
                         <dt class="m-muted">Giocatori per squadra</dt><dd style="margin: 0; font-weight: 500;">min <b><?= (int)$torneo['min_giocatori_per_squadra'] ?></b>  max <b><?= (int)$torneo['max_giocatori_per_squadra'] ?></b></dd>
-                       <dt class="m-muted">Chiusura iscrizioni</dt><dd style="margin: 0; font-weight: 500;"><?= date('d/m/Y H:i', strtotime($torneo['data_chiusura_iscrizioni'])) ?></dd>
+                        <dt class="m-muted">Chiusura iscrizioni</dt>
+                        <dd style="margin: 0; display: flex; align-items: center; gap: var(--m-3); flex-wrap: wrap;">
+                           <span style="font-weight: 500;"><?= date('d/m/Y H:i', strtotime($torneo['data_chiusura_iscrizioni'])) ?></span>
+                           <?php if ($isOrganizzatore && $torneo['stato'] === 'aperto' && strtotime($torneo['data_chiusura_iscrizioni']) > time()): ?>
+                               <form method="POST" style="display: inline;" onsubmit="return confirm('Chiudi subito le iscrizioni al torneo? I partecipanti non potranno più iscriversi.');">
+                                   <button type="submit" name="chiudi_iscrizioni" class="m-btn m-btn--sm" style="background: var(--m-warning, #d97706); color: #fff; border-color: transparent; padding: 3px 10px; font-size: 12px;">
+                                       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                       Chiudi ora
+                                   </button>
+                               </form>
+                           <?php elseif ($isOrganizzatore && $torneo['stato'] === 'aperto' && strtotime($torneo['data_chiusura_iscrizioni']) <= time()): ?>
+                               <span class="m-badge" style="font-size: 11px; background: var(--m-warning-50, #fef3c7); color: var(--m-warning-700, #b45309);">Già chiuse</span>
+                           <?php endif; ?> 
+                        </dd>
                         <?php if ($torneo['visibilita'] === 'privato' && $torneo['codice_privato']): ?>
                             <dt class="m-muted">Codice privato</dt><dd style="margin: 0;"><span class="m-mono" style="font-weight: 600; letter-spacing: 0.1em;"><?= htmlspecialchars($torneo['codice_privato']) ?></span></dd>
                         <?php endif; ?>

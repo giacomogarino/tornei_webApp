@@ -169,6 +169,8 @@ $tipo_label = [
 $sport_label = [
     'calcio'       => 'Calcio',
     'beachvolley'  => 'Beach Volley',
+    'padel'        => 'Padel',
+    'tennis'        => 'Tennis'
 ];
 
 $w = $_SESSION['wizard'];
@@ -354,7 +356,8 @@ function step_class($step_n, $cur){
                                 <option value="">-- Seleziona sport --</option>
                                 <option value="calcio" <?= (($w['sport'] ?? '')=='calcio') ? 'selected' : '' ?>>Calcio</option>
                                 <option value="beachvolley" <?= (($w['sport'] ?? '')=='beachvolley') ? 'selected' : '' ?>>Beach Volley</option>
-                                <option value="beachvolley" <?= (($w['sport'] ?? '')=='padel') ? 'selected' : '' ?>>Padel</option>
+                                <option value="padel" <?= (($w['sport'] ?? '')=='padel') ? 'selected' : '' ?>>Padel</option>
+                                <option value="tennis" <?= (($w['sport'] ?? '')=='tennis') ? 'selected' : '' ?>>Tennis</option>
                             </select>
                         </div>
                         <div class="m-field">

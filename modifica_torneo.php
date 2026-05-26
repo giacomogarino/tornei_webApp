@@ -111,6 +111,9 @@ require_once('templates/header_riservato.php');
                         <select class="m-select" id="sport" name="sport">
                             <option value="calcio" <?= $torneo['sport']=="calcio" ? "selected" : "" ?>>Calcio</option>
                             <option value="beachvolley" <?= $torneo['sport']=="beachvolley" ? "selected" : "" ?>>Beach Volley</option>
+                            <option value="padel" <?= $torneo['sport']=="padel" ? "selected" : "" ?>>Padel</option>
+                            <option value="tennis" <?= $torneo['sport']=="tennis" ? "selected" : "" ?>>Tennis</option>
+                        </select>
                         </select>
                     </div>
 
