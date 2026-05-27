@@ -80,7 +80,7 @@ if (isset($_POST['chiudi_iscrizioni']) && $isOrganizzatore && $torneo['stato'] =
 }
 
 /* ── POST: toggle modalità gironi ─────────────────────────────────── */
-if (isset($_POST['toggle_gironi_mode']) && $isOrganizzatore && !$haPartite) {
+if (isset($_POST['toggle_gironi_mode']) && $isOrganizzatore && !$haPartite && $torneo['stato'] === 'aperto') {
     $nuova_mode = ($gironi_mode === 'auto') ? 'manuale' : 'auto';
     $upd = $conn->prepare("UPDATE torneo SET gironi_mode = ? WHERE id = ? AND creato_da = ?");
     $upd->bind_param("sii", $nuova_mode, $id, $utente_id);
@@ -378,8 +378,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                         <?php if ($torneo['formato'] === 'gironi_playoff'): ?>
                         <dt class="m-muted">Modalità gironi</dt>
                         <dd style="margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-
-                            <?php if ($isOrganizzatore && !$haPartite): ?>
+                            <?php if ($isOrganizzatore && !$haPartite && $torneo['stato'] === 'aperto'): ?>
                                 <form method="POST" class="gm-toggle-form">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="toggle_gironi_mode" value="1">
