@@ -1,4 +1,3 @@
-
 <?php
 require_once 'php/helpers/session.php';
 require_once 'php/helpers/csrf.php';
