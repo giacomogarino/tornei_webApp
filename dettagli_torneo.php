@@ -80,7 +80,7 @@ $sql_squadre = "SELECT id, nome, capitano_id
                 FROM squadra
                 WHERE torneo_id = ? AND stato = 'approvata'
                 ORDER BY nome ASC";
-                
+
 $stmt = $conn->prepare($sql_squadre);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -267,6 +267,21 @@ include("components/navbar_torneo.php")
                             <dt class="m-muted">Codice privato</dt>
                             <dd style="margin:0;"><span class="m-mono" style="font-weight:600; letter-spacing:.1em;"><?= htmlspecialchars($torneo['codice_privato']) ?></span></dd>
                         <?php endif; ?>
+                        <dt class="m-muted">Chiusura iscrizioni</dt>
+                        <dd style="margin: 0; display: flex; align-items: center; gap: var(--m-3); flex-wrap: wrap;">
+                        <span style="font-weight: 500;"><?= date('d/m/Y H:i', strtotime($torneo['data_chiusura_iscrizioni'])) ?></span>
+                        <?php if ($isOrganizzatore && $torneo['stato'] === 'aperto' && strtotime($torneo['data_chiusura_iscrizioni']) > time()): ?>
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Chiudi subito le iscrizioni al torneo? I partecipanti non potranno più iscriversi.');">
+                            <?= csrf_field() ?>
+                            <button type="submit" name="chiudi_iscrizioni" class="m-btn m-btn--sm" style="background: var(--m-warning, #d97706); color: #fff; border-color: transparent; padding: 3px 10px; font-size: 12px;">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                Chiudi ora
+                            </button>
+                        </form>
+                        <?php elseif ($isOrganizzatore && $torneo['stato'] === 'aperto' && strtotime($torneo['data_chiusura_iscrizioni']) <= time()): ?>
+                        <span class="m-badge" style="font-size: 11px; background: var(--m-warning-50, #fef3c7); color: var(--m-warning-700, #b45309);">Già chiuse</span>
+                        <?php endif; ?>
+                        </dd>
                     </dl>
                 </div>
 
