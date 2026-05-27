@@ -67,7 +67,11 @@ if (isset($_POST['elimina_torneo']) && $isOrganizzatore) {
 /* ── POST: chiusura anticipata iscrizioni ─────────────────────────── */
 if (isset($_POST['chiudi_iscrizioni']) && $isOrganizzatore && $torneo['stato'] === 'aperto') {
     $now = date('Y-m-d H:i:s');
-    $upd = $conn->prepare("UPDATE torneo SET data_chiusura_iscrizioni = ? WHERE id = ? AND creato_da = ?");
+    $upd = $conn->prepare("UPDATE torneo 
+    SET 
+        data_chiusura_iscrizioni = ?,
+        stato = 'in_corso'
+    WHERE id = ? AND creato_da = ?");
     $upd->bind_param("sii", $now, $id, $utente_id);
     $upd->execute();
     if ($upd->affected_rows > 0) {
@@ -80,7 +84,7 @@ if (isset($_POST['chiudi_iscrizioni']) && $isOrganizzatore && $torneo['stato'] =
 }
 
 /* ── POST: toggle modalità gironi ─────────────────────────────────── */
-if (isset($_POST['toggle_gironi_mode']) && $isOrganizzatore && !$haPartite) {
+if (isset($_POST['toggle_gironi_mode']) && $isOrganizzatore && !$haPartite && $torneo['stato'] === 'aperto') {
     $nuova_mode = ($gironi_mode === 'auto') ? 'manuale' : 'auto';
     $upd = $conn->prepare("UPDATE torneo SET gironi_mode = ? WHERE id = ? AND creato_da = ?");
     $upd->bind_param("sii", $nuova_mode, $id, $utente_id);
@@ -378,8 +382,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                         <?php if ($torneo['formato'] === 'gironi_playoff'): ?>
                         <dt class="m-muted">Modalità gironi</dt>
                         <dd style="margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-
-                            <?php if ($isOrganizzatore && !$haPartite): ?>
+                            <?php if ($isOrganizzatore && !$haPartite && $torneo['stato'] === 'aperto'): ?>
                                 <form method="POST" class="gm-toggle-form">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="toggle_gironi_mode" value="1">
@@ -436,8 +439,6 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                         <dd style="margin:0; font-weight:500;"><?= (int)$torneo['numero_squadre'] ?> (min <?= (int)$torneo['min_squadre'] ?>)</dd>
                         <dt class="m-muted">Giocatori per squadra</dt>
                         <dd style="margin:0; font-weight:500;">min <b><?= (int)$torneo['min_giocatori_per_squadra'] ?></b> &nbsp;max <b><?= (int)$torneo['max_giocatori_per_squadra'] ?></b></dd>
-                        <dt class="m-muted">Chiusura iscrizioni</dt>
-                        <dd style="margin:0; font-weight:500;"><?= date('d/m/Y H:i', strtotime($torneo['data_chiusura_iscrizioni'])) ?></dd>
                         <?php if ($torneo['visibilita'] === 'privato' && $torneo['codice_privato']): ?>
                             <dt class="m-muted">Codice privato</dt>
                             <dd style="margin:0;"><span class="m-mono" style="font-weight:600; letter-spacing:.1em;"><?= htmlspecialchars($torneo['codice_privato']) ?></span></dd>
