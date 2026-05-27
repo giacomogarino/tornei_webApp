@@ -51,7 +51,7 @@ if (!empty($filtro_ricerca)) {
             </div>
 
             <form method="GET" action="privati.php" class="m-private-search__form">
-                <input class="m-input m-mono m-private-search__input" type="text" name="ricerca" placeholder="Es. 28C5209C" value="<?= htmlspecialchars($filtro_ricerca) ?>">
+                <input class="m-input m-mono m-private-search__input" type="text" name="ricerca" placeholder="Es. 78F6204D" value="<?= htmlspecialchars($filtro_ricerca) ?>">
                 <button type="submit" class="m-btn m-btn--primary m-btn--lg">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
                     Cerca torneo
