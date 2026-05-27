@@ -81,7 +81,7 @@ $link = BASE_URL . '/php/verify_email.php?token=' . urlencode($token);
 
 $subject = 'Conferma la tua registrazione — Matchora';
 $body    = "Ciao $nome,\n\n"
-         . "Grazie per esserti registrato su Matchora Tornei!\n\n"
+         . "Grazie per esserti registrato/a su Matchora Tornei!\n\n"
          . "Conferma il tuo account cliccando sul link seguente:\n\n"
          . "$link\n\n"
          . "Il link è valido per 24 ore.\n\n"
