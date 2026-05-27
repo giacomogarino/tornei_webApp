@@ -51,6 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_follow'])) {
     exit;
 }
 
+$isOrganizzatore = isset($_SESSION['id_utente']) && $_SESSION['id_utente'] == $torneo['creato_da'];
+
 $navbar_data = [
     'torneo'          => $torneo,
     'isOrganizzatore' => $isOrganizzatore ?? false,
