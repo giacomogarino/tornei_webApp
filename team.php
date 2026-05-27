@@ -46,7 +46,7 @@ $team = [
         'instagram'=> 'https://instagram.com/l1l_l14m',
         'instagram_label' => '@l1l_l14m',
         'foto'     => 'assets/team/liam.webp',
-        'foto_position' => 'center 30%',
+        'foto_position' => 'center 20%',
         'iniziali' => 'LT',
         'colore'   => 'var(--m-gold-600)',
     ],
