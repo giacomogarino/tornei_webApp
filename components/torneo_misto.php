@@ -436,35 +436,28 @@ $turno_label_misto = [
 ];
 ?>
 
-<header class="t-hero">
-    <div class="m-container">
-        <div class="t-breadcrumb">
-            <a href="index.php">Home</a>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <a href="dettagli_torneo.php?id=<?= (int)$torneo_id ?>"><?= htmlspecialchars($torneo['nome']) ?></a>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span>Struttura</span>
-        </div>
-        <div style="display: flex; gap: 8px; margin-bottom: var(--m-3); flex-wrap: wrap;">
-            <span class="t-chip">Gironi + playoff</span>
-            <?php if ($formato === 'gironi_playoff'): ?>
-                <span class="t-chip" style="opacity:.75; font-size:12px;">
-                    <?= $gironi_mode === 'auto' ? '⚡ Gironi automatici' : '✋ Gironi manuali' ?>
-                </span>
-            <?php endif; ?>
-        </div>
-        <h1><?= htmlspecialchars($torneo['nome']) ?></h1>
-    </div>
-</header>
+<?php
+include("components/navbar_torneo.php")
+?>
+
 
 <main class="m-page">
     <div class="m-container">
 
         <div class="m-tabs">
-            <a href="dettagli_torneo.php?id=<?= (int)$torneo_id ?>" class="m-tab">Info torneo</a>
-            <a href="struttura_torneo.php?id=<?= (int)$torneo_id ?>" class="m-tab m-tab--active">Struttura torneo</a>
+            <a href="dettagli_torneo.php?id=<?= (int)$torneo['id'] ?>" class="m-tab">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Info torneo
+            </a>
+            <a href="struttura_torneo.php?id=<?= (int)$torneo['id'] ?>" class="m-tab m-tab--active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 7 4 7 20 3 20"/><polyline points="11 4 15 4 15 14 11 14"/><polyline points="19 4 21 4 21 10 19 10"/></svg>
+                Struttura torneo
+            </a>
             <?php if ($torneo['stato'] === 'in_corso'): ?>
-                <a href="gestione_pranzi.php?id=<?= (int)$torneo_id ?>" class="m-tab">Gestione pranzi</a>
+                <a href="gestione_pranzi.php?id=<?= (int)$torneo['id'] ?>" class="m-tab">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18"/><path d="M5 11V8a7 7 0 1 1 14 0v3"/><path d="M5 11l-1 8h16l-1-8"/></svg>
+                    Gestione pranzi
+                </a>
             <?php endif; ?>
         </div>
 
