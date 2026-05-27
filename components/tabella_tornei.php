@@ -77,7 +77,7 @@ $cover_styles = [
                     </div>
                 </div>
                 <div class="m-tcard__footer">
-                    <span>ID #<?= (int)$row['id'] ?></span>
+                    
                     <span class="m-tcard__cta">Apri </span>
                 </div>
             </a>

@@ -8,6 +8,7 @@ $team = [
         'bio'      => 'Studente di 5° anno all\'ITIS Mario Delpozzo di Cuneo. 18 anni, appassionato di sviluppo software.',
         'email'    => 'giacomo.garino@itiscuneo.edu.it',
         'instagram'=> 'https://instagram.com/giacomo.garino_',
+        'instagram_label' => '@giacomo.garino_',
         'foto'     => 'assets/team/gari.webp',
         'foto_position' => 'center 10%',
         'iniziali' => 'GG',
@@ -19,6 +20,7 @@ $team = [
         'bio'      => 'Studente di 5° anno all\'ITIS Mario Delpozzo di Cuneo. 18 anni, appassionato di sviluppo software.',
         'email'    => 'luca.bertolotti@itiscuneo.edu.it',
         'instagram'=> 'https://instagram.com/_luca.bertolotti_',
+        'instagram_label' => '@_luca.bertolotti_',
         'foto'     => 'assets/team/cluchy.webp',
         'foto_position' => 'center 5%',
         'iniziali' => 'LB',
@@ -30,6 +32,7 @@ $team = [
         'bio'      => 'Studente di 5° anno all\'ITIS Mario Delpozzo di Cuneo. 18 anni, appassionato di sviluppo software.',
         'email'    => 'matteo.luciano@itiscuneo.edu.it',
         'instagram'=> 'https://instagram.com/matteo_luciano56',
+        'instagram_label' => '@matteo_luciano56',
         'foto'     => 'assets/team/ciano.webp',
         'foto_position' => 'center 10%',
         'iniziali' => 'ML',
@@ -41,6 +44,7 @@ $team = [
         'bio'      => 'Studente di 5° anno all\'ITIS Mario Delpozzo di Cuneo. 18 anni, appassionato di sviluppo software.',
         'email'    => 'sailiam.tu@itiscuneo.edu.it',
         'instagram'=> 'https://instagram.com/l1l_l14m',
+        'instagram_label' => '@l1l_l14m',
         'foto'     => 'assets/team/liam.webp',
         'foto_position' => 'center 30%',
         'iniziali' => 'LT',
@@ -103,13 +107,7 @@ $team = [
                         <?php if (!empty($membro['instagram'])): ?>
                         <a href="<?= htmlspecialchars($membro['instagram']) ?>" target="_blank" rel="noopener" class="team-card__link team-card__link--instagram" title="Instagram">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                            <span>Instagram</span>
-                        </a>
-                        <?php endif; ?>
-                        <?php if (!empty($membro['linkedin']) && $membro['linkedin'] !== '#'): ?>
-                        <a href="<?= htmlspecialchars($membro['linkedin']) ?>" target="_blank" rel="noopener" class="team-card__link" title="LinkedIn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-                            <span><?= htmlspecialchars($membro['linkedin_label'] ?? 'LinkedIn') ?></span>
+                            <span><?= htmlspecialchars($membro['instagram_label'] ?? 'Instagram') ?></span>
                         </a>
                         <?php endif; ?>
                     </div>

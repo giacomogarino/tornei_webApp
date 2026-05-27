@@ -194,7 +194,7 @@ include("components/navbar_torneo.php")
                 <div class="m-card m-mt-4">
                     <div class="m-card__header">
                         <h3 class="m-card__title">Dati torneo</h3>
-                        <span class="m-mono m-muted" style="font-size:12px;">ID #<?= (int)$torneo['id'] ?></span>
+                        
                     </div>
                     <dl class="dt-dati-dl">
                         <dt class="m-muted">Formato</dt>
