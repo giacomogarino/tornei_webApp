@@ -133,7 +133,7 @@ require_once('templates/header_riservato.php');
                         <label class="m-label" for="formato">Formato</label>
                         <select class="m-select" id="formato" name="formato">
                             <option value="eliminazione_diretta" <?= $torneo['formato']=="eliminazione_diretta" ? "selected" : "" ?>>Eliminazione Diretta</option>
-                            <option value="girone_playoff" <?= $torneo['formato']=="girone_playoff" ? "selected" : "" ?>>Gironi + Playoff</option>
+                            <option value="gironi_playoff" <?= $torneo['formato']=="gironi_playoff" ? "selected" : "" ?>>Gironi + Playoff</option>
                             <option value="girone_unico" <?= $torneo['formato']=="girone_unico" ? "selected" : "" ?>>Girone Unico</option>
                         </select>
                     </div>
