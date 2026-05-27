@@ -289,8 +289,8 @@ include("components/navbar_torneo.php")
             </a>
             <?php if ($torneo['stato'] === 'in_corso'): ?>
                 <a href="gestione_pranzi.php?id=<?= (int)$torneo['id'] ?>" class="m-tab">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18"/><path d="M5 11V8a7 7 0 1 1 14 0v3"/><path d="M5 11l-1 8h16l-1-8"/></svg>
-                    Gestione pranzi
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+                Gestione pranzi
                 </a>
             <?php endif; ?>
         </div>

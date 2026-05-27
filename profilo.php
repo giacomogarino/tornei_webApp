@@ -83,7 +83,7 @@ $flash_msg = $_GET['msg'] ?? null;
                             <div>
                                 <?php if (!empty($_SESSION['verified_utente'])): ?>
                                     <span class="m-badge m-badge--success m-badge--dot">
-                                        Attivo — email verificata
+                                        Attivo
                                     </span>
                                 <?php else: ?>
                                     <span class="m-badge m-badge--warn m-badge--dot">
