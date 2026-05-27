@@ -80,7 +80,7 @@ $sql_squadre = "SELECT id, nome, capitano_id
                 FROM squadra
                 WHERE torneo_id = ? AND stato = 'approvata'
                 ORDER BY nome ASC";
-                
+
 $stmt = $conn->prepare($sql_squadre);
 $stmt->bind_param("i", $id);
 $stmt->execute();
