@@ -42,7 +42,7 @@ $team = [
         'email'    => 'sailiam.tu@itiscuneo.edu.it',
         'instagram'=> 'https://instagram.com/l1l_l14m',
         'foto'     => 'assets/team/liam.webp',
-        'foto_position' => 'center 5%',
+        'foto_position' => 'center 30%',
         'iniziali' => 'LT',
         'colore'   => 'var(--m-gold-600)',
     ],
