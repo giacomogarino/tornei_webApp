@@ -67,7 +67,11 @@ if (isset($_POST['elimina_torneo']) && $isOrganizzatore) {
 /* ── POST: chiusura anticipata iscrizioni ─────────────────────────── */
 if (isset($_POST['chiudi_iscrizioni']) && $isOrganizzatore && $torneo['stato'] === 'aperto') {
     $now = date('Y-m-d H:i:s');
-    $upd = $conn->prepare("UPDATE torneo SET data_chiusura_iscrizioni = ? WHERE id = ? AND creato_da = ?");
+    $upd = $conn->prepare("UPDATE torneo 
+    SET 
+        data_chiusura_iscrizioni = ?,
+        stato = 'in_corso'
+    WHERE id = ? AND creato_da = ?");
     $upd->bind_param("sii", $now, $id, $utente_id);
     $upd->execute();
     if ($upd->affected_rows > 0) {
@@ -435,8 +439,6 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                         <dd style="margin:0; font-weight:500;"><?= (int)$torneo['numero_squadre'] ?> (min <?= (int)$torneo['min_squadre'] ?>)</dd>
                         <dt class="m-muted">Giocatori per squadra</dt>
                         <dd style="margin:0; font-weight:500;">min <b><?= (int)$torneo['min_giocatori_per_squadra'] ?></b> &nbsp;max <b><?= (int)$torneo['max_giocatori_per_squadra'] ?></b></dd>
-                        <dt class="m-muted">Chiusura iscrizioni</dt>
-                        <dd style="margin:0; font-weight:500;"><?= date('d/m/Y H:i', strtotime($torneo['data_chiusura_iscrizioni'])) ?></dd>
                         <?php if ($torneo['visibilita'] === 'privato' && $torneo['codice_privato']): ?>
                             <dt class="m-muted">Codice privato</dt>
                             <dd style="margin:0;"><span class="m-mono" style="font-weight:600; letter-spacing:.1em;"><?= htmlspecialchars($torneo['codice_privato']) ?></span></dd>
