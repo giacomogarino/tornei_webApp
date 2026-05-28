@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 $tipo_partita = $torneo['tipo_partita']; // 'andata' | 'andata_ritorno'
 
 $isOrganizzatore = isset($_SESSION['id_utente']) &&
@@ -404,21 +406,25 @@ include("components/navbar_torneo.php")
                                             <td>
                                                 <div style="display: flex; flex-direction: column; gap: 6px;">
                                                     <?php if (!$finita): ?>
+                                                        <?php var_dump(function_exists('csrf_field')); ?>
                                                         <form method="POST" style="display: flex; gap: 4px;">
+                                                            <?= csrf_field() ?>
                                                             <input type="hidden" name="partita_id_orario" value="<?= (int)$row['id'] ?>">
                                                             <input class="m-input" type="datetime-local" name="orario" style="padding: 4px 8px; font-size: 12px;">
                                                             <button class="m-btn m-btn--secondary m-btn--sm">Orario</button>
                                                         </form>
                                                     <?php endif; ?>
+                                                    <?php var_dump(function_exists('csrf_field')); ?>
                                                     <form method="POST" style="display: flex; gap: 4px; align-items: center;">
+                                                        <?= csrf_field() ?>
                                                         <input type="hidden" name="partita_id" value="<?= (int)$row['id'] ?>">
                                                         <input class="m-input m-num" type="number" name="casa" min="0" required
-                                                               value="<?= $finita ? (int)$row['punti_casa'] : '' ?>"
-                                                               style="width: 50px; padding: 4px; text-align: center;">
+                                                            value="<?= $finita ? (int)$row['punti_casa'] : '' ?>"
+                                                            style="width: 50px; padding: 4px; text-align: center;">
                                                         <span class="m-muted">&ndash;</span>
                                                         <input class="m-input m-num" type="number" name="ospite" min="0" required
-                                                               value="<?= $finita ? (int)$row['punti_ospite'] : '' ?>"
-                                                               style="width: 50px; padding: 4px; text-align: center;">
+                                                            value="<?= $finita ? (int)$row['punti_ospite'] : '' ?>"
+                                                            style="width: 50px; padding: 4px; text-align: center;">
                                                         <button class="m-btn <?= $finita ? 'm-btn--secondary' : 'm-btn--primary' ?> m-btn--sm"
                                                                 title="<?= $finita ? 'Modifica risultato' : 'Inserisci risultato' ?>">
                                                             <?= $finita ? '&#9998;' : 'OK' ?>

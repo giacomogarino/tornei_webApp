@@ -728,12 +728,14 @@ elseif ($view === 'gironi'):
                             <div style="display:flex; flex-direction:column; gap:6px;">
                                 <?php if (!$finita): ?>
                                     <form method="POST" style="display:flex; gap:4px;">
+                                        <?= csrf_field() ?>
                                         <input type="hidden" name="partita_id_orario" value="<?= (int)$row['id'] ?>">
                                         <input class="m-input" type="datetime-local" name="orario" required style="padding:4px 8px; font-size:12px;">
                                         <button class="m-btn m-btn--secondary m-btn--sm">Orario</button>
                                     </form>
                                 <?php endif; ?>
                                 <form method="POST" style="display:flex; gap:4px; align-items:center;">
+                                    <?= csrf_field() ?>
                                     <input type="hidden" name="partita_id" value="<?= (int)$row['id'] ?>">
                                     <input class="m-input m-num" type="number" name="casa" min="0" required
                                            value="<?= $finita ? (int)$row['punti_casa'] : '' ?>"
