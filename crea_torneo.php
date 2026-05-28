@@ -3,6 +3,8 @@ require_once 'php/helpers/session.php';
 require_once 'php/helpers/csrf.php';
 session_secure_start();
 include("conf/db_config.php");
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 //recupera dati dalla sessione --> persistenza tra step
 if (!isset($_SESSION['wizard'])) $_SESSION['wizard'] = [];
@@ -42,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['wizard']['data_chiusura'] = $_POST['data_chiusura'] ?? '';
         $_SESSION['wizard']['sport'] = $_POST['sport'] ?? '';
         $_SESSION['wizard']['luogo'] = trim($_POST['luogo'] ?? '');
+        $_SESSION['wizard']['pranzo'] = isset($_POST['pranzo']) ? 1 : 0;
 
         // Gestione upload locandina
         if(isset($_FILES['locandina']) && $_FILES['locandina']['error'] === UPLOAD_ERR_OK){
@@ -116,16 +119,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             numero_squadre, min_squadre,
             min_giocatori_per_squadra, max_giocatori_per_squadra,
             data_chiusura_iscrizioni, codice_privato, creato_da, stato,
-            sport, luogo, nome_file, percorso)
+            sport, luogo, nome_file, percorso, pranzo)
             VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aperto', ?, ?, ?, ?)
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aperto', ?, ?, ?, ?,?)
         ");
 
         $descrizione = $w['descrizione'] ?: null;
         $nome_file   = $w['nome_file'] ?? null;
         $percorso    = $w['percorso'] ?? null;
+        $pranzo = (int)($w['pranzo'] ?? 0);
         $stmt->bind_param(
-            "sssssiiiississss",
+            "sssssiiiississssi",
             $w['nome'],
             $descrizione,
             $w['formato'],
@@ -141,7 +145,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $w['sport'],
             $w['luogo'],
             $nome_file,
-            $percorso
+            $percorso,
+            $pranzo
         );
 
         $stmt->execute();
@@ -395,6 +400,31 @@ function step_class($step_n, $cur){
                     </div>
 
                     <div class="m-field">
+                        <label class="m-label">Pranzo</label>
+                        <div class="m-tile-group">
+                            <label class="m-tile">
+                                <input type="radio" name="pranzo" value="1" <?= (($w['pranzo'] ?? 0) == 1) ? 'checked' : '' ?>>
+                                <div class="m-tile__inner">
+                                    <span class="m-tile__icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>                                    </span>
+                                    <span class="m-tile__title">Sì</span>
+                                    <span class="m-tile__desc">Il torneo prevede un pranzo organizzato</span>
+                                </div>
+                            </label>
+                            <label class="m-tile">
+                                <input type="radio" name="pranzo" value="0" <?= (($w['pranzo'] ?? 0) == 0) ? 'checked' : '' ?>>
+                                <div class="m-tile__inner">
+                                    <span class="m-tile__icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    </span>
+                                    <span class="m-tile__title">No</span>
+                                    <span class="m-tile__desc">Nessun pranzo previsto</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="m-field">
                         <label class="m-label" for="data_chiusura">Data e ora di chiusura iscrizioni <span style="color: var(--m-danger-500);">*</span></label>
                         <input class="m-input" type="datetime-local" id="data_chiusura" name="data_chiusura" value="<?= htmlspecialchars($w['data_chiusura'] ?? '') ?>" required>
                         <span class="m-muted" style="font-size: 12px;">Dopo questa data nessuno potr pi iscriversi.</span>
@@ -465,6 +495,7 @@ function step_class($step_n, $cur){
                     <dt class="m-muted">Formato</dt><dd style="margin:0; font-weight:500;"><?= htmlspecialchars($fmt_label[$w['formato']] ?? '') ?></dd>
                     <dt class="m-muted">Tipo partita</dt><dd style="margin:0; font-weight:500;"><?= htmlspecialchars($tipo_label[$w['tipo_partita']] ?? '') ?></dd>
                     <dt class="m-muted">Visibilit</dt><dd style="margin:0;"><span class="m-badge m-badge--info"><?= htmlspecialchars($w['visibilita']) ?></span></dd>
+                    <dt class="m-muted">Pranzo</dt><dd style="margin:0;"><span class="m-badge <?= ($w['pranzo'] ?? 0) ? 'm-badge--success' : 'm-badge--neutral' ?>"><?= ($w['pranzo'] ?? 0) ? 'Sì' : 'No' ?></span></dd>
                     <dt class="m-muted">Chiusura iscrizioni</dt><dd style="margin:0; font-weight:500;"><?= htmlspecialchars($w['data_chiusura']) ?></dd>
                     <dt class="m-muted">Squadre</dt><dd style="margin:0; font-weight:500;">da <b><?= (int)$w['min_squadre'] ?></b> a <b><?= (int)$w['numero_squadre'] ?></b></dd>
                     <dt class="m-muted">Giocatori per squadra</dt><dd style="margin:0; font-weight:500;">da <b><?= (int)$w['min_giocatori'] ?></b> a <b><?= (int)$w['max_giocatori'] ?></b></dd>
