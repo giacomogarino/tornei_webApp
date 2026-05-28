@@ -5,7 +5,7 @@ include("conf/db_config.php");
 
 $utente_id = $_SESSION['id_utente'];
 
-$sql = "SELECT t.id, t.nome, t.formato, t.stato, t.sport, t.luogo, ts.id
+$sql = "SELECT t.id, t.nome, t.formato, t.stato, t.sport, t.luogo
         FROM torneo t
         INNER JOIN torneo_seguito ts
             ON t.id = ts.torneo_id
