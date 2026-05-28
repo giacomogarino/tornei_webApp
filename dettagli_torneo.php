@@ -10,7 +10,7 @@ $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita, numero_squadre,
                creato_da, stato, min_giocatori_per_squadra, max_giocatori_per_squadra,
                min_squadre, data_chiusura_iscrizioni, codice_privato, sport, luogo,
-               nome_file, percorso, gironi_mode
+               nome_file, percorso, gironi_mode, pranzo
         FROM torneo WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
@@ -147,9 +147,8 @@ include("components/navbar_torneo.php")
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 7 4 7 20 3 20"/><polyline points="11 4 15 4 15 14 11 14"/><polyline points="19 4 21 4 21 10 19 10"/></svg>
                 Struttura torneo
             </a>
-            <?php if ($torneo['stato'] === 'in_corso'): ?>
+            <?php if ($torneo['stato'] === 'in_corso' && $torneo['pranzo']==1): ?>
                 <a href="gestione_pranzi.php?id=<?= (int)$torneo['id'] ?>" class="m-tab">
-                    <!--<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18"/><path d="M5 11V8a7 7 0 1 1 14 0v3"/><path d="M5 11l-1 8h16l-1-8"/></svg>-->
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
                     Gestione pranzi
                 </a>
@@ -349,7 +348,7 @@ include("components/navbar_torneo.php")
                         <?php endif; ?>
                     <?php endif; ?>
 
-                    <?php if (in_array($torneo['stato'], ['in_corso', 'aperto'])): ?>
+                    <?php if (in_array($torneo['stato'], ['in_corso', 'aperto']) && $torneo['pranzo']==1): ?>
                         <a href="gestione_pranzi.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
                         Gestisci pranzi

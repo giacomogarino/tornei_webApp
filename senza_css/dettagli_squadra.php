@@ -1,6 +1,8 @@
 <?php
 session_start();
 include("conf/db_config.php");
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
@@ -12,7 +14,7 @@ if (!$id) {
 // Dati squadra + torneo
 $sql = "
     SELECT s.id, s.nome, s.stato, s.capitano_id, s.torneo_id, s.persone_pranzo,
-           t.nome AS nome_torneo
+           t.nome AS nome_torneo, t.pranzo AS pranzo
     FROM squadra s
     JOIN torneo t ON t.id = s.torneo_id
     WHERE s.id = ?
@@ -23,6 +25,7 @@ $stmt->bind_param("i", $id);
 $stmt->execute();
 $squadra = $stmt->get_result()->fetch_assoc();
 $stmt->close();
+echo "<script>console.log(" . json_encode($squadra) . ");</script>";
 
 if (!$squadra) {
     header("Location: index.php?msg=errSquadraNonTrovata");
@@ -104,21 +107,23 @@ require_once('templates/header_riservato.php');
         <td>Stato</td>
         <td><?= htmlspecialchars($squadra['stato']) ?></td>
     </tr>
-
+    <?php if ($squadra['pranzo']==1): ?>
     <tr>
-        <td>Persone pranzo</td>
+        <td>Persone pranzo <?=$squadra['pranzo']?></td>
         <td><?= (int)$squadra['persone_pranzo'] ?></td>
     </tr>
+    <?php endif; ?>
 </table>
 
 <br>
 
 <!-- FORM SOLO CAPITANO -->
-<?php if ($is_capitano): ?>
+<?php if ($is_capitano && $squadra['pranzo']==1): ?>
     <h4>Gestione pranzo</h4>
 
     <form method="POST">
         <label>Numero persone che mangiano</label><br>
+        <p>value pranzo<?=$squadra['pranzo']?></p>
 
         <input
             type="number"

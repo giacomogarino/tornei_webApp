@@ -119,10 +119,10 @@ $result = $stmt->get_result();
 
             <select class="m-select" id="sport" name="sport" aria-label="Sport">
                 <option value="">Tutti gli sport</option>
-                <option value="calcio" <?= $filtro_sport === 'calcio' ? 'selected' : '' ?>>calcio</option>
-                <option value="beachvolley" <?= $filtro_sport === 'beachvolley' ? 'selected' : '' ?>>beachvolley</option>
-                <option value="padel" <?= $filtro_sport === 'padel' ? 'selected' : '' ?>>padel</option>
-                <option value="tennis" <?= $filtro_sport === 'tennis' ? 'selected' : '' ?>>tennis</option>
+                <option value="calcio" <?= $filtro_sport === 'calcio' ? 'selected' : '' ?>>Calcio</option>
+                <option value="beachvolley" <?= $filtro_sport === 'beachvolley' ? 'selected' : '' ?>>Beachvolley</option>
+                <option value="padel" <?= $filtro_sport === 'padel' ? 'selected' : '' ?>>Padel</option>
+                <option value="tennis" <?= $filtro_sport === 'tennis' ? 'selected' : '' ?>>Tennis</option>
             </select>
 
             <select class="m-select" id="stato" name="stato" aria-label="Stato">
@@ -133,8 +133,10 @@ $result = $stmt->get_result();
                 <option value="completato" <?= $filtro_stato === 'completato' ? 'selected' : '' ?>>Completato</option>
             </select>
 
-            <button type="submit" class="m-btn m-btn--primary">Filtra</button>
-            <a href="index.php" class="m-btn m-btn--ghost">Azzera</a>
+            <div class="m-actions">
+                <button type="submit" class="m-btn m-btn--primary">Filtra</button>
+                <a href="index.php" class="m-btn m-btn--ghost">Azzera</a>
+            </div>
         </form>
 
         <?php if (isset($_GET['msg'])): ?>
