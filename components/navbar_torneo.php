@@ -201,7 +201,7 @@ $isFollowing = $navbar_data['isFollowing'] ?? false;
                     <p class="desc"><?= htmlspecialchars($torneo['descrizione']) ?></p>
                 <?php endif; ?>
             </div>
-
+            
             <div style="display:flex; gap:var(--m-2); flex-wrap:wrap;">
                 <form method="POST" style="display:inline;">
                     <?= csrf_field() ?>

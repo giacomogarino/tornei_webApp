@@ -5,7 +5,6 @@ session_secure_start();
 include("conf/db_config.php");
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
-
 if (!$id) {
     header("Location: index.php?msg=errSquadraNonTrovata");
     exit;
@@ -14,7 +13,7 @@ if (!$id) {
 // Dati squadra + torneo
 $sql = "
     SELECT s.id, s.nome, s.stato, s.capitano_id, s.torneo_id, s.persone_pranzo,
-           t.nome AS nome_torneo
+           t.nome AS nome_torneo, t.pranzo as pranzo, t.stato as torneo_stato
     FROM squadra s
     JOIN torneo t ON t.id = s.torneo_id
     WHERE s.id = ?
@@ -183,7 +182,7 @@ $stato_class = 'm-state-' . htmlspecialchars($squadra['stato']);
                                     <?php if ($is_cap): ?>
                                         <span class="m-badge m-badge--gold">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/></svg>
-                                            Cap
+                                            Capitano
                                         </span>
                                     <?php endif; ?>
                                 </div>
@@ -198,17 +197,25 @@ $stato_class = 'm-state-' . htmlspecialchars($squadra['stato']);
                     <h4 class="m-profile-section-label">Info squadra</h4>
                     <dl class="ds-info-grid">
                         <div>
-                            <dt class="m-muted" style="font-size: 12px;">ID</dt>
-                            <dd style="margin: 0; font-family: var(--m-font-mono);">#<?= (int)$squadra['id'] ?></dd>
+                            <dt class="m-muted" style="font-size: 12px;">Giocatori</dt>
+                            <dd style="margin: 0; font-family: var(--m-font-display); font-size: 22px; font-weight: 700;"><?= count($giocatori) ?></dd>
                         </div>
+                        <?php if ($is_capitano && in_array($squadra['torneo_stato'] ?? '', ['aperto', 'in_corso'])): ?>
+                            <a href="aggiungi_giocatore.php?squadra_id=<?= (int)$squadra['id'] ?>" class="m-btn m-btn--secondary m-btn--block m-mt-3">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Aggiungi giocatore
+                            </a>
+                        <?php endif; ?>
+                        <?php if ($squadra['pranzo']==1): ?>
                         <div>
                             <dt class="m-muted" style="font-size: 12px;">Persone pranzo</dt>
                             <dd style="margin: 0; font-family: var(--m-font-display); font-size: 22px; font-weight: 700;"><?= (int)$squadra['persone_pranzo'] ?></dd>
                         </div>
+                        <?php endif; ?>
                     </dl>
                 </div>
 
-                <?php if ($is_capitano): ?>
+                <?php if ($is_capitano && $squadra['pranzo']==1 && in_array($squadra['torneo_stato'] ?? '', ['aperto', 'in_corso'])): ?>
                     <div class="m-card m-mt-4" style="background: linear-gradient(180deg, var(--m-primary-50), var(--m-surface)); border-color: var(--m-primary-200);">
                         <h4 class="m-profile-section-label">Gestione pranzo</h4>
                         <p class="m-muted m-mb-3" style="font-size: 13px;">Sei il capitano. Aggiorna quante persone della tua squadra mangeranno.</p>
