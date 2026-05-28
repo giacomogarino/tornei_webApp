@@ -38,17 +38,26 @@ $check = $conn->prepare("SELECT id FROM torneo_seguito WHERE torneo_id = ? AND u
 $check->bind_param("ii", $torneo_id, $utente_id);
 $check->execute();
 $isFollowing = ($check->get_result()->num_rows > 0);
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_follow'])) {
+
+
+/* ── CSRF verification per tutte le richieste POST ───────────────── */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
-    if ($isFollowing) {
+}
+
+
+if (isset($_POST['toggle_follow'])) {
+    if (!isset($_SESSION['login'])) {
+        header('Location: login.php?msg=NecessariaAutentificazione');
+        exit;
+    } else if ($isFollowing) {
         $s = $conn->prepare("DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?");
     } else {
         $s = $conn->prepare("INSERT INTO torneo_seguito (torneo_id, utente_id) VALUES (?, ?)");
     }
-    $s->bind_param("ii", $torneo_id, $utente_id);
+    $s->bind_param("ii", $id, $utente_id);
     $s->execute();
-    header("Location: struttura_torneo.php?id=$torneo_id");
-    exit;
+    header("Location: struttura_torneo.php?id=$id"); exit;
 }
 
 $isOrganizzatore = isset($_SESSION['id_utente']) && $_SESSION['id_utente'] == $torneo['creato_da'];
