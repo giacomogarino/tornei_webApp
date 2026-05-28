@@ -10,13 +10,34 @@ $cognome = $_SESSION['cognome_utente'] ?? '';
 $email   = $_SESSION['email_utente']   ?? '';
 $created = $_SESSION['created_at_utente'] ?? null;
 
+// Può modificare email/password solo se ha una password propria nel DB
+$stmt_g = $conn->prepare('SELECT password, google_id FROM utente WHERE id = ? LIMIT 1');
+$stmt_g->bind_param('i', $_SESSION['id_utente']);
+$stmt_g->execute();
+$row_g = $stmt_g->get_result()->fetch_assoc();
+$stmt_g->close();
+$is_google_only = !empty($row_g['google_id']) && empty($row_g['password']);
+
 $initials = strtoupper(mb_substr($nome, 0, 1) . mb_substr($cognome, 0, 1));
 $data_registrazione = $created ? date('d F Y', strtotime($created)) : '–';
 
 // Messaggi flash
 $flash_msgs = [
-    'emailErrata' => ['type' => 'danger',  'text' => 'L\'email inserita non corrisponde a quella del tuo account.'],
-    'errore'      => ['type' => 'danger',  'text' => 'Si è verificato un errore. Riprova.'],
+    // Errori generici
+    'campiMancanti'  => ['type' => 'danger',  'text' => 'Compila tutti i campi richiesti.'],
+    'errore'         => ['type' => 'danger',  'text' => 'Si è verificato un errore. Riprova.'],
+    'passwordErrata' => ['type' => 'danger',  'text' => 'La password attuale non è corretta.'],
+    'passwordDiverse'=> ['type' => 'danger',  'text' => 'Le nuove password non coincidono.'],
+    'passwordCorta'  => ['type' => 'danger',  'text' => 'La password deve avere almeno 8 caratteri.'],
+    'emailNonValida' => ['type' => 'danger',  'text' => 'Inserisci un indirizzo email valido.'],
+    'emailGiaUsata'  => ['type' => 'danger',  'text' => 'Questa email è già associata a un altro account.'],
+    // Successo
+    'anagraficaOk'   => ['type' => 'success', 'text' => 'Nome e cognome aggiornati con successo.'],
+    'emailOk'        => ['type' => 'success', 'text' => 'Email aggiornata con successo.'],
+    'passwordOk'     => ['type' => 'success', 'text' => 'Password aggiornata con successo.'],
+    // Ereditati
+    'emailErrata'    => ['type' => 'danger',  'text' => 'L\'email inserita non corrisponde a quella del tuo account.'],
+    'emailConfermaInviata' => ['type' => 'success', 'text' => 'Ti abbiamo inviato un\'email di conferma al nuovo indirizzo. Clicca il link per completare il cambio.'],
 ];
 $flash_msg = $_GET['msg'] ?? null;
 ?>
@@ -36,8 +57,12 @@ $flash_msg = $_GET['msg'] ?? null;
             <div class="m-alert m-alert--<?= $fm['type'] ?>" style="margin-bottom:var(--m-5);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
                      stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="9"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    <?php if ($fm['type'] === 'success'): ?>
+                        <circle cx="12" cy="12" r="9"/><polyline points="9 12 11 14 15 10"/>
+                    <?php else: ?>
+                        <circle cx="12" cy="12" r="9"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    <?php endif; ?>
                 </svg>
                 <div><?= htmlspecialchars($fm['text'], ENT_QUOTES, 'UTF-8') ?></div>
             </div>
@@ -45,9 +70,11 @@ $flash_msg = $_GET['msg'] ?? null;
 
         <div class="m-profile-grid">
 
-            <!-- Scheda profilo -->
+            <!-- Scheda profilo + form modifica -->
             <section>
-                <div class="m-card m-profile-card">
+
+                <!-- Riepilogo profilo -->
+                <div class="m-card m-profile-card" style="margin-bottom:var(--m-4);">
                     <div class="m-profile-card__head">
                         <span class="m-avatar"><?= htmlspecialchars($initials, ENT_QUOTES, 'UTF-8') ?></span>
                         <div>
@@ -82,18 +109,98 @@ $flash_msg = $_GET['msg'] ?? null;
                             <div class="m-muted">Stato account</div>
                             <div>
                                 <?php if (!empty($_SESSION['verified_utente'])): ?>
-                                    <span class="m-badge m-badge--success m-badge--dot">
-                                        Attivo
-                                    </span>
+                                    <span class="m-badge m-badge--success m-badge--dot">Attivo</span>
                                 <?php else: ?>
-                                    <span class="m-badge m-badge--warn m-badge--dot">
-                                        In attesa di verifica
-                                    </span>
+                                    <span class="m-badge m-badge--warn m-badge--dot">In attesa di verifica</span>
                                 <?php endif; ?>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- ── MODIFICA NOME & COGNOME ─────────────────────── -->
+                <div class="m-card" style="margin-bottom:var(--m-4);">
+                    <h4 class="m-profile-section-label">Modifica nome e cognome</h4>
+                    <form method="POST" action="php/aggiorna_profilo.php" class="m-stack">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="anagrafica">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--m-3);">
+                            <div class="m-field">
+                                <label class="m-label" for="nome">Nome</label>
+                                <input class="m-input" type="text" id="nome" name="nome"
+                                       value="<?= htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') ?>"
+                                       required maxlength="50" autocomplete="given-name">
+                            </div>
+                            <div class="m-field">
+                                <label class="m-label" for="cognome">Cognome</label>
+                                <input class="m-input" type="text" id="cognome" name="cognome"
+                                       value="<?= htmlspecialchars($cognome, ENT_QUOTES, 'UTF-8') ?>"
+                                       required maxlength="50" autocomplete="family-name">
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" class="m-btn m-btn--primary">
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Salva nome e cognome
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ── MODIFICA PASSWORD ───────────────────────────── -->
+                <?php if ($is_google_only): ?>
+                <div class="m-card" style="opacity:.6;">
+                    <h4 class="m-profile-section-label">Modifica password</h4>
+                    <p style="font-size:13px;color:var(--m-text-soft);">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align:middle;margin-right:4px;">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        Hai effettuato l'accesso con Google. La password è gestita dal tuo account Google.
+                    </p>
+                </div>
+                <?php else: ?>
+                <div class="m-card">
+                    <h4 class="m-profile-section-label">Modifica password</h4>
+                    <form method="POST" action="php/aggiorna_profilo.php" class="m-stack">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="password">
+                        <div class="m-field">
+                            <label class="m-label" for="psw_attuale">Password attuale</label>
+                            <input class="m-input" type="password" id="psw_attuale" name="psw_attuale"
+                                placeholder="La tua password attuale" required autocomplete="current-password">
+                        </div>
+                        <div class="m-field">
+                            <label class="m-label" for="nuova_psw">Nuova password</label>
+                            <input class="m-input" type="password" id="nuova_psw" name="nuova_psw"
+                                placeholder="min 8 caratteri" required minlength="8" autocomplete="new-password">
+                        </div>
+                        <div class="m-field">
+                            <label class="m-label" for="conferma_psw">Conferma nuova password</label>
+                            <input class="m-input" type="password" id="conferma_psw" name="conferma_psw"
+                                placeholder="ripeti la nuova password" required autocomplete="new-password">
+                        </div>
+                        <div>
+                            <button type="submit" class="m-btn m-btn--primary">
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                                </svg>
+                                Aggiorna password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <?php endif; ?>
+
             </section>
 
             <!-- Sidebar azioni -->
@@ -153,7 +260,6 @@ $flash_msg = $_GET['msg'] ?? null;
                         (tornei, squadre, partecipazioni) saranno cancellati definitivamente.
                     </p>
 
-                    <!-- Pulsante che apre il modale di conferma -->
                     <button type="button" class="m-btn m-btn--block"
                             style="background:var(--m-danger-600,#dc2626);color:#fff;border-color:transparent;"
                             onclick="document.getElementById('modal-elimina').style.display='flex'">
