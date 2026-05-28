@@ -423,6 +423,7 @@ function setupDropZone(zone) {
 /* ═══════════════════════════════════════════════════════════════
    CLIC SUL POOL → scegli girone
 ═══════════════════════════════════════════════════════════════ */
+/*
 document.getElementById('pool').addEventListener('click', e => {
     const card = e.target.closest('.cg-squad:not(.cg-squad--assigned)');
     if (!card) return;
@@ -430,8 +431,9 @@ document.getElementById('pool').addEventListener('click', e => {
     const zones = document.querySelectorAll('[data-drop-zone]');
     if (zones.length === 0) { alert('Prima crea almeno un girone.'); return; }
     if (zones.length === 1) { spostaInGirone(card, zones[0]); return; }
-
+*/
     /* mini chooser */
+/*
     document.getElementById('inline-chooser')?.remove();
     const chooser = document.createElement('div');
     chooser.id = 'inline-chooser';
@@ -461,7 +463,7 @@ document.getElementById('pool').addEventListener('click', e => {
             if (!chooser.contains(ev.target)) { chooser.remove(); document.removeEventListener('click', h); }
         });
     }, 10);
-});
+});*/
 
 function spostaInGirone(poolCard, zone) {
     const sqId = poolCard.dataset.id;

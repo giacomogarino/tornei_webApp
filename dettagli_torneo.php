@@ -285,7 +285,7 @@ $tipo_label = ['andata' => 'Solo andata', 'andata_ritorno' => 'Andata e ritorno'
                     <p class="desc"><?= htmlspecialchars($torneo['descrizione']) ?></p>
                 <?php endif; ?>
             </div>
-
+                    
             <div style="display:flex; gap:var(--m-2); flex-wrap:wrap;">
                 <form method="POST" style="display:inline;">
                     <?= csrf_field() ?>
