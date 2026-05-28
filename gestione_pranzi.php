@@ -63,28 +63,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /* ─────────────────────────────────────────────
    TOGGLE FOLLOW
 ───────────────────────────────────────────── */
-if (isset($_POST['toggle_follow']) && $utente_id) {
-
-    if ($isFollowing) {
-
-        $s = $conn->prepare("
-            DELETE FROM torneo_seguito
-            WHERE torneo_id = ? AND utente_id = ?
-        ");
-
+/* ── POST: segui / smetti ─────────────────────────────────────────── */
+if (isset($_POST['toggle_follow'])) {
+    if (!isset($_SESSION['login'])) {
+        header('Location: login.php?msg=NecessariaAutentificazione');
+        exit;
+    } else if ($isFollowing) {
+        $s = $conn->prepare("DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?");
     } else {
-
-        $s = $conn->prepare("
-            INSERT INTO torneo_seguito (torneo_id, utente_id)
-            VALUES (?, ?)
-        ");
+        $s = $conn->prepare("INSERT INTO torneo_seguito (torneo_id, utente_id) VALUES (?, ?)");
     }
-
-    $s->bind_param("ii", $torneo_id, $utente_id);
+    $s->bind_param("ii", $id, $utente_id);
     $s->execute();
-
-    header("Location: gestione_pranzi.php?id=$torneo_id");
-    exit;
+    header("Location: gestione_pranzi.php?id=$id"); exit;
 }
 
 /* ─────────────────────────────────────────────

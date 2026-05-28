@@ -45,7 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ── POST: segui / smetti ─────────────────────────────────────────── */
 if (isset($_POST['toggle_follow'])) {
-    if ($isFollowing) {
+    if (!isset($_SESSION['login'])) {
+        header('Location: login.php?msg=NecessariaAutentificazione');
+        exit;
+    } else if ($isFollowing) {
         $s = $conn->prepare("DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?");
     } else {
         $s = $conn->prepare("INSERT INTO torneo_seguito (torneo_id, utente_id) VALUES (?, ?)");
