@@ -7,6 +7,10 @@ require_once('components/squadre_torneo.php');
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
+$utente_id = $_SESSION['id_utente'] ?? null;
+$isLoggato = $utente_id !== null;
+
+
 $sql = "SELECT id, nome, descrizione, formato, tipo_partita, visibilita, numero_squadre,
                creato_da, stato, min_giocatori_per_squadra, max_giocatori_per_squadra,
                min_squadre, data_chiusura_iscrizioni, codice_privato, sport, luogo,
@@ -324,19 +328,18 @@ include("components/navbar_torneo.php")
                         Vedi struttura
                     </a>
 
+                    <?php if (in_array($torneo['stato'], ['in_corso', 'aperto']) && $torneo['pranzo']==1): ?>
+                        <a href="gestione_pranzi.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+                        Gestisci pranzi
+                        </a>
+                    <?php endif; ?>
+
                     <?php if ($isOrganizzatore && $torneo['stato'] === 'aperto'): ?>
                         <a href="modifica_torneo.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block m-mb-3">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
                             Modifica impostazioni
                         </a>
-
-                        <?php if ($torneo['stato'] === 'aperto' && $torneo['visibilita'] === 'privato'): ?>
-                            <a href="aggiunta_squadre_manualmente.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block m-mb-3">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                Aggiungi squadra manualmente
-                            </a>
-                        <?php endif; ?>
-
                         <?php if ($torneo['formato'] === 'gironi_playoff' && $gironi_mode === 'manuale' && !$haPartite && $torneo['stato'] === 'in_corso'): ?>
                             <a href="crea_gironi.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--block m-mb-3"
                                style="background:var(--m-warning,#f59e0b); color:#fff; border-color:transparent; font-weight:600;">
@@ -351,12 +354,6 @@ include("components/navbar_torneo.php")
                         <?php endif; ?>
                     <?php endif; ?>
 
-                    <?php if (in_array($torneo['stato'], ['in_corso', 'aperto']) && $torneo['pranzo']==1): ?>
-                        <a href="gestione_pranzi.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--secondary m-btn--block">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
-                        Gestisci pranzi
-                        </a>
-                    <?php endif; ?>
 
                     <?php if ($isOrganizzatore): ?>
                         <form method="POST" style="display:contents;"
