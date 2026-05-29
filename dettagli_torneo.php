@@ -432,7 +432,7 @@ include("components/navbar_torneo.php")
                         Inquadra per aprire la pagina del torneo
                     </p>
                     <a id="qr-download"
-                       download="qr-<?= (int)$torneo['id'] ?>-<?= rawurlencode($torneo['nome']) ?>.png"
+                       download="qr-<?= (int)$torneo['id'] ?>.jpg"
                        style="display:inline-flex; align-items:center; gap:6px; margin-top:var(--m-3);
                               font-size:13px; font-weight:500; color:var(--m-primary,#6366f1);
                               text-decoration:none; cursor:pointer;">
@@ -449,7 +449,6 @@ include("components/navbar_torneo.php")
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
                 <script>
                 (function () {
-                    // Costruisce l'URL dalla pagina corrente — non dipende da BASE_URL PHP
                     var url = window.location.protocol + '//' + window.location.host
                             + '/dettagli_torneo.php?id=<?= (int)$torneo['id'] ?>';
 
@@ -464,12 +463,12 @@ include("components/navbar_torneo.php")
                         correctLevel: QRCode.CorrectLevel.H
                     });
 
-                    // Abilita il download una volta che il canvas è pronto
                     setTimeout(function () {
                         var canvas = container.querySelector('canvas');
                         if (canvas) {
                             var link = document.getElementById('qr-download');
-                            link.href = canvas.toDataURL('image/png');
+                            link.href     = canvas.toDataURL('image/jpeg', 1.0);
+                            link.download = 'qr-<?= (int)$torneo['id'] ?>.jpg';
                         }
                     }, 500);
                 })();
