@@ -322,6 +322,38 @@ include("components/navbar_torneo.php")
             <aside>
                 <div class="m-card" style="background:linear-gradient(180deg,var(--m-primary-50),var(--m-surface)); border-color:var(--m-primary-200);">
                     <h4 class="m-profile-section-label">Azioni rapide</h4>
+                    
+                    <!-- Copia link torneo -->
+                    <button type="button" id="btn-copia-link" class="m-btn m-btn--secondary m-btn--block m-mb-3"
+                            onclick="copiLinkTorneo()">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        <span id="btn-copia-link-label">Copia link</span>
+                    </button>
+
+                    <script>
+                    function copiLinkTorneo() {
+                        const url = window.location.href;
+                        navigator.clipboard.writeText(url).then(function () {
+                            const label = document.getElementById('btn-copia-link-label');
+                            label.textContent = 'Link copiato!';
+                            setTimeout(() => label.textContent = 'Copia link', 2000);
+                        }).catch(function () {
+                            // Fallback per browser che non supportano clipboard API
+                            const el = document.createElement('textarea');
+                            el.value = url;
+                            document.body.appendChild(el);
+                            el.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(el);
+                            const label = document.getElementById('btn-copia-link-label');
+                            label.textContent = 'Link copiato!';
+                            setTimeout(() => label.textContent = 'Copia link', 2000);
+                        });
+                    }
+                    </script>
 
                     <a href="struttura_torneo.php?id=<?= (int)$torneo['id'] ?>" class="m-btn m-btn--primary m-btn--block m-mb-3">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 7 4 7 20 3 20"/><polyline points="11 4 15 4 15 14 11 14"/><polyline points="19 4 21 4 21 10 19 10"/></svg>
