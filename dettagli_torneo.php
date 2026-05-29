@@ -341,7 +341,6 @@ include("components/navbar_torneo.php")
                             label.textContent = 'Link copiato!';
                             setTimeout(() => label.textContent = 'Copia link', 2000);
                         }).catch(function () {
-                            // Fallback per browser che non supportano clipboard API
                             const el = document.createElement('textarea');
                             el.value = url;
                             document.body.appendChild(el);
@@ -417,6 +416,65 @@ include("components/navbar_torneo.php")
                         </div>
                     </a>
                 <?php endif; ?>
+
+                <!-- ── QR CODE ─────────────────────────────────────────── -->
+                <div class="m-card m-mt-4" style="text-align:center; padding:var(--m-5);">
+                    <p style="font-size:12px; font-weight:600; letter-spacing:.06em;
+                               text-transform:uppercase; color:var(--m-text-soft);
+                               margin:0 0 var(--m-3);">
+                        QR Code — accesso rapido al torneo
+                    </p>
+                    <div id="torneo-qr"
+                         style="display:inline-block; padding:12px; background:#fff;
+                                border-radius:12px; border:1px solid var(--m-border,#e5e7eb);">
+                    </div>
+                    <p style="font-size:11px; color:var(--m-text-soft); margin:var(--m-3) 0 0;">
+                        Inquadra per aprire la pagina del torneo
+                    </p>
+                    <a id="qr-download"
+                       download="qr-<?= (int)$torneo['id'] ?>-<?= rawurlencode($torneo['nome']) ?>.png"
+                       style="display:inline-flex; align-items:center; gap:6px; margin-top:var(--m-3);
+                              font-size:13px; font-weight:500; color:var(--m-primary,#6366f1);
+                              text-decoration:none; cursor:pointer;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Scarica QR Code
+                    </a>
+                </div>
+
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+                <script>
+                (function () {
+                    // Costruisce l'URL dalla pagina corrente — non dipende da BASE_URL PHP
+                    var url = window.location.protocol + '//' + window.location.host
+                            + '/dettagli_torneo.php?id=<?= (int)$torneo['id'] ?>';
+
+                    var container = document.getElementById('torneo-qr');
+
+                    new QRCode(container, {
+                        text:         url,
+                        width:        180,
+                        height:       180,
+                        colorDark:    '#18181b',
+                        colorLight:   '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+
+                    // Abilita il download una volta che il canvas è pronto
+                    setTimeout(function () {
+                        var canvas = container.querySelector('canvas');
+                        if (canvas) {
+                            var link = document.getElementById('qr-download');
+                            link.href = canvas.toDataURL('image/png');
+                        }
+                    }, 500);
+                })();
+                </script>
+                <!-- ── /QR CODE ──────────────────────────────────────── -->
 
                 <?php if ($organizzatore): ?>
                     <div class="m-card m-mt-4">

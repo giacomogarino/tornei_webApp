@@ -1,7 +1,5 @@
 <?php
 require_once 'php/helpers/csrf.php';
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 require_once 'php/helpers/session.php';
 session_secure_start();
 include_once("conf/db_config.php");
