@@ -47,19 +47,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 if (isset($_POST['toggle_follow'])) {
-    if (!isset($_SESSION['login'])) {
+    if (!$utente_id) {
         header('Location: login.php?msg=NecessariaAutentificazione');
         exit;
-    } else if ($isFollowing) {
+    } elseif ($isFollowing) {
         $s = $conn->prepare("DELETE FROM torneo_seguito WHERE torneo_id = ? AND utente_id = ?");
     } else {
         $s = $conn->prepare("INSERT INTO torneo_seguito (torneo_id, utente_id) VALUES (?, ?)");
     }
-    $s->bind_param("ii", $id, $utente_id);
+    $s->bind_param("ii", $torneo_id, $utente_id);
     $s->execute();
-    header("Location: struttura_torneo.php?id=$id"); exit;
+    header("Location: struttura_torneo.php?id=$torneo_id");
+    exit;
 }
-
 $isOrganizzatore = isset($_SESSION['id_utente']) && $_SESSION['id_utente'] == $torneo['creato_da'];
 
 $navbar_data = [
