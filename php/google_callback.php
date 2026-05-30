@@ -9,7 +9,7 @@
  */
 
 require_once __DIR__ . '/../php/helpers/session.php';
-require_once __DIR__ . '/../conf/db_config.php';  // include anche secrets.php e app_config.php
+require_once __DIR__ . '/../conf/db_config.php';
 
 session_secure_start();
 
@@ -72,8 +72,9 @@ $cognome   = $userInfo['family_name'] ?? '';
 $google_id = $userInfo['sub'];
 
 // 3. Cerca o crea l'utente nel DB
+// ── MODIFICA: aggiunto role e bannato alla SELECT ─────────────────────
 $stmt = $conn->prepare(
-    'SELECT id, nome, cognome, email, verified, created_at, google_id
+    'SELECT id, nome, cognome, email, verified, created_at, google_id, role, bannato
      FROM utente WHERE google_id = ? OR email = ? LIMIT 1'
 );
 $stmt->bind_param('ss', $google_id, $email);
@@ -82,6 +83,13 @@ $row = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if ($row) {
+    // ── MODIFICA: blocca il login se l'utente è bannato ───────────────
+    if ((int)$row['bannato'] === 1) {
+        $conn->close();
+        header('Location: ../login.php?msg=accountBannato');
+        exit;
+    }
+
     // Collega il Google ID se l'account esisteva solo con email+password
     if (empty($row['google_id'])) {
         $upd = $conn->prepare(
@@ -92,7 +100,7 @@ if ($row) {
         $upd->close();
     }
 } else {
-    // Nuovo utente via Google
+    // Nuovo utente via Google (role DEFAULT 'user', bannato DEFAULT 0)
     $stmt = $conn->prepare(
         "INSERT INTO utente (nome, cognome, email, password, token, verified, google_id)
          VALUES (?, ?, ?, '', '', 1, ?)"
@@ -102,8 +110,10 @@ if ($row) {
     $newId = $conn->insert_id;
     $stmt->close();
 
+    // ── MODIFICA: rilegge anche role e bannato per il nuovo utente ────
     $stmt = $conn->prepare(
-        'SELECT id, nome, cognome, email, verified, created_at FROM utente WHERE id = ? LIMIT 1'
+        'SELECT id, nome, cognome, email, verified, created_at, role, bannato
+         FROM utente WHERE id = ? LIMIT 1'
     );
     $stmt->bind_param('i', $newId);
     $stmt->execute();
@@ -123,6 +133,13 @@ $_SESSION['cognome_utente']    = $row['cognome'];
 $_SESSION['email_utente']      = $row['email'];
 $_SESSION['verified_utente']   = (bool)($row['verified'] ?? true);
 $_SESSION['created_at_utente'] = $row['created_at'] ?? null;
+// ── MODIFICA: aggiunto role in sessione ───────────────────────────────
+$_SESSION['role_utente']       = $row['role'] ?? 'user';
 
-header('Location: ../index.php');
+// ── MODIFICA: redirect in base al ruolo ───────────────────────────────
+if (($_SESSION['role_utente']) === 'admin') {
+    header('Location: ../admin/index.php');
+} else {
+    header('Location: ../index.php');
+}
 exit;

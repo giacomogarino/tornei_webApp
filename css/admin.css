@@ -1,0 +1,193 @@
+/* ═══════════════════════════════════════════════════════════
+   ADMIN.CSS — Stili pannello amministratore Matchora
+   Posizione: /css/admin.css
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Statistiche ──────────────────────────────────────────────── */
+.adm-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--m-4);
+  margin-bottom: var(--m-6);
+}
+.adm-stat {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-lg);
+  padding: var(--m-4) var(--m-5);
+}
+.adm-stat--warn { border-color: #f59e0b; }
+.adm-stat__val {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--m-primary);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+.adm-stat__lbl {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--m-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.adm-stat__sub { font-size: 0.75rem; color: var(--m-text-secondary); margin-top: 2px; }
+.adm-stat__link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #f59e0b;
+  text-decoration: none;
+}
+
+/* ── Sezione titoli ────────────────────────────────────────────── */
+.adm-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--m-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin: var(--m-6) 0 var(--m-3);
+}
+
+/* ── Azioni rapide ─────────────────────────────────────────────── */
+.adm-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--m-4);
+  margin-bottom: var(--m-6);
+}
+.adm-card {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-lg);
+  padding: var(--m-5);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .15s, box-shadow .15s;
+}
+.adm-card:hover {
+  border-color: var(--m-primary);
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+.adm-card__icon { font-size: 1.75rem; margin-bottom: var(--m-2); }
+.adm-card__title { font-weight: 700; margin-bottom: 4px; }
+.adm-card__desc  { font-size: 0.82rem; color: var(--m-text-secondary); }
+
+/* ── Tabella ───────────────────────────────────────────────────── */
+.adm-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-lg);
+  margin-bottom: var(--m-3);
+}
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.adm-table th {
+  background: var(--m-surface-2, #f8f8f8);
+  color: var(--m-text-secondary);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--m-border);
+}
+.adm-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--m-border);
+  vertical-align: middle;
+}
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: var(--m-surface); }
+.adm-row--banned td { opacity: .6; background: #fff5f5; }
+.adm-empty { text-align: center; color: var(--m-text-secondary); padding: 2rem !important; }
+
+/* ── Badge ─────────────────────────────────────────────────────── */
+.adm-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--m-border);
+  color: var(--m-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.adm-badge--admin  { background: #ede9fe; color: #7c3aed; }
+.adm-badge--danger { background: #fee2e2; color: #dc2626; }
+.adm-badge--warn   { background: #fef3c7; color: #d97706; }
+.adm-badge--ok     { background: #d1fae5; color: #059669; }
+
+/* ── Azioni riga ───────────────────────────────────────────────── */
+.adm-row-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.adm-btn {
+  padding: 4px 10px;
+  border-radius: var(--m-radius);
+  border: 1px solid transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+}
+.adm-btn--ok     { border-color: #059669; color: #059669; }
+.adm-btn--ok:hover { background: #d1fae5; }
+.adm-btn--warn   { border-color: #d97706; color: #d97706; }
+.adm-btn--warn:hover { background: #fef3c7; }
+.adm-btn--danger { border-color: #dc2626; color: #dc2626; }
+.adm-btn--danger:hover { background: #fee2e2; }
+.adm-input-sm {
+  padding: 4px 8px;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  font-size: 0.78rem;
+  width: 120px;
+}
+
+/* ── Ricerca ───────────────────────────────────────────────────── */
+.adm-search {
+  display: flex;
+  gap: var(--m-2);
+  margin-bottom: var(--m-4);
+}
+.adm-search__input {
+  flex: 1;
+  padding: 8px 14px;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  font-size: 0.9rem;
+}
+
+/* ── Paginazione ───────────────────────────────────────────────── */
+.adm-pagination { display: flex; gap: 6px; margin-top: var(--m-3); flex-wrap: wrap; }
+.adm-page {
+  padding: 5px 11px;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--m-text);
+}
+.adm-page--active {
+  background: var(--m-primary);
+  border-color: var(--m-primary);
+  color: #fff;
+}
+
+/* ── Misc ──────────────────────────────────────────────────────── */
+.adm-ip    { font-size: 0.78rem; color: var(--m-text-secondary); font-family: monospace; }
+.adm-link-more {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--m-primary);
+  text-decoration: none;
+  margin-bottom: var(--m-6);
+}
+.adm-ban-form { display: flex; gap: 6px; align-items: center; }

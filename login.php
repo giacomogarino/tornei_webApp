@@ -72,6 +72,7 @@ require_once './templates/header.php'; // avvia sessione sicura
                     'NecessariaAutentificazione' => 'Devi autenticarti per accedere a questa pagina.',
                     'usaGoogle'              => 'Questo account usa "Accedi con Google". Usa il pulsante qui sotto.',
                     'registrazioneCompletata'=> null, // gestito tra i messaggi ok
+                    'accountBannato' => 'Questo account è stato bannato, se è un errore contatta matchora.torneo@gmail.com',
                 ];
                 $messaggi_ok = [
                     'ok'                  => 'Controlla la tua email per reimpostare la password.',

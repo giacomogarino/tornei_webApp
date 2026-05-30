@@ -1,0 +1,20 @@
+# /admin/.htaccess
+# ══════════════════════════════════════════════════════════════
+#  Questa directory è accessibile solo via PHP (header_admin.php
+#  fa il controllo di ruolo). Questi blocchi servono come seconda
+#  linea di difesa contro accessi diretti a file PHP secondari.
+# ══════════════════════════════════════════════════════════════
+
+# Blocca directory listing
+Options -Indexes
+
+# Blocca accesso diretto a qualsiasi file che non sia .php
+<FilesMatch "(?<!\.php)$">
+    Require all denied
+</FilesMatch>
+
+# Nessun caching per le pagine admin
+<IfModule mod_headers.c>
+    Header always set Cache-Control "no-store, no-cache, must-revalidate"
+    Header always set Pragma "no-cache"
+</IfModule>

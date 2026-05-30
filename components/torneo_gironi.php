@@ -267,7 +267,7 @@ foreach($tuttePartite as $i => $p){
 /* =====================================================
    VIEW
 ===================================================== */
-$extra_css = ['css/tabella_tornei.css', 'css/torneo_struttura.css'];
+$extra_css = ['/css/tabella_tornei.css', '/css/torneo_struttura.css'];
 require_once('templates/header.php');
 ?>
 
@@ -411,10 +411,9 @@ include("components/navbar_torneo.php")
                                                             <?= csrf_field() ?>
                                                             <input type="hidden" name="partita_id_orario" value="<?= (int)$row['id'] ?>">
                                                             <input class="m-input" type="datetime-local" name="orario" style="padding: 4px 8px; font-size: 12px;">
-                                                            <button class="m-btn m-btn--secondary m-btn--sm">Orario</button>
+                                                            <button class="m-btn m-btn--secondary m-btn--sm">Orarioo</button>
                                                         </form>
                                                     <?php endif; ?>
-                                                    <?php var_dump(function_exists('csrf_field')); ?>
                                                     <form method="POST" style="display: flex; gap: 4px; align-items: center;">
                                                         <?= csrf_field() ?>
                                                         <input type="hidden" name="partita_id" value="<?= (int)$row['id'] ?>">

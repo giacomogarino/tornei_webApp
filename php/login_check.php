@@ -1,9 +1,15 @@
 <?php
+/**
+ * LOGIN_CHECK.PHP — Verifica credenziali e avvia sessione
+ * ========================================================
+ * Aggiornato: aggiunge role e bannato alla sessione.
+ */
+
 require_once __DIR__ . '/../php/helpers/session.php';
 require_once __DIR__ . '/../php/helpers/csrf.php';
 
 session_secure_start();
-csrf_verify(); // blocca richieste senza token valido
+csrf_verify();
 
 require_once __DIR__ . '/../conf/db_config.php';
 
@@ -15,9 +21,9 @@ if (empty($email) || empty($psw)) {
     exit;
 }
 
-// Seleziona solo le colonne necessarie (non SELECT *)
+// Seleziona anche role e bannato
 $stmt = $conn->prepare(
-    'SELECT id, nome, cognome, email, password, verified, created_at, google_id
+    'SELECT id, nome, cognome, email, password, verified, created_at, google_id, role, bannato
      FROM utente WHERE email = ? LIMIT 1'
 );
 if (!$stmt) {
@@ -32,9 +38,15 @@ $row = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 $conn->close();
 
-// Account creato via Google: non ha password locale
+// Account solo Google
 if ($row && !empty($row['google_id']) && empty($row['password'])) {
     header('Location: ../login.php?msg=usaGoogle');
+    exit;
+}
+
+// Utente bannato: rifiuta prima ancora di verificare la password
+if ($row && (int)$row['bannato'] === 1) {
+    header('Location: ../login.php?msg=accountBannato');
     exit;
 }
 
@@ -45,8 +57,7 @@ if ($row && password_verify($psw, $row['password'])) {
         exit;
     }
 
-    // Rigenera l'ID di sessione dopo il login (session fixation protection)
-    session_regenerate_id(true);
+    session_regenerate_id(false);
 
     $_SESSION['login']             = 'ok';
     $_SESSION['id_utente']         = $row['id'];
@@ -55,8 +66,14 @@ if ($row && password_verify($psw, $row['password'])) {
     $_SESSION['email_utente']      = $row['email'];
     $_SESSION['verified_utente']   = (bool)$row['verified'];
     $_SESSION['created_at_utente'] = $row['created_at'];
+    $_SESSION['role_utente']       = $row['role'];   // 'user' o 'admin'
 
-    header('Location: ../index.php');
+    // Redirect: admin → pannello, utente → home
+    if ($row['role'] === 'admin') {
+        header('Location: ../admin/index.php');
+    } else {
+        header('Location: ../index.php');
+    }
     exit;
 }
 

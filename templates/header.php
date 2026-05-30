@@ -30,6 +30,7 @@ $_page_title = !empty($page_title)
 $_page_desc = !empty($page_description)
     ? htmlspecialchars($page_description, ENT_QUOTES, 'UTF-8')
     : 'Matchora è la piattaforma per organizzare e seguire tornei sportivi amatoriali in modo semplice e professionale.';
+
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -41,19 +42,19 @@ $_page_desc = !empty($page_description)
     <meta name="robots" content="index, follow">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/matchora_icon.png">
+    <link rel="icon" type="image/png" href="/assets/matchora_icon.png">
 
     <!--
         FONT — serviti dal nostro server (nessuna connessione a Google dal browser).
         Conforme GDPR/ePrivacy: l'IP dell'utente non viene mai inviato a Google.
         Ref: sentenza LG München 2022, provvedimento Garante Privacy IT.
     -->
-    <link rel="stylesheet" href="assets/fonts/load_fonts.php">
+    <link rel="stylesheet" href="/assets/fonts/load_fonts.php">
 
     <!-- CSS base -->
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/navbar.css">
-    <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
 
     <?php if (!empty($extra_css)): foreach ($extra_css as $css_file): ?>
     <link rel="stylesheet" href="<?= htmlspecialchars($css_file, ENT_QUOTES, 'UTF-8') ?>">
@@ -63,17 +64,20 @@ $_page_desc = !empty($page_description)
 
 <nav class="m-navbar">
     <div class="m-navbar__inner">
-        <a href="index.php" class="m-navbar__brand">
-            <span class="m-navbar__brand-mark"><img src="assets/matchora_icon.png" alt="Logo Matchora"></span>
+        <a href="/index.php" class="m-navbar__brand">
+            <span class="m-navbar__brand-mark"><img src="/assets/matchora_icon.png" alt="Logo Matchora"></span>
             <span class="m-navbar__brand-name">MATCHORA<span class="m-navbar__brand-sub">Tornei</span></span>
         </a>
 
         <ul class="m-navbar__links" id="navbar">
-            <li><a href="index.php"         class="<?= nav_active('index.php',         $current) ?>">Home</a></li>
-            <li><a href="profilo.php"        class="<?= nav_active('profilo.php',        $current) ?>">Profilo</a></li>
-            <li><a href="tornei_seguiti.php" class="<?= nav_active('tornei_seguiti.php', $current) ?>">Seguiti</a></li>
-            <li><a href="privati.php"        class="<?= nav_active('privati.php',        $current) ?>">Privati</a></li>
-            <li><a href="tornei_creati.php"  class="<?= nav_active('tornei_creati.php',  $current) ?>">Tornei creati</a></li>
+            <li><a href="/index.php"         class="<?= nav_active('index.php',         $current) ?>">Home</a></li>
+            <li><a href="/profilo.php"        class="<?= nav_active('profilo.php',        $current) ?>">Profilo</a></li>
+            <li><a href="/tornei_seguiti.php" class="<?= nav_active('tornei_seguiti.php', $current) ?>">Seguiti</a></li>
+            <li><a href="/privati.php"        class="<?= nav_active('privati.php',        $current) ?>">Privati</a></li>
+            <li><a href="/tornei_creati.php"  class="<?= nav_active('tornei_creati.php',  $current) ?>">Tornei creati</a></li>
+            <?php if (($_SESSION['role_utente'] ?? '') === 'admin'): ?>
+                <li><a href="/admin/index.php" class="<?= nav_active('index.php', $current) ?> m-navbar__link--admin">🔧 Admin</a></li>
+            <?php endif; ?>
         </ul>
 
         <div class="m-navbar__spacer"></div>
@@ -92,10 +96,10 @@ $_page_desc = !empty($page_description)
                     ?></span>
                     Ciao&nbsp;<b><?= htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') ?></b>
                 </span>
-                <a href="logout.php" class="m-btn m-btn--ghost m-btn--sm">Logout</a>
+                <a href="/logout.php" class="m-btn m-btn--ghost m-btn--sm">Logout</a>
             <?php else: ?>
-                <a href="login.php"    class="m-btn m-btn--secondary m-btn--sm">Login</a>
-                <a href="register.php" class="m-btn m-btn--primary m-btn--sm">Registrati</a>
+                <a href="/login.php"    class="m-btn m-btn--secondary m-btn--sm">Login</a>
+                <a href="/register.php" class="m-btn m-btn--primary m-btn--sm">Registrati</a>
             <?php endif; ?>
         </div>
 

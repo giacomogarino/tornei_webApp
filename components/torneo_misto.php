@@ -425,7 +425,7 @@ $extras    = 0;
 if ($numGironi > 0)
     [$perGirone, $extras,] = calcolaParametriPlayoff($numGironi);
 
-$extra_css = ['css/tabella_tornei.css', 'css/torneo_struttura.css'];
+$extra_css = ['/css/tabella_tornei.css', '/css/torneo_struttura.css'];
 require_once('templates/header.php');
 
 $turno_label_misto = [
