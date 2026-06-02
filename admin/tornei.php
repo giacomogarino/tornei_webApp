@@ -32,33 +32,78 @@ if (!function_exists('admin_log')) {
     }
 }
 
-// ── POST ──────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
-    $action     = $_POST['action']    ?? '';
-    $torneo_id  = (int)($_POST['torneo_id'] ?? 0);
+
+    $action    = $_POST['action'] ?? '';
+    $torneo_id = (int)($_POST['torneo_id'] ?? 0);
 
     switch ($action) {
+
         case 'elimina':
             $s = $conn->prepare('DELETE FROM torneo WHERE id = ?');
-            $s->bind_param('i', $torneo_id); $s->execute(); $s->close();
+            $s->bind_param('i', $torneo_id);
+            $s->execute();
+            $s->close();
+
             admin_log($conn, 'elimina_torneo', 'torneo', $torneo_id);
-            header('Location: /admin/tornei.php?msg=eliminato'); exit;
+            header('Location: /admin/tornei.php?msg=eliminato');
+            exit;
+
 
         case 'sospendi':
-            // Imposta stato = 'sospeso' — puoi aggiungere questo valore all'ENUM se non c'è
             $s = $conn->prepare("UPDATE torneo SET stato = 'sospeso' WHERE id = ?");
-            $s->bind_param('i', $torneo_id); $s->execute(); $s->close();
+            $s->bind_param('i', $torneo_id);
+            $s->execute();
+            $s->close();
+
             admin_log($conn, 'sospendi_torneo', 'torneo', $torneo_id);
-            header('Location: /admin/tornei.php?msg=sospeso'); exit;
+            header('Location: /admin/tornei.php?msg=sospeso');
+            exit;
+
 
         case 'riattiva':
-            $s = $conn->prepare("UPDATE torneo SET stato = 'aperto' WHERE id = ?");
-            $s->bind_param('i', $torneo_id); $s->execute(); $s->close();
-            admin_log($conn, 'riattiva_torneo', 'torneo', $torneo_id);
-            header('Location: /admin/tornei.php?msg=riattivato'); exit;
+
+            $s = $conn->prepare('SELECT stato, data_chiusura_iscrizioni FROM torneo WHERE id = ?');
+            $s->bind_param('i', $torneo_id);
+            $s->execute();
+            $row = $s->get_result()->fetch_assoc();
+            $s->close();
+
+            if (!$row) {
+                header('Location: /admin/tornei.php?msg=errore');
+                exit;
+            }
+
+            $nuovoStato = 'in_corso';
+
+            if (!empty($row['data_chiusura_iscrizioni'])) {
+
+                $oggi = new DateTime('now', new DateTimeZone('Europe/Rome'));
+                $chiusura = new DateTime($row['data_chiusura_iscrizioni'], new DateTimeZone('Europe/Rome'));
+
+                if ($chiusura >= $oggi) {
+                    $nuovoStato = 'aperto';
+                }
+            }
+
+            $s = $conn->prepare("UPDATE torneo SET stato = ? WHERE id = ?");
+            $s->bind_param('si', $nuovoStato, $torneo_id);
+            $s->execute();
+            $s->close();
+
+            admin_log($conn, 'riattiva_torneo', 'torneo', $torneo_id, [
+                'nuovo_stato' => $nuovoStato
+            ]);
+
+            header('Location: /admin/tornei.php?msg=riattivato');
+            exit;
+
+
+        default:
+            header('Location: /admin/tornei.php');
+            exit;
     }
-    header('Location: /admin/tornei.php'); exit;
 }
 
 // ── HTML ──────────────────────────────────────────────────────────────
