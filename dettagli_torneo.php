@@ -171,6 +171,9 @@ include("components/navbar_torneo.php")
                 'errEliminazione'       => ['danger',  "Errore durante l'eliminazione del torneo. Riprova."],
                 'iscrizioniChiuse'      => ['success', "Iscrizioni chiuse anticipatamente. Non sono accettate nuove squadre."],
                 'errChiusuraIscrizioni' => ['danger',  "Errore durante la chiusura delle iscrizioni. Riprova."],
+                'segnalazioneInviata'    => ['success', 'Segnalazione inviata. La esamineremo al più presto.'],
+                'segnalazioneGiaInviata' => ['warn',   'Hai già una segnalazione aperta per questo torneo.'],
+                'errSegnalazione'        => ['danger', 'Errore nell\'invio della segnalazione.'],
             ];
             $msg_key = $_GET['msg'];
             ?>
@@ -405,7 +408,18 @@ include("components/navbar_torneo.php")
                             </button>
                         </form>
                     <?php endif; ?>
+
+                    <?php if ($isLoggato && !$isOrganizzatore): ?>
+                        <?php
+                        $modal_target_tipo = 'torneo';
+                        $modal_target_id   = $torneo['id'];
+                        $modal_redirect    = '/dettagli_torneo.php?id=' . $torneo['id'];
+                        $modal_label       = 'Segnala torneo';
+                        include 'components/segnala_modal.php';
+                        ?>
+                    <?php endif; ?>
                 </div>
+
 
                 <?php if (!empty($torneo['percorso'])): ?>
                     <a href="<?= htmlspecialchars($torneo['percorso']) ?>" target="_blank">

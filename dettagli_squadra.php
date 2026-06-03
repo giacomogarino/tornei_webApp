@@ -10,6 +10,9 @@ if (!$id) {
     exit;
 }
 
+$utente_id = $_SESSION['id_utente'] ?? null;
+$isLoggato = $utente_id !== null;
+
 // Dati squadra + torneo
 $sql = "
     SELECT s.id, s.nome, s.stato, s.capitano_id, s.torneo_id, s.persone_pranzo,
@@ -228,9 +231,27 @@ $stato_class = 'm-state-' . htmlspecialchars($squadra['stato']);
                         </form>
                     </div>
                 <?php endif; ?>
+
+                <?php if ($isLoggato && $_SESSION['id_utente'] != $squadra['capitano_id']): ?>
+                    <div class="m-card m-mt-4" style="display:flex;align-items:center;
+                        justify-content:space-between;flex-wrap:wrap;gap:var(--m-3);">
+                        <div>
+                            <div style="font-weight:600;font-size:.875rem;">Problema con questa squadra?</div>
+                            <div class="m-muted" style="font-size:.8rem;">
+                                Segnalaci comportamenti scorretti o contenuti inappropriati.
+                            </div>
+                        </div>
+                        <?php
+                        $modal_target_tipo = 'squadra';
+                        $modal_target_id   = $squadra['id'];
+                        $modal_redirect    = '/dettagli_squadra.php?id=' . $squadra['id'];
+                        $modal_label       = 'Segnala squadra';
+                        include 'components/segnala_modal.php';
+                        ?>
+                    </div>
+                <?php endif; ?>
             </aside>
         </div>
-
     </div>
 </main>
 
