@@ -174,6 +174,11 @@ include("components/navbar_torneo.php")
                 'segnalazioneInviata'    => ['success', 'Segnalazione inviata. La esamineremo al più presto.'],
                 'segnalazioneGiaInviata' => ['warn',   'Hai già una segnalazione aperta per questo torneo.'],
                 'errSegnalazione'        => ['danger', 'Errore nell\'invio della segnalazione.'],
+                'recensioneInviata'      => ['success', 'Recensione inviata. Grazie!'],
+                'errRecensione'          => ['danger',  'Errore nell\'invio della recensione.'],
+                'errRecensioneSelf'      => ['danger',  'Non puoi recensire te stesso.'],
+                'errTorneoNonCompletato' => ['warn',    'Puoi recensire solo tornei completati.'],
+                'errNonPartecipante'     => ['warn',    'Puoi recensire solo tornei a cui hai partecipato.'],
             ];
             $msg_key = $_GET['msg'];
             ?>
@@ -494,7 +499,49 @@ include("components/navbar_torneo.php")
                         <h4 class="m-profile-section-label">Organizzatore</h4>
                         <div style="display:flex; align-items:center; gap:var(--m-3);">
                             <span class="m-avatar m-avatar--lg"><?= strtoupper(mb_substr($organizzatore['nome'],0,1) . mb_substr($organizzatore['cognome'],0,1)) ?></span>
-                            <div style="font-family:var(--m-font-display); font-weight:600;"><?= htmlspecialchars($organizzatore['nome'] . ' ' . $organizzatore['cognome']) ?></div>
+                            <div>
+                                <a href="/profilo_organizzatore.php?id=<?= (int)$author ?>"
+                                style="font-family:var(--m-font-display);font-weight:600;
+                                        color:var(--m-primary);text-decoration:none;">
+                                    <?= htmlspecialchars($organizzatore['nome'] . ' ' . $organizzatore['cognome']) ?>
+                                </a>
+
+                                <?php
+                                // Media voto dell'organizzatore (mini-widget stelle)
+                                $recMini = $conn->query(
+                                    "SELECT ROUND(AVG(voto),1) AS media, COUNT(*) AS tot
+                                    FROM recensione WHERE organizzatore_id = $author"
+                                )->fetch_assoc();
+                                if ((int)$recMini['tot'] > 0):
+                                    $m = (float)$recMini['media'];
+                                ?>
+                                    <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                            <svg width="13" height="13" viewBox="0 0 24 24"
+                                                fill="<?= $i <= round($m) ? '#f59e0b' : '#d1d5db' ?>">
+                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14
+                                                                18.18 21.02 12 17.77 5.82 21.02
+                                                                7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                            </svg>
+                                        <?php endfor; ?>
+                                        <span style="font-size:.75rem;color:var(--m-text-secondary);margin-left:2px;">
+                                            <?= number_format($m,1) ?> (<?= $recMini['tot'] ?>)
+                                        </span>
+                                    </div>
+                                    <a href="/profilo_organizzatore.php?id=<?= (int)$author ?>"
+                                    style="font-size:.78rem;color:var(--m-primary);text-decoration:none;display:block;margin-top:2px;">
+                                        Vedi profilo e recensioni →
+                                    </a>
+                                <?php else: ?>
+                                    <div style="font-size:.78rem;color:var(--m-text-secondary);margin-top:4px;">
+                                        Nessuna recensione ancora
+                                    </div>
+                                    <a href="/profilo_organizzatore.php?id=<?= (int)$author ?>"
+                                    style="font-size:.78rem;color:var(--m-primary);text-decoration:none;display:block;margin-top:2px;">
+                                        Vedi profilo →
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 <?php endif; ?>
