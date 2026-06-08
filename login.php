@@ -63,6 +63,9 @@ require_once './templates/header.php'; // avvia sessione sicura
             <?php if (isset($_GET['msg'])): ?>
                 <?php
                 $msg = $_GET['msg'];
+                $wait = $_GET['wait'] ?? '';
+                $rimanenti = isset($_GET['rimanenti']) ? (int)$_GET['rimanenti'] : null;
+                
                 $messaggi_err = [
                     'errLogin'               => 'Email o password errata.',
                     'campiVuoti'             => 'Compila tutti i campi.',
@@ -73,6 +76,7 @@ require_once './templates/header.php'; // avvia sessione sicura
                     'usaGoogle'              => 'Questo account usa "Accedi con Google". Usa il pulsante qui sotto.',
                     'registrazioneCompletata'=> null, // gestito tra i messaggi ok
                     'accountBannato' => 'Questo account è stato bannato, se è un errore contatta matchora.torneo@gmail.com',
+                    'troppiTentativi' => 'Troppi tentativi di accesso. Riprova tra {'.$wait.'}.',
                 ];
                 $messaggi_ok = [
                     'ok'                  => 'Controlla la tua email per reimpostare la password.',
@@ -87,7 +91,22 @@ require_once './templates/header.php'; // avvia sessione sicura
                             <circle cx="12" cy="12" r="9"/>
                             <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
                         </svg>
-                        <div><?= htmlspecialchars($messaggi_err[$msg], ENT_QUOTES, 'UTF-8') ?></div>
+                        <?php
+                        $testo = $messaggi_err[$msg] ?? '';
+
+                        // sostituzione wait
+                        if ($msg === 'troppiTentativi') {
+                            $waitSafe = htmlspecialchars($wait, ENT_QUOTES, 'UTF-8');
+                            $testo = str_replace('{wait}', $waitSafe, $testo);
+                        }
+
+                        // aggiunta rimanenti (opzionale)
+                        if ($msg === 'errLogin' && $rimanenti !== null) {
+                            $testo .= " Tentativi rimasti: {$rimanenti}.";
+                        }
+                        ?>
+
+                        <div><?= htmlspecialchars($testo, ENT_QUOTES, 'UTF-8') ?></div>
                     </div>
                 <?php elseif (isset($messaggi_ok[$msg])): ?>
                     <div class="m-alert m-alert--success m-mt-4">
