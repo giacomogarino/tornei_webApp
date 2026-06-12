@@ -75,6 +75,7 @@ $_page_desc = !empty($page_description)
             <li><a href="/tornei_seguiti.php" class="<?= nav_active('tornei_seguiti.php', $current) ?>">Seguiti</a></li>
             <li><a href="/privati.php"        class="<?= nav_active('privati.php',        $current) ?>">Privati</a></li>
             <li><a href="/tornei_creati.php"  class="<?= nav_active('tornei_creati.php',  $current) ?>">Tornei creati</a></li>
+            <li><a href="/guida.php" class="<?= nav_active('guida.php', $current) ?>">Guida</a></li>
             <?php if (($_SESSION['role_utente'] ?? '') === 'admin'): ?>
                 <li><a href="/admin/index.php" class="<?= nav_active('index.php', $current) ?> m-navbar__link--admin">🔧 Admin</a></li>
             <?php endif; ?>
