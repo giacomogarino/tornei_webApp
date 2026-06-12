@@ -119,10 +119,15 @@ $result = $stmt->get_result();
 
             <select class="m-select" id="sport" name="sport" aria-label="Sport">
                 <option value="">Tutti gli sport</option>
-                <option value="calcio" <?= $filtro_sport === 'calcio' ? 'selected' : '' ?>>Calcio</option>
-                <option value="beachvolley" <?= $filtro_sport === 'beachvolley' ? 'selected' : '' ?>>Beachvolley</option>
-                <option value="padel" <?= $filtro_sport === 'padel' ? 'selected' : '' ?>>Padel</option>
-                <option value="tennis" <?= $filtro_sport === 'tennis' ? 'selected' : '' ?>>Tennis</option>
+                <option value="calcio"      <?= $filtro_sport === 'calcio'      ? 'selected' : '' ?>>⚽ Calcio</option>
+                <option value="futsal"      <?= $filtro_sport === 'futsal'      ? 'selected' : '' ?>>⚽ Futsal</option>
+                <option value="beachvolley" <?= $filtro_sport === 'beachvolley' ? 'selected' : '' ?>>🏐 Beach Volley</option>
+                <option value="rugby"       <?= $filtro_sport === 'rugby'       ? 'selected' : '' ?>>🏉 Rugby</option>
+                <option value="padel"       <?= $filtro_sport === 'padel'       ? 'selected' : '' ?>>🎾 Padel</option>
+                <option value="tennis"      <?= $filtro_sport === 'tennis'      ? 'selected' : '' ?>>🎾 Tennis</option>
+                <option value="ping_pong"   <?= $filtro_sport === 'ping_pong'   ? 'selected' : '' ?>>🏓 Ping Pong</option>
+                <option value="badminton"   <?= $filtro_sport === 'badminton'   ? 'selected' : '' ?>>🏸 Badminton</option>
+                <option value="basket"      <?= $filtro_sport === 'basket'      ? 'selected' : '' ?>>🏀 Basket</option>
             </select>
 
             <select class="m-select" id="stato" name="stato" aria-label="Stato">

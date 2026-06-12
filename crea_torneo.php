@@ -173,10 +173,15 @@ $tipo_label = [
     'andata_ritorno' => 'Andata e Ritorno',
 ];
 $sport_label = [
-    'calcio'       => 'Calcio',
-    'beachvolley'  => 'Beach Volley',
-    'padel'        => 'Padel',
-    'tennis'        => 'Tennis'
+    'calcio'      => '⚽ Calcio',
+    'futsal'      => '⚽ Futsal',
+    'beachvolley' => '🏐 Beach Volley',
+    'basket'      => '🏀 Basket',
+    'padel'       => '🎾 Padel',
+    'tennis'      => '🎾 Tennis',
+    'ping_pong'   => '🏓 Ping Pong',
+    'badminton'   => '🏸 Badminton',
+    'rugby'       => '🏉 Rugby',
 ];
 
 $w = $_SESSION['wizard'];
@@ -361,10 +366,21 @@ function step_class($step_n, $cur){
                             <label class="m-label" for="sport">Sport <span style="color: var(--m-danger-500);">*</span></label>
                             <select class="m-select" id="sport" name="sport" required>
                                 <option value="">-- Seleziona sport --</option>
-                                <option value="calcio" <?= (($w['sport'] ?? '')=='calcio') ? 'selected' : '' ?>>Calcio</option>
-                                <option value="beachvolley" <?= (($w['sport'] ?? '')=='beachvolley') ? 'selected' : '' ?>>Beach Volley</option>
-                                <option value="padel" <?= (($w['sport'] ?? '')=='padel') ? 'selected' : '' ?>>Padel</option>
-                                <option value="tennis" <?= (($w['sport'] ?? '')=='tennis') ? 'selected' : '' ?>>Tennis</option>
+                                <optgroup label="Con pareggio">
+                                    <option value="calcio"      <?= (($w['sport'] ?? '')=='calcio')      ? 'selected' : '' ?>>⚽ Calcio</option>
+                                    <option value="futsal"      <?= (($w['sport'] ?? '')=='futsal')      ? 'selected' : '' ?>>⚽ Futsal</option>
+                                    <option value="beachvolley" <?= (($w['sport'] ?? '')=='beachvolley') ? 'selected' : '' ?>>🏐 Beach Volley</option>
+                                    <option value="rugby"       <?= (($w['sport'] ?? '')=='rugby')       ? 'selected' : '' ?>>🏉 Rugby</option>
+                                </optgroup>
+                                <optgroup label="Senza pareggio (racket / 1v1)">
+                                    <option value="padel"       <?= (($w['sport'] ?? '')=='padel')       ? 'selected' : '' ?>>🎾 Padel</option>
+                                    <option value="tennis"      <?= (($w['sport'] ?? '')=='tennis')      ? 'selected' : '' ?>>🎾 Tennis</option>
+                                    <option value="ping_pong"   <?= (($w['sport'] ?? '')=='ping_pong')   ? 'selected' : '' ?>>🏓 Ping Pong</option>
+                                    <option value="badminton"   <?= (($w['sport'] ?? '')=='badminton')   ? 'selected' : '' ?>>🏸 Badminton</option>
+                                </optgroup>
+                                <optgroup label="Senza pareggio (squadra)">
+                                    <option value="basket"      <?= (($w['sport'] ?? '')=='basket')      ? 'selected' : '' ?>>🏀 Basket</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="m-field">

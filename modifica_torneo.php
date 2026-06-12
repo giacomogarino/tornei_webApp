@@ -114,10 +114,21 @@ require_once('templates/header_riservato.php');
                     <div class="m-field">
                         <label class="m-label" for="sport">Sport</label>
                         <select class="m-select" id="sport" name="sport">
-                            <option value="calcio" <?= $torneo['sport']=="calcio" ? "selected" : "" ?>>Calcio</option>
-                            <option value="beachvolley" <?= $torneo['sport']=="beachvolley" ? "selected" : "" ?>>Beach Volley</option>
-                            <option value="padel" <?= $torneo['sport']=="padel" ? "selected" : "" ?>>Padel</option>
-                            <option value="tennis" <?= $torneo['sport']=="tennis" ? "selected" : "" ?>>Tennis</option>
+                            <optgroup label="Con pareggio">
+                                <option value="calcio"      <?= $torneo['sport']=="calcio"      ? "selected" : "" ?>>⚽ Calcio</option>
+                                <option value="futsal"      <?= $torneo['sport']=="futsal"      ? "selected" : "" ?>>⚽ Futsal</option>
+                                <option value="beachvolley" <?= $torneo['sport']=="beachvolley" ? "selected" : "" ?>>🏐 Beach Volley</option>
+                                <option value="rugby"       <?= $torneo['sport']=="rugby"       ? "selected" : "" ?>>🏉 Rugby</option>
+                            </optgroup>
+                            <optgroup label="Senza pareggio (racket / 1v1)">
+                                <option value="padel"       <?= $torneo['sport']=="padel"       ? "selected" : "" ?>>🎾 Padel</option>
+                                <option value="tennis"      <?= $torneo['sport']=="tennis"      ? "selected" : "" ?>>🎾 Tennis</option>
+                                <option value="ping_pong"   <?= $torneo['sport']=="ping_pong"   ? "selected" : "" ?>>🏓 Ping Pong</option>
+                                <option value="badminton"   <?= $torneo['sport']=="badminton"   ? "selected" : "" ?>>🏸 Badminton</option>
+                            </optgroup>
+                            <optgroup label="Senza pareggio (squadra)">
+                                <option value="basket"      <?= $torneo['sport']=="basket"      ? "selected" : "" ?>>🏀 Basket</option>
+                            </optgroup>
                         </select>
                         </select>
                     </div>

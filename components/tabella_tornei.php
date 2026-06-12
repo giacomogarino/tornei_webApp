@@ -41,6 +41,18 @@ $cover_styles = [
     "background: radial-gradient(120% 80% at 80% 20%, rgba(243,156,18,0.18) 0%, transparent 50%), linear-gradient(135deg, #7a66f0 0%, #3a2fa1 100%);",
     "background: radial-gradient(120% 80% at 80% 20%, rgba(243,156,18,0.25) 0%, transparent 50%), linear-gradient(135deg, #5b4cdb 0%, #4338b3 100%);",
 ];
+
+$sport_display = [
+    'calcio'      => '⚽ Calcio',
+    'futsal'      => '⚽ Futsal',
+    'beachvolley' => '🏐 Beach Volley',
+    'rugby'       => '🏉 Rugby',
+    'padel'       => '🎾 Padel',
+    'tennis'      => '🎾 Tennis',
+    'ping_pong'   => '🏓 Ping Pong',
+    'badminton'   => '🏸 Badminton',
+    'basket'      => '🏀 Basket',
+];
 ?>
 
 <?php if ($result->num_rows > 0): ?>
@@ -59,7 +71,7 @@ $cover_styles = [
                 <div class="m-tcard__cover" style="<?= $cover ?>">
                     <span class="m-tcard__sport">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5 7l14 10"/></svg>
-                        <?= htmlspecialchars($row['sport']) ?>
+                        <?= htmlspecialchars($sport_display[$row['sport']] ?? ucfirst(str_replace('_', ' ', $row['sport']))) ?>
                     </span>
                     <span class="m-tcard__state m-badge m-badge--dot <?= $stato_class ?>"><?= htmlspecialchars($stato_txt) ?></span>
                 </div>
