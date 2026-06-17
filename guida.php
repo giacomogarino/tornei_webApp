@@ -28,6 +28,7 @@ require_once 'templates/header.php';
 </header>
 
 <main class="m-page">
+    
     <div class="m-container" style="max-width: 1000px;">
 
         <!-- Indice rapido -->
