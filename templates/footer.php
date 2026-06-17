@@ -39,7 +39,7 @@
         </div>
 
         <div class="m-footer__bottom">
-            <span>&copy; <?= date('Y') ?> Matchora Tornei — P.IVA/C.F. da inserire</span>
+            <span>&copy; <?= date('Y') ?> Matchora Tornei</span>
             <span>
                 <a href="privacy.php" style="color:inherit;text-decoration:none;margin-right:12px;">Privacy</a>
                 <a href="termini.php" style="color:inherit;text-decoration:none;">Termini</a>
@@ -47,5 +47,62 @@
         </div>
     </div>
 </footer>
+
+<?php if (isset($extra_css) && in_array('/css/torneo_struttura.css', $extra_css)): ?>
+<!-- AJAX risultati: caricato solo sulle pagine struttura torneo -->
+<script src="/js/matchora-risultato.js" defer></script>
+<?php endif; ?>
+
+<!-- PWA Install Banner -->
+<div id="pwa-banner" style="
+    display:none; position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+    background:var(--m-surface); border:1px solid var(--m-border); border-radius:12px;
+    padding:12px 18px; box-shadow:0 8px 32px rgba(0,0,0,.35);
+    display:flex; align-items:center; gap:12px; z-index:9999;
+    font-size:14px; max-width:360px; width:calc(100% - 32px);" id="pwa-banner">
+    <img src="/assets/matchora_icon.png" width="36" height="36" style="border-radius:8px;" alt="">
+    <div style="flex:1;">
+        <div style="font-weight:600;">Installa Matchora</div>
+        <div style="font-size:12px; color:var(--m-text-mute);">Accesso rapido dalla home</div>
+    </div>
+    <button id="pwa-install-btn" class="m-btn m-btn--primary m-btn--sm">Installa</button>
+    <button id="pwa-dismiss-btn" style="background:none;border:none;cursor:pointer;color:var(--m-text-mute);padding:4px;font-size:18px;line-height:1;" aria-label="Chiudi">&times;</button>
+</div>
+<script>
+(function(){
+    let deferredPrompt;
+    const banner = document.getElementById('pwa-banner');
+    const installBtn = document.getElementById('pwa-install-btn');
+    const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+    if (!banner || !installBtn || !dismissBtn) return;
+    if (localStorage.getItem('pwa-dismissed')) return;
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        banner.style.display = 'flex';
+    });
+
+    installBtn.addEventListener('click', function() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(c) {
+            if (c.outcome === 'accepted') localStorage.setItem('pwa-dismissed','1');
+            banner.style.display = 'none';
+            deferredPrompt = null;
+        });
+    });
+
+    dismissBtn.addEventListener('click', function() {
+        banner.style.display = 'none';
+        localStorage.setItem('pwa-dismissed','1');
+    });
+
+    window.addEventListener('appinstalled', function() {
+        banner.style.display = 'none';
+    });
+}());
+</script>
 </body>
 </html>

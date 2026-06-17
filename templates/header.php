@@ -41,8 +41,22 @@ $_page_desc = !empty($page_description)
     <meta name="description" content="<?= $_page_desc ?>">
     <meta name="robots" content="index, follow">
 
-    <!-- Favicon -->
+    <!-- Favicon & PWA -->
     <link rel="icon" type="image/png" href="/assets/matchora_icon.png">
+    <link rel="apple-touch-icon" href="/assets/matchora_icon.png">
+    <meta name="theme-color" content="#5b4cdb">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Open Graph (condivisione social / WhatsApp) -->
+    <meta property="og:type"         content="website">
+    <meta property="og:site_name"    content="Matchora Tornei">
+    <meta property="og:title"        content="<?= $_page_title ?>">
+    <meta property="og:description"  content="<?= $_page_desc ?>">
+    <meta property="og:image"        content="<?= isset($og_image) ? htmlspecialchars($og_image, ENT_QUOTES, 'UTF-8') : 'https://matchoratorneo.netsons.org/assets/matchora_icon.png' ?>">
+    <meta property="og:url"          content="https://matchoratorneo.netsons.org<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/', ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="twitter:card"        content="summary">
+    <meta name="twitter:title"       content="<?= $_page_title ?>">
+    <meta name="twitter:description" content="<?= $_page_desc ?>">
 
     <!--
         FONT — serviti dal nostro server (nessuna connessione a Google dal browser).
@@ -75,7 +89,6 @@ $_page_desc = !empty($page_description)
             <li><a href="/tornei_seguiti.php" class="<?= nav_active('tornei_seguiti.php', $current) ?>">Seguiti</a></li>
             <li><a href="/privati.php"        class="<?= nav_active('privati.php',        $current) ?>">Privati</a></li>
             <li><a href="/tornei_creati.php"  class="<?= nav_active('tornei_creati.php',  $current) ?>">Tornei creati</a></li>
-            <li><a href="/guida.php" class="<?= nav_active('guida.php', $current) ?>">Guida</a></li>
             <?php if (($_SESSION['role_utente'] ?? '') === 'admin'): ?>
                 <li><a href="/admin/index.php" class="<?= nav_active('index.php', $current) ?> m-navbar__link--admin">🔧 Admin</a></li>
             <?php endif; ?>
@@ -138,4 +151,12 @@ $_page_desc = !empty($page_description)
         }
     });
 }());
+
+// ── PWA: registra Service Worker ──────────────────────────────────
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+            .catch(function(err) { console.warn('SW registration failed:', err); });
+    });
+}
 </script>

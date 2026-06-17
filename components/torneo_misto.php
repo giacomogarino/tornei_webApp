@@ -690,20 +690,23 @@ elseif ($view === 'gironi'):
                                         <button class="m-btn m-btn--secondary m-btn--sm">Orario</button>
                                     </form>
                                 <?php endif; ?>
-                                <form method="POST" style="display:flex; gap:4px; align-items:center;">
+                                <form class="js-risultato-form" method="POST"
+                                      data-partita-id="<?= (int)$row['id'] ?>"
+                                      style="display:flex; gap:4px; align-items:center;">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="partita_id" value="<?= (int)$row['id'] ?>">
-                                    <input class="m-input m-num" type="number" name="casa" min="0" required
+                                    <input class="m-input m-num js-input-casa" type="number" name="casa" min="0" required
                                            value="<?= $finita ? (int)$row['punti_casa'] : '' ?>"
                                            style="width:50px; padding:4px; text-align:center;">
                                     <span class="m-muted">&ndash;</span>
-                                    <input class="m-input m-num" type="number" name="ospite" min="0" required
+                                    <input class="m-input m-num js-input-ospite" type="number" name="ospite" min="0" required
                                            value="<?= $finita ? (int)$row['punti_ospite'] : '' ?>"
                                            style="width:50px; padding:4px; text-align:center;">
-                                    <button class="m-btn <?= $finita ? 'm-btn--secondary' : 'm-btn--primary' ?> m-btn--sm"
+                                    <button class="m-btn <?= $finita ? 'm-btn--secondary' : 'm-btn--primary' ?> m-btn--sm js-risultato-btn"
                                             title="<?= $finita ? 'Modifica risultato' : 'Inserisci risultato' ?>">
                                         <?= $finita ? '&#9998;' : 'OK' ?>
                                     </button>
+                                    <span class="js-risultato-msg" style="font-size:11px; display:none;"></span>
                                 </form>
                             </div>
                         <?php elseif ($finita): ?>
@@ -840,20 +843,23 @@ $ordineTurni = ['ottavi', 'quarti', 'semifinale', 'finale'];
                                             <button class="m-btn m-btn--secondary m-btn--sm">Orario</button>
                                         </form>
                                     <?php endif; ?>
-                                    <form method="POST" style="display:flex; gap:4px; align-items:center;">
+                                    <form class="js-risultato-form" method="POST"
+                                          data-partita-id="<?= (int)$row['id'] ?>"
+                                          style="display:flex; gap:4px; align-items:center;">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="partita_id" value="<?= (int)$row['id'] ?>">
-                                        <input class="m-input m-num" type="number" name="casa" min="0" required
+                                        <input class="m-input m-num js-input-casa" type="number" name="casa" min="0" required
                                                value="<?= $finita ? (int)$row['punti_casa'] : '' ?>"
                                                style="width:50px; padding:4px; text-align:center;">
                                         <span class="m-muted">&ndash;</span>
-                                        <input class="m-input m-num" type="number" name="ospite" min="0" required
+                                        <input class="m-input m-num js-input-ospite" type="number" name="ospite" min="0" required
                                                value="<?= $finita ? (int)$row['punti_ospite'] : '' ?>"
                                                style="width:50px; padding:4px; text-align:center;">
-                                        <button class="m-btn <?= $finita ? 'm-btn--secondary' : 'm-btn--primary' ?> m-btn--sm"
+                                        <button class="m-btn <?= $finita ? 'm-btn--secondary' : 'm-btn--primary' ?> m-btn--sm js-risultato-btn"
                                                 title="<?= $finita ? 'Modifica risultato' : 'Inserisci risultato' ?>">
                                             <?= $finita ? '&#9998;' : 'OK' ?>
                                         </button>
+                                        <span class="js-risultato-msg" style="font-size:11px; display:none;"></span>
                                     </form>
                                 </div>
                             <?php elseif ($isOrganizzatore && $nextEsiste): ?>

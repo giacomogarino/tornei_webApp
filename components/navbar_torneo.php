@@ -1,4 +1,3 @@
-
 <style>
 /* ── Toggle gironi mode ─────────────────────────────── */
 .gm-toggle {
@@ -136,12 +135,30 @@
 </style>
 
 <?php
-$torneo = $navbar_data['torneo'];
+$navbar_data = $navbar_data ?? [];
+
+$torneo = $navbar_data['torneo'] ?? [
+    'id' => null,
+    'nome' => '',
+    'stato' => '',
+    'visibilita' => '',
+    'sport' => '',
+    'luogo' => '',
+    'formato' => '',
+    'descrizione' => '',
+    'creato_da' => null
+];
+
 $isOrganizzatore = $navbar_data['isOrganizzatore'] ?? false;
-$stato_label = $navbar_data['stato_label'];
-$formato_label = $navbar_data['formato_label'];
-$tipo_label = $navbar_data['tipo_label'];
+$stato_label = $navbar_data['stato_label'] ?? [];
+$formato_label = $navbar_data['formato_label'] ?? [];
+$tipo_label = $navbar_data['tipo_label'] ?? [];
 $isFollowing = $navbar_data['isFollowing'] ?? false;
+
+// Se non c'è ID torneo, esci
+if (empty($torneo['id'])) {
+    return;
+}
 ?>
 
 <header class="t-hero">
@@ -149,25 +166,25 @@ $isFollowing = $navbar_data['isFollowing'] ?? false;
         <div class="t-breadcrumb">
             <a href="index.php">Home</a>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span><?= htmlspecialchars($torneo['nome']) ?></span>
+            <span><?= htmlspecialchars((string)($torneo['nome'] ?? '')) ?></span>
         </div>
 
         <div class="dt-hero-inner">
             <div>
                 <div style="display:flex; gap:8px; margin-bottom:var(--m-3); flex-wrap:wrap;">
-                    <span class="t-chip<?= $torneo['stato'] === 'in_corso' ? ' t-chip--live' : '' ?>">
+                    <span class="t-chip<?= ($torneo['stato'] ?? '') === 'in_corso' ? ' t-chip--live' : '' ?>">
                         <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;"></span>
-                        <?= htmlspecialchars($stato_label[$torneo['stato']] ?? $torneo['stato']) ?>
+                        <?= htmlspecialchars((string)($stato_label[$torneo['stato'] ?? ''] ?? $torneo['stato'] ?? 'Sconosciuto')) ?>
                     </span>
                     <span class="t-chip">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                            <?php if ($torneo['visibilita'] === 'privato'): ?>
+                            <?php if (($torneo['visibilita'] ?? '') === 'privato'): ?>
                                 <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                             <?php else: ?>
                                 <circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M3 12h18"/>
                             <?php endif; ?>
                         </svg>
-                        <?= $torneo['visibilita'] === 'privato' ? 'Privato' : 'Pubblico' ?>
+                        <?= ($torneo['visibilita'] ?? '') === 'privato' ? 'Privato' : 'Pubblico' ?>
                     </span>
                     <?php if (!empty($torneo['sport'])): ?>
                         <span class="t-chip">
@@ -175,7 +192,7 @@ $isFollowing = $navbar_data['isFollowing'] ?? false;
                                 <circle cx="12" cy="12" r="9"/>
                                 <path d="M12 3v18M5 7l14 10"/>
                             </svg>
-                            <?= htmlspecialchars($torneo['sport']) ?>
+                            <?= htmlspecialchars((string)$torneo['sport']) ?>
                         </span>
                     <?php endif; ?>
 
@@ -185,24 +202,34 @@ $isFollowing = $navbar_data['isFollowing'] ?? false;
                                 <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"/>
                                 <circle cx="12" cy="10" r="2.5"/>
                             </svg>
-                            <?= htmlspecialchars($torneo['luogo']) ?>
+                            <?= htmlspecialchars((string)$torneo['luogo']) ?>
                         </span>
                     <?php endif; ?>
                     <span class="t-chip">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                             <path d="M3 6h18M3 12h18M3 18h18"/>
                         </svg>
-
-                        <?= htmlspecialchars($formato_label[$torneo['formato']] ?? $torneo['formato']) ?>
+                        <?= htmlspecialchars((string)($formato_label[$torneo['formato'] ?? ''] ?? $torneo['formato'] ?? 'Sconosciuto')) ?>
                     </span>
                 </div>
-                <h1><?= htmlspecialchars($torneo['nome']) ?></h1>
+                <h1><?= htmlspecialchars((string)($torneo['nome'] ?? '')) ?></h1>
                 <?php if (!empty($torneo['descrizione'])): ?>
-                    <p class="desc"><?= htmlspecialchars($torneo['descrizione']) ?></p>
+                    <p class="desc"><?= htmlspecialchars((string)$torneo['descrizione']) ?></p>
                 <?php endif; ?>
             </div>
             
-            <div style="display:flex; gap:var(--m-2); flex-wrap:wrap;">
+            <div style="display:flex; gap:var(--m-2); flex-wrap:wrap; align-items:center;">
+                <?php if (!empty($torneo['id'])): ?>
+                <a href="/statistiche_torneo.php?id=<?= (int)$torneo['id'] ?>"
+                   class="m-btn m-btn--ghost m-btn--sm" title="Statistiche torneo">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Stats
+                </a>
+                <a href="/php/esporta_calendario.php?id=<?= (int)$torneo['id'] ?>"
+                   class="m-btn m-btn--ghost m-btn--sm" title="Scarica calendario .ics">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+                    Cal
+                </a>
                 <form method="POST" style="display:inline;">
                     <?= csrf_field() ?>
                     <button type="submit" name="toggle_follow" class="m-btn <?= $isFollowing ? 'm-btn--secondary' : 'm-btn--gold' ?>">
@@ -210,6 +237,7 @@ $isFollowing = $navbar_data['isFollowing'] ?? false;
                         <?= $isFollowing ? 'Stai seguendo' : 'Segui torneo' ?>
                     </button>
                 </form>
+                <?php endif; ?>
             </div>
         </div>
     </div>
