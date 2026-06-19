@@ -1,29 +1,29 @@
 /**
  * matchora-risultato.js
- * Intercetta i form .js-risultato-form e aggiorna il risultato via AJAX
- * senza ricaricare la pagina. Se il server risponde con "playoff generato"
- * o "torneo completato" ricarica automaticamente per mostrare il nuovo stato.
  */
 (function () {
     'use strict';
 
-    // ── Colori feedback ──────────────────────────────────────────────
     const COLOR_OK  = 'var(--m-success, #16a34a)';
     const COLOR_ERR = 'var(--m-danger,  #dc2626)';
 
-    // ── Mostra messaggio inline accanto al bottone ────────────────────
     function feedback(form, text, color, autohide) {
-        const msg = form.querySelector('.js-risultato-msg');
-        if (!msg) return;
+        let msg = form.querySelector('.js-risultato-msg');
+        if (!msg) {
+            msg = document.createElement('span');
+            msg.className = 'js-risultato-msg';
+            msg.style.cssText = 'margin-left:8px;font-size:13px;display:inline;';
+            form.appendChild(msg);
+        }
         msg.textContent = text;
-        msg.style.color   = color;
+        msg.style.color = color;
         msg.style.display = 'inline';
-        if (autohide) setTimeout(() => { msg.style.display = 'none'; }, 2800);
+        if (autohide) {
+            setTimeout(() => { msg.style.display = 'none'; }, 2800);
+        }
     }
 
-    // ── Aggiorna visivamente score nel tabellone playoff ─────────────
     function aggiornaMatchCard(form, casaVal, ospiteVal) {
-        // Risali al .m-match e aggiorna le .m-match__score
         const match = form.closest('.m-match');
         if (!match) return;
         const scores = match.querySelectorAll('.m-match__score');
@@ -31,7 +31,6 @@
             scores[0].textContent = casaVal;
             scores[1].textContent = ospiteVal;
         }
-        // Aggiorna classi winner/loser
         const rows = match.querySelectorAll('.m-match__row');
         if (rows.length >= 2) {
             rows[0].classList.remove('m-match__row--winner', 'm-match__row--loser');
@@ -44,41 +43,49 @@
                 rows[0].classList.add('m-match__row--loser');
             }
         }
-        // Aggiorna head status
         const head = match.querySelector('.m-match__head span:last-child');
         if (head) head.textContent = 'Terminata';
     }
 
-    // ── Aggiorna riga nella tabella gironi ───────────────────────────
     function aggiornaRigaGirone(form, casaVal, ospiteVal) {
         const tr = form.closest('tr');
         if (!tr) return;
-        // La cella risultato è quella con <b class="m-num"> o il placeholder
         const celle = tr.querySelectorAll('td');
-        // Cerca la cella che contiene il risultato (ha &ndash; o è vuota/–)
         celle.forEach(td => {
-            if (td.querySelector('b.m-num') || td.textContent.trim() === '—') {
+            const b = td.querySelector('b.m-num');
+            if (b || td.textContent.trim() === '—' || td.textContent.trim() === '–') {
                 td.innerHTML = `<b class="m-num">${casaVal} &ndash; ${ospiteVal}</b>`;
             }
         });
     }
 
-    // ── Handler principale ───────────────────────────────────────────
     function handleSubmit(e) {
-        e.preventDefault();
+        e.preventDefault(); // <-- DEVE essere la prima cosa
+        
         const form = e.currentTarget;
-        const btn  = form.querySelector('.js-risultato-btn');
-
-        const casaInput   = form.querySelector('.js-input-casa');
+        
+        // Log per debug
+        console.log('Form submit intercettato:', form);
+        
+        const btn = form.querySelector('.js-risultato-btn');
+        const casaInput = form.querySelector('.js-input-casa');
         const ospiteInput = form.querySelector('.js-input-ospite');
-        const csrfInput   = form.querySelector('input[name="csrf_token"]');
+        const csrfInput = form.querySelector('input[name="csrf_token"]');
 
         if (!casaInput || !ospiteInput || !csrfInput) {
-            // Fallback: submit normale
-            form.submit(); return;
+            console.error('Campi mancanti nel form');
+            form.submit(); // fallback
+            return;
         }
 
-        const casaVal   = casaInput.value.trim();
+        const partitaId = form.dataset.partitaId;
+        if (!partitaId) {
+            console.error('data-partita-id mancante');
+            feedback(form, 'ID partita mancante', COLOR_ERR, true);
+            return;
+        }
+
+        const casaVal = casaInput.value.trim();
         const ospiteVal = ospiteInput.value.trim();
 
         if (casaVal === '' || ospiteVal === '') {
@@ -86,63 +93,88 @@
             return;
         }
 
-        // Stato di caricamento
-        if (btn) { btn.disabled = true; btn.textContent = '…'; }
+        if (isNaN(casaVal) || isNaN(ospiteVal)) {
+            feedback(form, 'Inserisci numeri validi.', COLOR_ERR, true);
+            return;
+        }
+
+        if (btn) { 
+            btn.disabled = true; 
+            btn.textContent = '…'; 
+        }
+
+        // Rimuovi messaggi precedenti
+        const oldMsg = form.querySelector('.js-risultato-msg');
+        if (oldMsg) oldMsg.style.display = 'none';
 
         const body = new URLSearchParams({
-            csrf_token:  csrfInput.value,
-            partita_id:  form.dataset.partitaId,
-            casa:        casaVal,
-            ospite:      ospiteVal,
+            csrf_token: csrfInput.value,
+            partita_id: partitaId,
+            casa: casaVal,
+            ospite: ospiteVal,
         });
 
+        console.log('Invio richiesta a /php/aggiorna_risultato.php con:', body.toString());
+
         fetch('/php/aggiorna_risultato.php', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body:    body.toString(),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: body.toString(),
         })
-        .then(r => r.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
             if (!data.ok) {
                 feedback(form, data.msg || 'Errore.', COLOR_ERR, true);
-                if (btn) { btn.disabled = false; btn.innerHTML = '&#9998;'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '✏️'; }
                 return;
             }
 
             const c = data.data.punti_casa;
             const o = data.data.punti_ospite;
 
-            // Aggiorna UI inline
-            casaInput.value   = c;
+            casaInput.value = c;
             ospiteInput.value = o;
             aggiornaMatchCard(form, c, o);
             aggiornaRigaGirone(form, c, o);
 
-            // Rendi il bottone "modifica" stile secondario
             if (btn) {
-                btn.disabled  = false;
-                btn.innerHTML = '&#9998;';
-                btn.className = btn.className
-                    .replace('m-btn--primary', 'p-btn--secondary');
+                btn.disabled = false;
+                btn.innerHTML = '✏️';
+                btn.className = btn.className.replace('m-btn--primary', 'm-btn--secondary');
             }
 
             feedback(form, '✓ Salvato', COLOR_OK, true);
 
-            // Se il torneo è completato o il turno è cambiato → ricarica dopo breve pausa
-            if (data.data.stato === 'terminata') {
-                // Attendi 800ms poi ricarica per aggiornare classifica/playoff
+            if (data.data.stato === 'terminata' || data.data.stato === 'completata') {
                 setTimeout(() => window.location.reload(), 900);
             }
         })
-        .catch(() => {
-            feedback(form, 'Errore di rete. Riprova.', COLOR_ERR, true);
-            if (btn) { btn.disabled = false; btn.innerHTML = '&#9998;'; }
+        .catch(error => {
+            console.error('Errore fetch:', error);
+            feedback(form, 'Errore di rete: ' + error.message, COLOR_ERR, true);
+            if (btn) { 
+                btn.disabled = false; 
+                btn.innerHTML = '✏️'; 
+            }
         });
     }
 
-    // ── Init: attacca a tutti i form presenti e futuri ────────────────
+    // ── Init ──────────────────────────────────────────────────────────
     function init() {
-        document.querySelectorAll('.js-risultato-form').forEach(f => {
+        const forms = document.querySelectorAll('.js-risultato-form');
+        console.log('Trovati ' + forms.length + ' form .js-risultato-form');
+        forms.forEach(f => {
+            // Rimuovi eventuali listener duplicati
+            f.removeEventListener('submit', handleSubmit);
             f.addEventListener('submit', handleSubmit);
         });
     }
@@ -152,4 +184,4 @@
     } else {
         init();
     }
-}());
+})();

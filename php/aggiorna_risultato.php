@@ -63,12 +63,17 @@ $sport     = $partita['sport'];
 $sport_cfg = sport_cfg($sport);
 
 // ── Validazione sport-specifica ────────────────────────────────────
-if (!$sport_cfg['ha_pareggio'] && $punti_casa === $punti_ospite)
+// 1. Se lo sport non ammette pareggi, blocca i pareggi
+if (!$sport_cfg['ha_pareggio'] && $punti_casa === $punti_ospite) {
     json_err('In ' . $sport_cfg['label'] . ' non sono ammessi pareggi');
+}
 
-if ($sport_cfg['ha_pareggio'] && $partita['girone'] === null
-    && $partita['tipo_partita'] === 'andata' && $punti_casa === $punti_ospite)
+// 2. In eliminazione diretta (girone = NULL e turno != NULL) 
+//    i pareggi NON sono ammessi per tutti gli sport che li prevedono
+//    (es. calcio: non ci sono pareggi in eliminazione diretta)
+if ($punti_casa === $punti_ospite && $partita['girone'] === null && !empty($partita['turno'])) {
     json_err('Niente pareggi in eliminazione diretta');
+}
 
 // ── Salva risultato ───────────────────────────────────────────────
 $stmt = $conn->prepare("
@@ -92,7 +97,6 @@ if ($partita['girone'] === null && $partita['turno'] !== null) {
     $mancanti = $stmt->get_result()->fetch_assoc()['tot'];
 
     if ($mancanti == 0) {
-        $turni_ord = ['ottavi' => 1, 'quarti' => 2, 'semifinale' => 3, 'finale' => 4];
         $next_map  = ['ottavi' => 'quarti', 'quarti' => 'semifinale', 'semifinale' => 'finale'];
 
         if ($turno === 'finale') {
@@ -144,8 +148,8 @@ if ($partita['girone'] !== null) {
         $stmt->bind_param("i", $torneo_id);
         $stmt->execute();
         if ($stmt->get_result()->fetch_assoc()['tot'] == 0) {
-            // include la funzione generaPlayoff dal componente misto
-            // (la logica è replicata qui per evitare dipendenze circolari)
+            // Qui andrebbe la logica per generare i playoff
+            // (per ora non implementata)
             $playoff_generato = true;
         }
     }

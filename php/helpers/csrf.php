@@ -127,6 +127,19 @@ function csrf_error_page(): void {
 }
 
 /**
+ * Verifica un token CSRF passato come stringa, senza terminare l'esecuzione
+ * né stampare alcun output. Pensata per endpoint AJAX/JSON (es. aggiorna_risultato.php),
+ * dove csrf_verify()/csrf_error_page() romperebbero la risposta JSON.
+ *
+ * @param string $token Il token da verificare (es. $_POST['csrf_token'])
+ * @return bool true se valido, false altrimenti
+ */
+function csrf_check(string $token): bool {
+    $expected = csrf_token();
+    return hash_equals($expected, $token);
+}
+
+/**
  * Verifica il token CSRF inviato via POST.
  * Termina l'esecuzione con HTTP 403 se il token non è valido.
  * Rigenera il token dopo la verifica (one-time use).

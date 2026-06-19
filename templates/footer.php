@@ -47,7 +47,7 @@
         </div>
     </div>
 </footer>
-
+<script src="/js/matchora-risultato.js" defer></script>
 <?php if (isset($extra_css) && in_array('/css/torneo_struttura.css', $extra_css)): ?>
 <!-- AJAX risultati: caricato solo sulle pagine struttura torneo -->
 <script src="/js/matchora-risultato.js" defer></script>
@@ -58,8 +58,8 @@
     display:none; position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
     background:var(--m-surface); border:1px solid var(--m-border); border-radius:12px;
     padding:12px 18px; box-shadow:0 8px 32px rgba(0,0,0,.35);
-    display:flex; align-items:center; gap:12px; z-index:9999;
-    font-size:14px; max-width:360px; width:calc(100% - 32px);" id="pwa-banner">
+    align-items:center; gap:12px; z-index:9999;
+    font-size:14px; max-width:360px; width:calc(100% - 32px);">
     <img src="/assets/matchora_icon.png" width="36" height="36" style="border-radius:8px;" alt="">
     <div style="flex:1;">
         <div style="font-weight:600;">Installa Matchora</div>
